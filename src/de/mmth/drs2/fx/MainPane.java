@@ -7,6 +7,8 @@ package de.mmth.drs2.fx;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.parts.Weiche;
+import javafx.application.Platform;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -18,15 +20,20 @@ import javafx.scene.text.Text;
 public class MainPane extends GridPane{
 
     private final Config config;
+    private final TextArea messages;
     
     public MainPane(Config config) {
         this.config = config;
         this.setHgap(5);
         this.setVgap(5);
         
+        messages = new TextArea();
+        this.add(messages, 0, 0);
+        
         VBox box = new VBox(5);
         Text hdr = new Text("Weichen");
         box.getChildren().add(hdr);
+        box.setMinWidth(120);
         
         for (Weiche weiche: config.weichen) {
             WeicheFx wfx = new WeicheFx(weiche);
@@ -34,6 +41,14 @@ public class MainPane extends GridPane{
             config.ticker.add(wfx);
         }
         
-        this.add(box, 0, 0);
+        this.add(box, 1, 0);
+    }
+    
+    public void addMessage(String message) {
+        Platform.runLater(() -> {
+            String txt = messages.getText() + message + "\r\n";
+            messages.setText(txt);
+            messages.setScrollTop(Double.MAX_VALUE);
+        });
     }
 }

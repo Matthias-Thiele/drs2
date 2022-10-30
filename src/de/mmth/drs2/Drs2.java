@@ -39,8 +39,9 @@ public class Drs2 extends Application {
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
         root.getChildren().add(main);
+        config.mainPane = main;
         
-        Scene scene = new Scene(root, 600, 450);
+        Scene scene = new Scene(root, 800, 500);
         
         primaryStage.setTitle("WSB-Calw DRS 2");
         primaryStage.setScene(scene);

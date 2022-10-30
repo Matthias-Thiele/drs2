@@ -4,6 +4,7 @@
  */
 package de.mmth.drs2;
 
+import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
 import de.mmth.drs2.parts.Weiche;
 
@@ -17,6 +18,7 @@ public class Config {
     public final Ticker ticker = new Ticker();
     public final Connector connector = new Connector();
     public final Weiche[] weichen = new Weiche[ANZAHL_WEICHEN];
+    public MainPane mainPane;
     
     /**
      * Initialisiert die Systemkonfiguration
@@ -33,5 +35,6 @@ public class Config {
      */
     public void alert(String message) {
         System.out.println(message);
+        mainPane.addMessage(message);
     }
 }
