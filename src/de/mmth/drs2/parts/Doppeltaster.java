@@ -53,10 +53,10 @@ public class Doppeltaster implements TickerEvent {
         }
     }
     
-    public void init(Config config, Connector drs2, TastenEvent activateWhenPressed, int taste1, int taste2) {
+    public void init(Config config, TastenEvent activateWhenPressed, int taste1, int taste2) {
         this.config = config;
         config.ticker.add(this);
-        this.drs2 = drs2;
+        this.drs2 = config.connector;
         this.activateWhenPressed = activateWhenPressed;
         this.taste1 = taste1;
         taste1Count = 0;
