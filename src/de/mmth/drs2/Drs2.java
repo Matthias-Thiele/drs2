@@ -36,7 +36,7 @@ public class Drs2 extends Application {
         config.connector.init(config.ticker);
         
         Weiche w1 = new Weiche();
-        w1.init(config, 0, 1, 0);
+        w1.init(config, "W1", 0, 1, 0);
         
         Button btn = new Button();
         btn.setText("Say 'Hello World'");

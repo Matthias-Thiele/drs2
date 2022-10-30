@@ -6,7 +6,6 @@ package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.TickerEvent;
-import de.mmth.drs2.io.Connector;
 
 /**
  *
@@ -15,47 +14,57 @@ import de.mmth.drs2.io.Connector;
 public class Weiche implements TickerEvent, TastenEvent {
     private static final int BLINK_DURATION = 47;
     private Doppeltaster taste;
-    private Connector drs2;
     private int firstLight;
     private int blink = 0;
     private boolean inPlusStellung = true;
-    private boolean isLocked = false;
+    private int lockCount = 0;
     private Config config;
+    private String name;
     
     /**
      * Übergibt die zugeordnete Tastereingänge und
      * Lampenausgänge
      * 
      * @param config
+     * @param name
      * @param taste1
      * @param taste2
      * @param firstLight 
      */
-    public void init(Config config, int taste1, int taste2, int firstLight) {
+    public void init(Config config, String name, int taste1, int taste2, int firstLight) {
         this.config = config;
-        this.drs2 = config.connector;
+        this.name = name;
         this.firstLight = firstLight;
         this.taste = new Doppeltaster();
-        taste.init(config, drs2, this, taste1, taste2);
+        taste.init(config, this, taste1, taste2);
         updateOutput();
         config.ticker.add(this);
     }
 
     /**
+     * Liefert den Namen der Weiche zurück.
+     * 
+     * @return 
+     */
+    public String getName() {
+        return name;
+    }
+    
+    /**
      * Doppeltaster wurden gedrückt.
      */
     @Override
     public void whenPressed() {
-        if (isLocked) {
+        if (lockCount > 0) {
             // Verrigelte Weichen können nicht umgestellt werden.
-            config.alert("Eine verrigelte Weiche kann nicht umgestellt werden.");
+            config.alert("Eine verrigelte Weiche kann nicht umgestellt werden: " + name);
             return;
         }
         
         inPlusStellung = !inPlusStellung;
         blink = BLINK_DURATION;
         updateOutput();
-        System.err.println("Weiche umgeschaltet nach " + inPlusStellung);
+        config.alert("Weiche " + name + " umgeschaltet nach " + inPlusStellung);
     }
 
     /**
@@ -69,17 +78,56 @@ public class Weiche implements TickerEvent, TastenEvent {
     }
     
     /**
-     * Verrigelt die Weiche
+     * Verrigelt die Weiche.Wenn sie noch 
+     * umfährt oder gestört ist, kann sie
+     * nicht gesperrt werden. Eine bereits
+     * gesperrte Weiche kann zusätzlich noch
+     * einmal gesperrt werden.
+     * 
+     * @return Meldet zurück, ob die Sperre erfolgt ist.
      */
-    public void lock() {
-        isLocked = true;
+    public boolean lock() {
+        if (blink == 0) {
+            lockCount++;
+            return true;
+        }
+        
+        return false;
     }
     
     /**
      * Löst die Verrigelung
      */
     public void unlock() {
-        isLocked = false;
+        if (lockCount == 0) {
+            config.alert("Fehler - die Weiche " + name + " war nicht gesperrt.");
+        } else {
+            lockCount--;
+        }
+    }
+    
+    /**
+     * Wenn eine Weiche gestört ist, blinkt
+     * sie dauerhaft.
+     * 
+     * @param stoerung 
+     */
+    public void setStoerung(boolean stoerung) {
+        if (stoerung) {
+            blink = Integer.MAX_VALUE;
+        } else {
+            blink = 0;
+        }
+    }
+    
+    /**
+     * Meldet, ob die Weich noch umläuft oder
+     * gestört ist.
+     * 
+     * @return 
+     */
+    public boolean isRunning() {
+        return blink != 0;
     }
     
     /**
@@ -95,8 +143,8 @@ public class Weiche implements TickerEvent, TastenEvent {
             l2 = false;
         }
         
-        drs2.setOut(firstLight, l1);
-        drs2.setOut(firstLight + 1, l2);
+        config.connector.setOut(firstLight, l1);
+        config.connector.setOut(firstLight + 1, l2);
     }
     
     /**
