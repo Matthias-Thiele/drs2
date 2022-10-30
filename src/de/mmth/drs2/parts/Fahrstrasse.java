@@ -1,13 +1,16 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * DRS2 Stellpultsteuerung für Raspberry Pi
+ * (c) 2022 Matthias Thiele
  */
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
 
 /**
- *
+ * Diese Klasse verwaltet die Funktionen zum
+ * Festlegen, Auflösen und Betreiben einer
+ * Fahrstraße.
+ * 
  * @author pi
  */
 public class Fahrstrasse implements TastenEvent{
@@ -20,6 +23,16 @@ public class Fahrstrasse implements TastenEvent{
     private boolean isLocked = false;
     private int gleisLampe;
     
+    /**
+     * Initialisiert die Parameter der Fahrstraße.
+     * 
+     * @param config
+     * @param plusWeichen diese Weichen müssen in Plus Stellung stehen
+     * @param minusWeichen diese Weichen müssen in Minus Stellung stehen
+     * @param signalTaste
+     * @param gleisTaste
+     * @param gleisLampe diese Lampe zeigt an, dass die Fahrstraße aktiv ist.
+     */
     public void init(Config config, int[] plusWeichen, int[] minusWeichen, int signalTaste, int gleisTaste, int gleisLampe) {
         this.config = config;
         
@@ -39,6 +52,12 @@ public class Fahrstrasse implements TastenEvent{
         this.gleisLampe = gleisLampe;
     }
 
+    /**
+     * Callback Funktion vom Doppeltaster.
+     * Der Fahrdienstleiter hat die Signaltaste
+     * und die Gleistaste betätigt. Das System
+     * versucht nun die Fahrstraße einzurichten.
+     */
     @Override
     public void whenPressed() {
         if (isLocked) {
