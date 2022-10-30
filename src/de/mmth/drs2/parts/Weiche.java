@@ -96,6 +96,14 @@ public class Weiche implements TickerEvent, TastenEvent {
     }
     
     /**
+     * Meldet zurück ob die Weiche verschlossen ist.
+     * @return 
+     */
+    public boolean isLocked() {
+        return lockCount > 0;
+    }
+    
+    /**
      * Löst die Verrigelung
      */
     public void unlock() {

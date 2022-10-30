@@ -4,14 +4,12 @@
  */
 package de.mmth.drs2;
 
+import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
 import de.mmth.drs2.io.Mcp23017;
 import de.mmth.drs2.parts.Weiche;
-import java.io.IOException;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -25,42 +23,30 @@ public class Drs2 extends Application {
     
     private final Config config = new Config();
     
-    private final Connector drs2Con = new Connector();
     
     @Override
     public void start(Stage primaryStage) throws Exception {
         mcp23017 = new Mcp23017();
         mcp23017.init();
         
-        config.ticker.start();
+        config.init();
+        
         config.connector.init(config.ticker);
         
-        Weiche w1 = new Weiche();
+        Weiche w1 = config.weichen[0];
         w1.init(config, "W1", 0, 1, 0);
         
-        Button btn = new Button();
-        btn.setText("Say 'Hello World'");
-        btn.setOnAction((ActionEvent event) -> {
-            try {
-                int old = mcp23017.read16(0);
-                mcp23017.write16(0, val);
-                int newval = mcp23017.read16(0);
-                System.out.println("War: " + Integer.toHexString(old)+ ", jetzt " + Integer.toHexString(newval));
-                System.err.print(drs2Con);
-                val = val << 1;
-            } catch (IOException ex) {
-                System.out.println(ex);
-            }
-        });
-        
+        MainPane main = new MainPane(config);
         StackPane root = new StackPane();
-        root.getChildren().add(btn);
+        root.getChildren().add(main);
         
-        Scene scene = new Scene(root, 300, 250);
+        Scene scene = new Scene(root, 600, 450);
         
-        primaryStage.setTitle("Hello World!");
+        primaryStage.setTitle("WSB-Calw DRS 2");
         primaryStage.setScene(scene);
         primaryStage.show();
+        
+        config.ticker.start();
     }
     
     /**
