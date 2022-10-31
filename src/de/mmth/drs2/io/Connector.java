@@ -56,6 +56,10 @@ public class Connector implements TickerEvent {
     public void init(Ticker ticker) throws Exception {
         mcp.init();
         ticker.add(this);
+        
+        for (int i = 0; i < drs2In.length; i++) {
+            drs2In[i] = true;
+        }
     }
     
     /**
@@ -103,7 +107,9 @@ public class Connector implements TickerEvent {
      * @param value 
      */
     public void setOut(int portNo, boolean value) {
-        drs2Out[portNo] = value;
+        if (portNo < drs2Out.length) {
+            drs2Out[portNo] = value;
+        }
     }
     
     /**
@@ -117,7 +123,7 @@ public class Connector implements TickerEvent {
         int portNo = 0;
         
         for (int i = 0; i < portCount; i++) {
-            int portValues = mcp.read16(i);
+            int portValues = mcp.read16(i) | 0xff00; // nur für Test
             for (int vi = 0; vi < 16; vi++) {
                 drs2In[portNo] = (portValues & 1) == 0;
                 portNo++;

@@ -49,12 +49,17 @@ public class FahrstrasseFx extends GridPane implements TickerEvent {
         this.add(name, 0, 0, 2, 1);
         
         // Verschluss
-        Text labelVerschluss = new Text("Verschluss");
+        Text labelVerschluss = new Text("Status");
         this.add(labelVerschluss, 0, 2);
+        labelVerschluss.setOnMouseClicked(ev -> {
+            if (fahrstrasse.isLocked()) {
+                fahrstrasse.unlock();
+            } else {
+                fahrstrasse.whenPressed();
+            }
+        });
         verschluss = new Text("unbekannt");
         this.add(verschluss, 1, 2);
-        
-        updateView();
     }
 
     /**

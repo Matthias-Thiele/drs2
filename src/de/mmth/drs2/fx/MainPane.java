@@ -39,6 +39,15 @@ public class MainPane extends GridPane{
         messages = new TextArea();
         this.add(messages, 0, 0);
         
+        addWeichen();
+        addFahrstrassen();
+    }
+    
+    /**
+     * Fügt die Liste der Weichen Controls in
+     * die MainPane ein.
+     */
+    private void addWeichen() {
         VBox box = new VBox(5);
         Text hdr = new Text("Weichen");
         box.getChildren().add(hdr);
@@ -51,6 +60,25 @@ public class MainPane extends GridPane{
         }
         
         this.add(box, 1, 0);
+    }
+    
+    /**
+     * Fügt die Liste der Fahrstrassen Controls in
+     * die MainPane ein.
+     */
+    private void addFahrstrassen() {
+        VBox box = new VBox(5);
+        Text hdr = new Text("Fahrstrassen");
+        box.getChildren().add(hdr);
+        box.setMinWidth(120);
+        
+        for (var fahrstrasse: config.fahrstrassen) {
+            var ffx = new FahrstrasseFx(fahrstrasse);
+            box.getChildren().add(ffx);
+            config.ticker.add(ffx);
+        }
+        
+        this.add(box, 2, 0);
     }
     
     /**

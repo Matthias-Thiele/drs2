@@ -45,7 +45,9 @@ public class Weiche implements TickerEvent, TastenEvent {
         this.firstRed = firstRed;
         this.sndRed = sndRed;
         this.taste = new Doppeltaster();
-        taste.init(config, this, taste1, taste2);
+        if (taste1 >= 0) {
+            taste.init(config, this, taste1, taste2);
+        }
         updateOutput();
         config.ticker.add(this);
     }
@@ -160,8 +162,10 @@ public class Weiche implements TickerEvent, TastenEvent {
             l2 = false;
         }
         
-        config.connector.setOut(firstWhite, l1);
-        config.connector.setOut(sndWhite, l2);
+        if (firstWhite >= 0) {
+            config.connector.setOut(firstWhite, l1);
+            config.connector.setOut(sndWhite, l2);
+        }
     }
     
     /**

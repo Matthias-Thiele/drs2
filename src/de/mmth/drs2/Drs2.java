@@ -39,15 +39,12 @@ public class Drs2 extends Application {
         
         config.connector.init(config.ticker);
         
-        Weiche w1 = config.weichen[0];
-        w1.init(config, "W1", 0, 1, 0);
-        
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
         root.getChildren().add(main);
         config.mainPane = main;
         
-        Scene scene = new Scene(root, 800, 500);
+        Scene scene = new Scene(root, 1200, 500);
         
         primaryStage.setTitle("WSB-Calw DRS 2");
         primaryStage.setScene(scene);

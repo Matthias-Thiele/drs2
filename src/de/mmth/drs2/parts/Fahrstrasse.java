@@ -50,7 +50,9 @@ public class Fahrstrasse implements TastenEvent{
         }
         
         taster = new Doppeltaster();
-        taster.init(config, this, signalTaste, gleisTaste);
+        if (signalTaste >= 0) {
+            taster.init(config, this, signalTaste, gleisTaste);
+        }
         
         this.gleisLampe = gleisLampe;
     }
@@ -74,7 +76,7 @@ public class Fahrstrasse implements TastenEvent{
                 config.alert("Die Weiche " + plusWeiche.getName() + " ist nicht in Plus Stellung.");
                 return;
             }
-            if (!plusWeiche.isRunning()) {
+            if (plusWeiche.isRunning()) {
                 config.alert("Die Weiche " + plusWeiche.getName() + " ist gestört oder läuft noch um.");
                 return;
             }
@@ -85,7 +87,7 @@ public class Fahrstrasse implements TastenEvent{
                 config.alert("Die Weiche " + minusWeiche.getName() + " ist nicht in Minus Stellung.");
                 return;
             }
-            if (!minusWeiche.isRunning()) {
+            if (minusWeiche.isRunning()) {
                 config.alert("Die Weiche " + minusWeiche.getName() + " ist gestört oder läuft noch um.");
                 return;
             }
@@ -102,6 +104,33 @@ public class Fahrstrasse implements TastenEvent{
         
         isLocked = true;
         config.connector.setOut(gleisLampe, true);
+        config.alert("Die Fahrstraße " + name + " wurde verschlossen.");
+    }
+    
+    /**
+     * Fahrstraße auflösen.
+     * 
+     * Dabei werden alle Weichensperren zurückgenommen
+     * und die Anzeige DRS 2 aktualisiert.
+     */
+    public void unlock() {
+        if (!isLocked) {
+            config.alert("Die Fahrstraße ist nicht verschlossen.");
+            return;
+        }
+        
+        // Weichen entrigeln
+        for (Weiche plusWeiche : plusWeichen) {
+            plusWeiche.unlock();
+        }
+
+        for (Weiche minusWeiche : minusWeichen) {
+            minusWeiche.unlock();
+        }
+        
+        isLocked = false;
+        config.connector.setOut(gleisLampe, false);
+        config.alert("Die Fahrstraße " + name + " wurde aufgelöst.");
     }
     
     /**
