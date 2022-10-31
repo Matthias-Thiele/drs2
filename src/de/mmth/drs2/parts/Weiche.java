@@ -14,7 +14,10 @@ import de.mmth.drs2.TickerEvent;
 public class Weiche implements TickerEvent, TastenEvent {
     private static final int BLINK_DURATION = 47;
     private Doppeltaster taste;
-    private int firstLight;
+    private int firstWhite;
+    private int sndWhite;
+    private int firstRed;
+    private int sndRed;
     private int blink = 0;
     private boolean inPlusStellung = true;
     private int lockCount = 0;
@@ -28,13 +31,19 @@ public class Weiche implements TickerEvent, TastenEvent {
      * @param config
      * @param name
      * @param taste1
-     * @param taste2
-     * @param firstLight 
+     * @param taste2 
+     * @param firstWhite 
+     * @param sndWhite 
+     * @param firstRed 
+     * @param sndRed 
      */
-    public void init(Config config, String name, int taste1, int taste2, int firstLight) {
+    public void init(Config config, String name, int taste1, int taste2, int firstWhite, int sndWhite, int firstRed, int sndRed) {
         this.config = config;
         this.name = name;
-        this.firstLight = firstLight;
+        this.firstWhite = firstWhite;
+        this.sndWhite = sndWhite;
+        this.firstRed = firstRed;
+        this.sndRed = sndRed;
         this.taste = new Doppeltaster();
         taste.init(config, this, taste1, taste2);
         updateOutput();
@@ -151,8 +160,8 @@ public class Weiche implements TickerEvent, TastenEvent {
             l2 = false;
         }
         
-        config.connector.setOut(firstLight, l1);
-        config.connector.setOut(firstLight + 1, l2);
+        config.connector.setOut(firstWhite, l1);
+        config.connector.setOut(sndWhite, l2);
     }
     
     /**
