@@ -34,6 +34,12 @@ public class WeicheFx extends GridPane implements TickerEvent {
     private final Text stellung;
     private final Text verschluss;
     
+    /**
+     * Der Konstruktor enthält die Weiche deren
+     * Zustand angezeigt werden soll.
+     * 
+     * @param weiche 
+     */
     public WeicheFx(Weiche weiche) {
         BorderStroke borderStroke = new BorderStroke(Color.BLUE, BorderStrokeStyle.SOLID, new CornerRadii(3),
                 new BorderWidths(1));
@@ -62,6 +68,10 @@ public class WeicheFx extends GridPane implements TickerEvent {
         this.add(verschluss, 1, 2);
     }
     
+    /**
+     * Aktualisiert die Ansicht aus dem
+     * aktuellen Zustand der Weiche.
+     */
     public void updateView() {
         String status = weiche.isPlus() ? "Plus" : "Minus";
         if (weiche.isRunning()) {
@@ -72,6 +82,11 @@ public class WeicheFx extends GridPane implements TickerEvent {
         verschluss.setText(weiche.isLocked() ? "Verschlossen" : "Frei");
     }
 
+    /**
+     * Löst regelmäßig eine Aktualisierung
+     * der Ansicht aus.
+     * @param count 
+     */
     @Override
     public void tick(int count) {
         Platform.runLater(() -> {

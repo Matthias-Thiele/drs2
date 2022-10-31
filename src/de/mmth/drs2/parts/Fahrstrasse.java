@@ -22,19 +22,22 @@ public class Fahrstrasse implements TastenEvent{
     
     private boolean isLocked = false;
     private int gleisLampe;
+    private String name;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
      * 
      * @param config
+     * @param name
      * @param plusWeichen diese Weichen müssen in Plus Stellung stehen
      * @param minusWeichen diese Weichen müssen in Minus Stellung stehen
      * @param signalTaste
      * @param gleisTaste
      * @param gleisLampe diese Lampe zeigt an, dass die Fahrstraße aktiv ist.
      */
-    public void init(Config config, int[] plusWeichen, int[] minusWeichen, int signalTaste, int gleisTaste, int gleisLampe) {
+    public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int signalTaste, int gleisTaste, int gleisLampe) {
         this.config = config;
+        this.name = name;
         
         this.plusWeichen = new Weiche[plusWeichen.length];
         for (int i = 0; i < plusWeichen.length; i++) {
@@ -99,5 +102,22 @@ public class Fahrstrasse implements TastenEvent{
         
         isLocked = true;
         config.connector.setOut(gleisLampe, true);
+    }
+    
+    /**
+     * Liefert den Namen der Fahrstraße zurück.
+     * 
+     * @return 
+     */
+    public String getName() {
+        return name;
+    }
+    
+    /**
+     * Liefert zurück, ob die Fahrstraße verschlossen ist.
+     * @return 
+     */
+    public boolean isLocked() {
+        return isLocked;
     }
 }

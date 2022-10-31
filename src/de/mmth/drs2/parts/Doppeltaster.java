@@ -10,7 +10,14 @@ import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.io.Connector;
 
 /**
- *
+ * Aktionen im DRS 2 Stellpult erfolgen normalerweise
+ * durch das gemeinsame drücken zweier Tasten um
+ * versehentliche Fehlbedienungen zu vermeiden.
+ * 
+ * Diese Klasse prüft den Zustand eines Tastenpaares
+ * und gibt ein einmaliges TastenEvent nach knapp
+ * einer Sekunde ab.
+ * 
  * @author pi
  */
 public class Doppeltaster implements TickerEvent {
@@ -25,6 +32,13 @@ public class Doppeltaster implements TickerEvent {
     private int taste2Count;
     private Config config;
     
+    /**
+     * Mit jedem TickerEvent wird der Zustand der
+     * beiden Taster eingelesen. Wenn beide eine
+     * voreingestellte Zeit gedrückt sind, wird
+     * einmalig ein TastenEvent erzeugt.
+     * @param count 
+     */
     @Override
     public void tick(int count) {
         if (drs2.isInSet(taste1)) {
@@ -53,6 +67,19 @@ public class Doppeltaster implements TickerEvent {
         }
     }
     
+    /**
+     * Mit dieser Funktion initialisiert das Objekt, welches
+     * diese Tastenkombination verwendet, den Doppeltaster.
+     * 
+     * Das Zielobjekt gibt sich selber als Empfänger des
+     * TastenEvents an sowie die Pin Nummern der beiden
+     * Tasten.
+     * 
+     * @param config
+     * @param activateWhenPressed
+     * @param taste1
+     * @param taste2 
+     */
     public void init(Config config, TastenEvent activateWhenPressed, int taste1, int taste2) {
         this.config = config;
         config.ticker.add(this);

@@ -15,6 +15,11 @@ import java.io.IOException;
  */
 public class Mcp23017 {
     
+    /**
+     * Basisadresse der MCP23017 Portexpander Bausteine.
+     * 0x20 ist die Adresse 0, die sieben weiteren liegen
+     * dann auf 0x21, 0x22...
+     */
     public static final int MCP23017_ADDRESS = 0x20;
 
     private static final int IODIRA_REGISTER = 0x00; //IODIRA Register. Responsible for input or output

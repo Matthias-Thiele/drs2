@@ -13,10 +13,14 @@ import java.io.IOException;
  * @author pi
  */
 public class Connector implements TickerEvent {
-    // Anzahl der Eingänge von der DRS2, muss ein vielfaches von 16 sein
+    /**
+     * Anzahl der Eingänge von der DRS2, muss ein vielfaches von 16 sein.
+     */
     public final static int INPUT_COUNT = 16;
     
-    // Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein
+    /**
+     * Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein.
+     */
     public final static int OUTPUT_COUNT = 16;
     
     private final boolean[] drs2In = new boolean[INPUT_COUNT];
@@ -24,6 +28,12 @@ public class Connector implements TickerEvent {
     
     private final Mcp23017 mcp = new Mcp23017();
     
+    /**
+     * Das Tickerevent löst das Lesen der DRS 2 Tastereingänge
+     * sowie das Schreiben der DRS 2 Lampenausgänge aus.
+     * 
+     * @param count 
+     */
     @Override
     public void tick(int count) {
         try {

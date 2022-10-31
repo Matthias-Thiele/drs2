@@ -5,7 +5,6 @@
 package de.mmth.drs2;
 
 import de.mmth.drs2.fx.MainPane;
-import de.mmth.drs2.io.Connector;
 import de.mmth.drs2.io.Mcp23017;
 import de.mmth.drs2.parts.Weiche;
 import javafx.application.Application;
@@ -14,7 +13,9 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 /**
- *
+ * Diese Klasse simuliert die Relaissteuerung
+ * zu einem DRS 2 Stellpult.
+ * 
  * @author pi
  */
 public class Drs2 extends Application {
@@ -23,7 +24,12 @@ public class Drs2 extends Application {
     
     private final Config config = new Config();
     
-    
+    /**
+     * JavaFX Startpunkt erzeugt die Ansicht.
+     * 
+     * @param primaryStage
+     * @throws Exception 
+     */
     @Override
     public void start(Stage primaryStage) throws Exception {
         mcp23017 = new Mcp23017();

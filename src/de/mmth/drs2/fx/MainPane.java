@@ -14,7 +14,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 /**
- *
+ * Die MainPane ist ein JavaFX Control welches
+ * die Anzeige aller DRS 2 Systeminformationen
+ * enthält.
+ * 
  * @author pi
  */
 public class MainPane extends GridPane{
@@ -22,6 +25,12 @@ public class MainPane extends GridPane{
     private final Config config;
     private final TextArea messages;
     
+    /**
+     * Der Konstruktor übernimmt die Konfiguration
+     * der Stellpultdaten.
+     * 
+     * @param config 
+     */
     public MainPane(Config config) {
         this.config = config;
         this.setHgap(5);
@@ -44,6 +53,12 @@ public class MainPane extends GridPane{
         this.add(box, 1, 0);
     }
     
+    /**
+     * Fügt eine Nachricht an das interne
+     * Nachrichtenfenster an.
+     * 
+     * @param message 
+     */
     public void addMessage(String message) {
         Platform.runLater(() -> {
             String txt = messages.getText() + message + "\r\n";
