@@ -12,7 +12,7 @@ import de.mmth.drs2.TickerEvent;
  * @author pi
  */
 public class Weiche implements TickerEvent, TastenEvent {
-    private static final int BLINK_DURATION = 47;
+    private static final int BLINK_DURATION = 72;
     private Doppeltaster taste;
     private int firstWhite;
     private int sndWhite;
@@ -157,7 +157,7 @@ public class Weiche implements TickerEvent, TastenEvent {
         boolean l1 = inPlusStellung;
         boolean l2 = !l1;
         
-        if ((blink & 0x4) == 0x4) {
+        if ((blink & 0x8) == 0x8) {
             l1 = false;
             l2 = false;
         }
