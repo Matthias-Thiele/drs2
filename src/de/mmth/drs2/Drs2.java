@@ -6,8 +6,10 @@ package de.mmth.drs2;
 
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Mcp23017;
-import de.mmth.drs2.parts.Weiche;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -19,7 +21,6 @@ import javafx.stage.Stage;
  * @author pi
  */
 public class Drs2 extends Application {
-    Mcp23017 mcp23017;
     public static int val = 1;
     
     private final Config config = new Config();
@@ -32,9 +33,6 @@ public class Drs2 extends Application {
      */
     @Override
     public void start(Stage primaryStage) throws Exception {
-        mcp23017 = new Mcp23017();
-        mcp23017.init();
-        
         config.init();
         
         config.connector.init(config.ticker);
@@ -49,6 +47,12 @@ public class Drs2 extends Application {
         primaryStage.setTitle("WSB-Calw DRS 2");
         primaryStage.setScene(scene);
         primaryStage.show();
+        primaryStage.setOnCloseRequest(we -> {try {
+            config.ticker.interrupt();
+            Platform.exit();
+            } catch (Exception ex) {
+            }
+});
         
         config.ticker.start();
     }
