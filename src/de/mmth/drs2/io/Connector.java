@@ -54,7 +54,7 @@ public class Connector implements TickerEvent {
      * @throws Exception 
      */
     public void init(Ticker ticker) throws Exception {
-        mcp.init();
+        mcp.init(1, 1);
         ticker.add(this);
         
         for (int i = 0; i < drs2In.length; i++) {

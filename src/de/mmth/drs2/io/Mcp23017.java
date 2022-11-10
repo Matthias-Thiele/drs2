@@ -32,51 +32,77 @@ public class Mcp23017 {
     private static final int GPPUB_REGISTER = 0x0D; ///PORT B Pull-up value. If set configures the internal pull-ups
     
     private I2CBus i2c;
-    private I2CDevice device;
+    private I2CDevice[] devices;
+    private int inputOffset;
     
     /**
-     * Initialisiert alle MCP23017 Bausteine
+     * Initialisiert alle MCP23017 Bausteine.
      * 
-     * TODO Parameter für Input und Output Kanäle
+     * Der Parameter outputCount gibt an,
+     * wie viele Ausgabekarten vorhanden
+     * sind, inputCount gibt die Anzahl
+     * der Eingabekarten an. Beide Arten
+     * müssen direkt nacheinander und
+     * ohne Lücken belegt werden.
+     * 
+     * @param outputCount
+     * @param inputCount
      * @throws Exception 
      */
-    public void init() throws Exception {
-        i2c = I2CFactory.getInstance(I2CBus.BUS_1);
-        device = i2c.getDevice(MCP23017_ADDRESS);
+    public void init(int outputCount, int inputCount) throws Exception {
+        this.inputOffset = outputCount;
+        devices = new I2CDevice[outputCount + inputCount];
         
-        // Test mit nur einem Baustein A = Out, B = In
-        device.write(IODIRA_REGISTER, (byte) 0x00);
-        device.write(GPIOA_REGISTER, (byte)0);
-        device.write(IODIRB_REGISTER, (byte) 0xFF);
-        device.write(GPPUB_REGISTER, (byte) 0xFF);
+        i2c = I2CFactory.getInstance(I2CBus.BUS_1);
+        for (int numDevice = 0; numDevice < (outputCount + inputCount); numDevice++) {
+            I2CDevice device = i2c.getDevice(MCP23017_ADDRESS + numDevice);
+        
+            if (numDevice < outputCount) {
+                // Ausgabe konfigurieren
+                device.write(IODIRA_REGISTER, (byte) 0x00);
+                device.write(GPIOA_REGISTER, (byte)0);
+                device.write(IODIRB_REGISTER, (byte) 0x00);
+                device.write(GPIOB_REGISTER, (byte)0);
+                
+            } else {
+                // Eingabe konfigurieren
+                device.write(IODIRA_REGISTER, (byte) 0xFF);
+                device.write(GPPUA_REGISTER, (byte) 0xFF);
+                device.write(IODIRB_REGISTER, (byte) 0xFF);
+                device.write(GPPUB_REGISTER, (byte) 0xFF);
+            }
+            
+            devices[numDevice] = device;
+        }
     }
     
     /**
      * Schreibt die unteren 16 Bit des int Wertes value
      * in den angegebenen Kanal cardNo.
      * 
-     * TODO - zum Test nur 8 Bit in A des einzigen
-     *        Bausteins schreiben.
      * @param cardNo
      * @param value
      * @throws IOException 
      */
     public void write16(int cardNo, int value) throws IOException {
-        device.write(GPIOA_REGISTER, (byte) value); 
+        devices[cardNo].write(GPIOA_REGISTER, (byte) value); 
+        devices[cardNo].write(GPIOB_REGISTER, (byte) (value >> 8)); 
     }
     
     /**
      * Liest 16 Bit aus dem Kanal cardNo und gibt sie als
      * int Wert zurück.
      * 
-     * TODO - zum Test nur die 8 Bit aus B des einzigen
-     *        Bausteins lesen.
+     * Die Eingabekarten werden wieder von 0 an durchgezählt
+     * und liegen im Anschluss an alle Ausgabekarten.
+     * 
      * @param cardNo
      * @return
      * @throws IOException 
      */
     public int read16(int cardNo) throws IOException {
-        int result = device.read(GPIOB_REGISTER);
+        int result = devices[cardNo + inputOffset].read(GPIOA_REGISTER);
+        result |= ((devices[cardNo + inputOffset].read(GPIOB_REGISTER) << 8) & 0xff00);
         
         return result;
     }
