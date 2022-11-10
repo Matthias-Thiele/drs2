@@ -12,6 +12,7 @@ package de.mmth.drs2.io;
 public class Signal {
 
     private Connector conn;
+    private String name;
     private int sigFahrt;
     private int sigHalt;
     private int vorsigFahrt;
@@ -28,7 +29,8 @@ public class Signal {
      * @param vorsigFahrt
      * @param vorsigHalt 
      */
-    public void init(Connector conn, int sigFahrt, int sigHalt, int vorsigFahrt, int vorsigHalt) {
+    public void init(Connector conn, String name, int sigFahrt, int sigHalt, int vorsigFahrt, int vorsigHalt) {
+        this.name = name;
         this.conn = conn;
         this.sigFahrt = sigFahrt;
         this.sigHalt = sigHalt;

@@ -6,6 +6,7 @@ package de.mmth.drs2;
 
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
+import de.mmth.drs2.io.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Weiche;
 
@@ -27,6 +28,12 @@ public class Config {
     public final static int ANZAHL_FAHRSTRASSEN = 8;
     
     /**
+     * Anzahl der Signale die über das System
+     * verwalte werden.
+     */
+    public final static int ANZAHL_SIGNALE = 6;
+    
+    /**
      * Ticker für die Weiterschaltung und
      * Aktualisierung der verschiedenen
      * Systeme.
@@ -43,14 +50,19 @@ public class Config {
     public final Connector connector = new Connector();
     
     /**
-     * Liste der Weichen aus dem Stellpult.
+     * Liste der Weichen auf dem Stellpult.
      */
     public final Weiche[] weichen = new Weiche[ANZAHL_WEICHEN];
     
     /**
-     * Liste der Fahrstraßen aus dem Stellpult.
+     * Liste der Fahrstraßen auf dem Stellpult.
      */
     public final Fahrstrasse[] fahrstrassen = new Fahrstrasse[ANZAHL_FAHRSTRASSEN];
+    
+    /**
+     * Liste der Signale auf dem Stellpult.
+     */
+    public final Signal[] signale = new Signal[ANZAHL_SIGNALE];
     
     /**
      * JavaFX Anzeige des Systemzustands.
@@ -63,6 +75,7 @@ public class Config {
      */
     public void init() {
         initWeichen();
+        initSignale();
         initFahrstrassen();
     }
     
@@ -123,7 +136,7 @@ public class Config {
         for (int i = 0; i < ANZAHL_FAHRSTRASSEN; i++) {
             var fahrstrasse = new Fahrstrasse();
             String name;
-            int taste1, taste2, gleislampeWeiss, gleislampeRot;
+            int taste1, taste2, gleislampeWeiss, gleislampeRot, signalNummer;
             int[] minusWeichen, plusWeichen;
             
             switch(i) {
@@ -137,6 +150,7 @@ public class Config {
                     minusWeichen = minusWeichen0;
                     int[] plusWeichen0 = {0};
                     plusWeichen = plusWeichen0;
+                    signalNummer = 0;
                     break;
                     
                 case 1:
@@ -149,17 +163,46 @@ public class Config {
                     minusWeichen = minusWeichen1;
                     int[] plusWeichen1 = {1};
                     plusWeichen = plusWeichen1;
+                    signalNummer = 1;
                     break;
                     
                 default:
                     name = "TBD";
-                    taste1 = taste2 = gleislampeWeiss = gleislampeRot = -1;
+                    taste1 = taste2 = gleislampeWeiss = gleislampeRot = signalNummer = -1;
                     plusWeichen = new int[0];
                     minusWeichen = new int[0];
             }
             
-            fahrstrasse.init(this, name, plusWeichen, minusWeichen, taste1, taste2, gleislampeWeiss);
+            fahrstrasse.init(this, name, plusWeichen, minusWeichen, taste1, taste2, gleislampeWeiss, gleislampeRot, signalNummer);
             fahrstrassen[i] = fahrstrasse;
+        }
+    }
+    
+    /**
+     * Stellt die Portnummern für die Signale ein.
+     */
+    private void initSignale() {
+        for (int i = 0; i < ANZAHL_SIGNALE; i++) {
+            Signal signal = new Signal();
+            String name;
+            int sigFahrt, sigHalt, vorsigFahrt, vorsigHalt;
+            switch (i) {
+                case 0:
+                    name = "Sig 1";
+                    sigFahrt = 3;
+                    sigHalt = 4;
+                    vorsigFahrt = 5;
+                    vorsigHalt = 6;
+                    break;
+                    
+                default:
+                    name = "TBD";
+                    sigFahrt = sigHalt = vorsigFahrt = vorsigHalt = -1;
+                    break;
+                    
+            }
+            
+            signal.init(connector, name, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt);
         }
     }
     

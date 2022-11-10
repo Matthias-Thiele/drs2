@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.io.Signal;
 
 /**
  * Diese Klasse verwaltet die Funktionen zum
@@ -21,8 +22,10 @@ public class Fahrstrasse implements TastenEvent{
     private Doppeltaster taster;
     
     private boolean isLocked = false;
-    private int gleisLampe;
+    private int gleisLampeWeiss;
     private String name;
+    private Signal signal;
+    private int gleisLampeRot;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -33,9 +36,10 @@ public class Fahrstrasse implements TastenEvent{
      * @param minusWeichen diese Weichen müssen in Minus Stellung stehen
      * @param signalTaste
      * @param gleisTaste
-     * @param gleisLampe diese Lampe zeigt an, dass die Fahrstraße aktiv ist.
+     * @param gleisLampeWeiss diese Lampe zeigt an, dass die Fahrstraße aktiv ist.
+     * @param signalNummer Ein- oder Ausfahrtsignal zu dieser Fahrstraße.
      */
-    public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int signalTaste, int gleisTaste, int gleisLampe) {
+    public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int signalTaste, int gleisTaste, int gleisLampeWeiss, int gleisLampeRot, int signalNummer) {
         this.config = config;
         this.name = name;
         
@@ -54,7 +58,9 @@ public class Fahrstrasse implements TastenEvent{
             taster.init(config, this, signalTaste, gleisTaste);
         }
         
-        this.gleisLampe = gleisLampe;
+        this.gleisLampeWeiss = gleisLampeWeiss;
+        this.gleisLampeRot = gleisLampeRot;
+        this.signal = config.signale[signalNummer];
     }
 
     /**
@@ -103,7 +109,7 @@ public class Fahrstrasse implements TastenEvent{
         }
         
         isLocked = true;
-        config.connector.setOut(gleisLampe, true);
+        config.connector.setOut(gleisLampeWeiss, true);
         config.alert("Die Fahrstraße " + name + " wurde verschlossen.");
     }
     
@@ -129,7 +135,7 @@ public class Fahrstrasse implements TastenEvent{
         }
         
         isLocked = false;
-        config.connector.setOut(gleisLampe, false);
+        config.connector.setOut(gleisLampeWeiss, false);
         config.alert("Die Fahrstraße " + name + " wurde aufgelöst.");
     }
     

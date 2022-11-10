@@ -1,0 +1,4 @@
+/*
+ * DRS2 Stellpultsteuerung für Raspberry Pi
+ * (c) 2022 Matthias Thiele
+ */

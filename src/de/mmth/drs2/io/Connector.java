@@ -37,8 +37,11 @@ public class Connector implements TickerEvent {
     @Override
     public void tick(int count) {
         try {
+            //long start = System.nanoTime();
             readInputs();
             writeOutputs();
+            //long duration = System.nanoTime() - start;
+            //System.out.println("Time: " + duration);
         } catch (IOException ex) {
             System.out.println(ex);
         }
