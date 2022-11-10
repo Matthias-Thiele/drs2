@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Ticker extends Thread {
     final List<TickerEvent> callbackList = new ArrayList<>();
-    final private long TICKER_DELAY = 67;
+    final private long TICKER_DELAY = 62;
     private int tickCount = 0;
     
     /**
