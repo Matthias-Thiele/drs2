@@ -33,7 +33,7 @@ public class Mcp23017 {
     
     private I2CBus i2c;
     private I2CDevice[] devices;
-    private int inputOffset;
+    private int outputOffset;
     
     /**
      * Initialisiert alle MCP23017 Bausteine.
@@ -50,32 +50,63 @@ public class Mcp23017 {
      * @throws Exception 
      */
     public void init(int outputCount, int inputCount) throws Exception {
-        this.inputOffset = outputCount;
+        this.outputOffset = inputCount;
         devices = new I2CDevice[outputCount + inputCount];
         
         i2c = I2CFactory.getInstance(I2CBus.BUS_1);
         for (int numDevice = 0; numDevice < (outputCount + inputCount); numDevice++) {
-            I2CDevice device = i2c.getDevice(MCP23017_ADDRESS + numDevice);
+            I2CDevice device;
         
             if (numDevice < outputCount) {
                 // Ausgabe konfigurieren
-                device.write(IODIRA_REGISTER, (byte) 0x00);
-                device.write(GPIOA_REGISTER, (byte)0);
-                device.write(IODIRB_REGISTER, (byte) 0x00);
-                device.write(GPIOB_REGISTER, (byte)0);
-                
+                device = initOutput(numDevice);
             } else {
                 // Eingabe konfigurieren
-                device.write(IODIRA_REGISTER, (byte) 0xFF);
-                device.write(GPPUA_REGISTER, (byte) 0xFF);
-                device.write(IODIRB_REGISTER, (byte) 0xFF);
-                device.write(GPPUB_REGISTER, (byte) 0xFF);
+                device = initInput(numDevice);
             }
             
             devices[numDevice] = device;
         }
     }
     
+    /**
+     * Konfiguriert die MCP Register für 16 Ausgabelinien.
+     * 
+     * Stellt alle Ausgänge auf 0 (Aus).
+     * 
+     * @param numDevice
+     * @return
+     * @throws IOException 
+     */
+    public I2CDevice initOutput(int numDevice) throws IOException {
+        I2CDevice device = i2c.getDevice(MCP23017_ADDRESS + numDevice);
+        device.write(IODIRA_REGISTER, (byte) 0x00);
+        device.write(GPIOA_REGISTER, (byte) 0x00);
+        device.write(IODIRB_REGISTER, (byte) 0x00);
+        device.write(GPIOB_REGISTER, (byte) 0x00);
+        
+        return device;
+    }
+    
+    /**
+     * Konfiguriert die MCP Register für 16 Eingabelinien.
+     * 
+     * Aktiviert die PullUp Widerstände im Portbaustein.
+     * Die Taster schalten gegen Masse.
+     * 
+     * @param numDevice
+     * @return
+     * @throws IOException 
+     */
+    public I2CDevice initInput(int numDevice) throws IOException {
+        I2CDevice device = i2c.getDevice(MCP23017_ADDRESS + numDevice);
+        device.write(IODIRA_REGISTER, (byte) 0xFF);
+        device.write(GPPUA_REGISTER, (byte) 0xFF);
+        device.write(IODIRB_REGISTER, (byte) 0xFF);
+        device.write(GPPUB_REGISTER, (byte) 0xFF);
+        
+        return device;
+    }
     /**
      * Schreibt die unteren 16 Bit des int Wertes value
      * in den angegebenen Kanal cardNo.
@@ -85,8 +116,8 @@ public class Mcp23017 {
      * @throws IOException 
      */
     public void write16(int cardNo, int value) throws IOException {
-        devices[cardNo].write(GPIOA_REGISTER, (byte) value); 
-        devices[cardNo].write(GPIOB_REGISTER, (byte) (value >> 8)); 
+        devices[cardNo + outputOffset].write(GPIOA_REGISTER, (byte) value); 
+        devices[cardNo + outputOffset].write(GPIOB_REGISTER, (byte) (value >> 8)); 
     }
     
     /**
@@ -101,8 +132,8 @@ public class Mcp23017 {
      * @throws IOException 
      */
     public int read16(int cardNo) throws IOException {
-        int result = devices[cardNo + inputOffset].read(GPIOA_REGISTER);
-        result |= ((devices[cardNo + inputOffset].read(GPIOB_REGISTER) << 8) & 0xff00);
+        int result = devices[cardNo].read(GPIOA_REGISTER);
+        result |= ((devices[cardNo].read(GPIOB_REGISTER) << 8) & 0xff00);
         
         return result;
     }
