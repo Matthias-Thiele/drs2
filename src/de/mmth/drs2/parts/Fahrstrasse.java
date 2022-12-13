@@ -72,7 +72,7 @@ public class Fahrstrasse implements TastenEvent{
     @Override
     public void whenPressed() {
         if (isLocked) {
-            config.alert("Die Fahrstrasse ist bereits verrigelt.");
+            config.alert("Die Fahrstrasse " + name + " ist bereits verrigelt.");
             return;
         }
         

@@ -26,7 +26,7 @@ public class Connector implements TickerEvent {
     private final boolean[] drs2In = new boolean[INPUT_COUNT];
     private final boolean[] drs2Out = new boolean[OUTPUT_COUNT];
     
-    private final Mcp23017 mcp = new Mcp23017();
+    public final Mcp23017 mcp = new Mcp23017();
     
     /**
      * Das Tickerevent löst das Lesen der DRS 2 Tastereingänge
@@ -61,7 +61,7 @@ public class Connector implements TickerEvent {
         ticker.add(this);
         
         for (int i = 0; i < drs2In.length; i++) {
-            drs2In[i] = true;
+            drs2In[i] = false;
         }
     }
     
@@ -126,9 +126,9 @@ public class Connector implements TickerEvent {
         int portNo = 0;
         
         for (int i = 0; i < portCount; i++) {
-            int portValues = mcp.read16(i) | 0xff00; // nur für Test
+            int portValues = mcp.read16(i);
             for (int vi = 0; vi < 16; vi++) {
-                drs2In[portNo] = (portValues & 1) == 0;
+                drs2In[portNo] = (portValues & 1) == 1;
                 portNo++;
                 portValues = portValues >> 1;
             }

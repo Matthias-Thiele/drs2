@@ -63,6 +63,10 @@ public class WeicheFx extends GridPane implements TickerEvent {
         
         // Verschluss
         Text labelVerschluss = new Text("Verschluss");
+        labelVerschluss.setOnMouseClicked(ev -> {
+            weiche.activate();
+        });
+        
         this.add(labelVerschluss, 0, 2);
         verschluss = new Text("unbekannt");
         this.add(verschluss, 1, 2);

@@ -23,6 +23,7 @@ public class Weiche implements TickerEvent, TastenEvent {
     private int lockCount = 0;
     private Config config;
     private String name;
+    private boolean isActive;
     
     /**
      * Übergibt die zugeordnete Tastereingänge und
@@ -75,7 +76,7 @@ public class Weiche implements TickerEvent, TastenEvent {
         inPlusStellung = !inPlusStellung;
         blink = BLINK_DURATION;
         updateOutput();
-        config.alert("Weiche " + name + " umgeschaltet nach " + inPlusStellung);
+        config.alert("Weiche " + name + " umgeschaltet nach " + (inPlusStellung ? "Plus" : "Minus"));
     }
 
     /**
@@ -104,6 +105,22 @@ public class Weiche implements TickerEvent, TastenEvent {
         }
         
         return false;
+    }
+    
+    /**
+     * Weichenabschnitt wurde vom Zug befahren.
+     */
+    public void activate() {
+        isActive = true;
+        updateOutput();
+    }
+    
+    /**
+     * Zug hat Weichenabschnitt verlassen.
+     */
+    public void deactivate() {
+        isActive = false;
+        updateOutput();
     }
     
     /**
@@ -154,6 +171,10 @@ public class Weiche implements TickerEvent, TastenEvent {
      * Anzeigelampen
      */
     private void updateOutput() {
+        if (firstWhite < 0) {
+            return; // nicht angeschlossen.
+        }
+        
         boolean l1 = inPlusStellung;
         boolean l2 = !l1;
         
@@ -162,9 +183,17 @@ public class Weiche implements TickerEvent, TastenEvent {
             l2 = false;
         }
         
-        if (firstWhite >= 0) {
+        if (isActive) {
+            config.connector.setOut(firstRed, l1);
+            config.connector.setOut(sndRed, l2);
+            config.connector.setOut(firstWhite, false);
+            config.connector.setOut(sndWhite, false);
+            
+        } else {
             config.connector.setOut(firstWhite, l1);
             config.connector.setOut(sndWhite, l2);
+            config.connector.setOut(firstRed, false);
+            config.connector.setOut(sndRed, false);
         }
     }
     

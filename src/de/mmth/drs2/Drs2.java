@@ -4,8 +4,10 @@
  */
 package de.mmth.drs2;
 
+import com.pi4j.io.i2c.I2CDevice;
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Mcp23017;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -63,6 +65,29 @@ public class Drs2 extends Application {
     public static void main(String[] args) {
         System.out.println("drs2");
         launch(args);
+    }
+    
+    public void outputTester() throws Exception {
+        I2CDevice dev = config.connector.mcp.initOutput(3);
+        for (int j = 0; j < 1000; j++) {
+            dev.write(0x12, (byte) 0x55); 
+            dev.write(0x13, (byte) 0xAA); 
+            Thread.sleep(500);
+            dev.write(0x13, (byte) 0x55); 
+            dev.write(0x12, (byte) 0xAA); 
+            Thread.sleep(500);
+        }       
+    }
+    
+    public void inputTester() throws Exception {
+        I2CDevice dev = config.connector.mcp.initInput(0);
+        for (int j = 0; j < 1000; j++) {
+            int valLow = dev.read(0x12);
+            int valHi = dev.read(0x13);
+            Integer.toBinaryString(valLow | (valHi << 8));
+            System.out.println(Integer.toBinaryString(valLow | (valHi << 8)));
+            Thread.sleep(500);
+        }
     }
     
 }

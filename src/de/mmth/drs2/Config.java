@@ -90,27 +90,27 @@ public class Config {
             
             switch (i) {
                 case 0:
-                    name = "W1";
+                    name = "W3";
                     taste1 = 0;
                     taste2 = 1;
-                    whitePlus = 0;
-                    whiteMinus = 1;
-                    redPlus = 2;
-                    redMinus = 3;
+                    whitePlus = 7;
+                    whiteMinus = 6;
+                    redPlus = 5;
+                    redMinus = 4;
                     break;
                 
                 case 1:
-                    name = "W2";
-                    taste1 = 2;
-                    taste2 = 3;
-                    whitePlus = 4;
-                    whiteMinus = 5;
-                    redPlus = 6;
-                    redMinus = 7;
+                    name = "W4";
+                    taste1 = 0;
+                    taste2 = 2;
+                    whitePlus = 3;
+                    whiteMinus = 2;
+                    redPlus = 1;
+                    redMinus = 0;
                     break;
                 
                 case 2:
-                    name = "W3";
+                    name = "W5";
                     taste1 = 4;
                     taste2 = 5;
                     whitePlus = 8;
@@ -168,7 +168,7 @@ public class Config {
                     
                 default:
                     name = "TBD";
-                    taste1 = taste2 = gleislampeWeiss = gleislampeRot = signalNummer = -1;
+                    taste1 = taste2 = gleislampeWeiss = gleislampeRot = signalNummer = 5;
                     plusWeichen = new int[0];
                     minusWeichen = new int[0];
             }

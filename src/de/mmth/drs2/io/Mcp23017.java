@@ -50,19 +50,21 @@ public class Mcp23017 {
      * @throws Exception 
      */
     public void init(int outputCount, int inputCount) throws Exception {
-        this.outputOffset = inputCount;
-        devices = new I2CDevice[outputCount + inputCount];
+        this.outputOffset = 3;
+        devices = new I2CDevice[outputCount + outputOffset];
         
         i2c = I2CFactory.getInstance(I2CBus.BUS_1);
-        for (int numDevice = 0; numDevice < (outputCount + inputCount); numDevice++) {
+        for (int numDevice = 0; numDevice < (outputCount + outputOffset); numDevice++) {
+            if (numDevice != 0 && numDevice != 3) continue;
+            
             I2CDevice device;
         
-            if (numDevice < outputCount) {
-                // Ausgabe konfigurieren
-                device = initOutput(numDevice);
-            } else {
+            if (numDevice < outputOffset) {
                 // Eingabe konfigurieren
                 device = initInput(numDevice);
+            } else {
+                // Ausgabe konfigurieren
+                device = initOutput(numDevice);
             }
             
             devices[numDevice] = device;
@@ -116,8 +118,10 @@ public class Mcp23017 {
      * @throws IOException 
      */
     public void write16(int cardNo, int value) throws IOException {
-        devices[cardNo + outputOffset].write(GPIOA_REGISTER, (byte) value); 
-        devices[cardNo + outputOffset].write(GPIOB_REGISTER, (byte) (value >> 8)); 
+        if (devices[cardNo + outputOffset] != null) {
+            devices[cardNo + outputOffset].write(GPIOA_REGISTER, (byte) value); 
+            devices[cardNo + outputOffset].write(GPIOB_REGISTER, (byte) (value >> 8)); 
+        }
     }
     
     /**
@@ -132,9 +136,13 @@ public class Mcp23017 {
      * @throws IOException 
      */
     public int read16(int cardNo) throws IOException {
-        int result = devices[cardNo].read(GPIOA_REGISTER);
-        result |= ((devices[cardNo].read(GPIOB_REGISTER) << 8) & 0xff00);
-        
-        return result;
+        if (devices[cardNo] != null) {
+            int result = devices[cardNo].read(GPIOA_REGISTER);
+            result |= ((devices[cardNo].read(GPIOB_REGISTER) << 8) & 0xff00);
+
+            return result;
+        } else {
+            return 0;
+        }
     }
 }
