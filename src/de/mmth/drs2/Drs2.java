@@ -38,6 +38,7 @@ public class Drs2 extends Application {
         config.init();
         
         config.connector.init(config.ticker);
+        //outputTester();;
         
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
@@ -68,7 +69,21 @@ public class Drs2 extends Application {
     }
     
     public void outputTester() throws Exception {
-        I2CDevice dev = config.connector.mcp.initOutput(3);
+        I2CDevice dev = config.connector.mcp.initOutput(4);
+        for (int cnt = 0; cnt < 1000; cnt++) {
+            dev.write(0x12, (byte) 0xff);
+            dev.write(0x13, (byte) 0xff);
+            Thread.sleep(200);
+            
+            int mask = 1;
+            for (int port = 0; port < 16; port++) {
+                dev.write(0x12, (byte)(mask & 0xff));
+                dev.write(0x13, (byte)((mask >> 8) & 0xff));
+                mask <<= 1;
+                Thread.sleep(200);
+            }
+        }
+        
         for (int j = 0; j < 1000; j++) {
             dev.write(0x12, (byte) 0x55); 
             dev.write(0x13, (byte) 0xAA); 

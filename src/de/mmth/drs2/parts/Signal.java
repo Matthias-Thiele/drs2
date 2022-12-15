@@ -2,7 +2,9 @@
  * DRS2 Stellpultsteuerung für Raspberry Pi
  * (c) 2022 Matthias Thiele
  */
-package de.mmth.drs2.io;
+package de.mmth.drs2.parts;
+
+import de.mmth.drs2.io.Connector;
 
 /**
  * Diese Klasse kapselt die Definition und 
@@ -24,6 +26,7 @@ public class Signal {
      * und die Nummern der verwendeten Anzeigelampen übergeben.
      * 
      * @param conn
+     * @param name
      * @param sigFahrt
      * @param sigHalt
      * @param vorsigFahrt
@@ -36,6 +39,7 @@ public class Signal {
         this.sigHalt = sigHalt;
         this.vorsigFahrt = vorsigFahrt;
         this.vorsigHalt = vorsigHalt;
+        halt();
     }
     
     /**
@@ -55,6 +59,23 @@ public class Signal {
     public void fahrt() {
         isFahrt = true;
         updateView();
+    }
+    
+    /**
+     * Gibt an, ob das Signal auf Fahrt (hp1/ph2) steht.
+     * @return 
+     */
+    public boolean isFahrt() {
+        return isFahrt;
+    }
+    
+    /**
+     * Gibt den aktuellen Zustand in Textform zurück.
+     * @return 
+     */
+    @Override
+    public String toString() {
+        return name + ": " + (isFahrt ? "hp1/2" : "hp0");
     }
     
     /**

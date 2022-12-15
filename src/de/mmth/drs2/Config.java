@@ -6,7 +6,7 @@ package de.mmth.drs2;
 
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
-import de.mmth.drs2.io.Signal;
+import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Weiche;
 
@@ -111,14 +111,44 @@ public class Config {
                 
                 case 2:
                     name = "W5";
-                    taste1 = 4;
-                    taste2 = 5;
-                    whitePlus = 8;
-                    whiteMinus = 9;
-                    redPlus = 10;
-                    redMinus = 11;
+                    taste1 = 0;
+                    taste2 = 3;
+                    whitePlus = 15;
+                    whiteMinus = 14;
+                    redPlus = 13;
+                    redMinus = 12;
                     break;
                 
+                case 3:
+                    name = "W18";
+                    taste1 = 0;
+                    taste2 = 4;
+                    whitePlus = 11;
+                    whiteMinus = 10;
+                    redPlus = 9;
+                    redMinus = 8;
+                    break;
+                
+                case 4:
+                    name = "W19";
+                    taste1 = 0;
+                    taste2 = 5;
+                    whitePlus = 22;
+                    whiteMinus = 23;
+                    redPlus = 20;
+                    redMinus = 21;
+                    break;
+                
+                case 5:
+                    name = "W20";
+                    taste1 = 0;
+                    taste2 = 6;
+                    whitePlus = 19;
+                    whiteMinus = 18;
+                    redPlus = 17;
+                    redMinus = 16;
+                    break;
+                    
                 default:
                     name = "TBD";
                     taste1 = taste2 = whitePlus = whiteMinus = redPlus = redMinus = -1;
@@ -141,7 +171,7 @@ public class Config {
             
             switch(i) {
                 case 0:
-                    name = "Einfahrt Alsenz Gleis 1";
+                    name = "Von M auf G2";
                     taste1 = 8;
                     taste2 = 9;
                     gleislampeWeiss = 20;
@@ -168,7 +198,7 @@ public class Config {
                     
                 default:
                     name = "TBD";
-                    taste1 = taste2 = gleislampeWeiss = gleislampeRot = signalNummer = 5;
+                    taste1 = taste2 = gleislampeWeiss = gleislampeRot = -1; signalNummer = 0;
                     plusWeichen = new int[0];
                     minusWeichen = new int[0];
             }
@@ -188,11 +218,51 @@ public class Config {
             int sigFahrt, sigHalt, vorsigFahrt, vorsigHalt;
             switch (i) {
                 case 0:
-                    name = "Sig 1";
-                    sigFahrt = 3;
-                    sigHalt = 4;
-                    vorsigFahrt = 5;
-                    vorsigHalt = 6;
+                    name = "Sig A";
+                    sigFahrt = 24;
+                    sigHalt = 25;
+                    vorsigFahrt = 24;
+                    vorsigHalt = 25;
+                    break;
+                    
+                case 1:
+                    name = "Sig F";
+                    sigFahrt = 36;
+                    sigHalt = 39;
+                    vorsigFahrt = 36;
+                    vorsigHalt = 39;
+                    break;
+                    
+                case 2:
+                    name = "Sig P1";
+                    sigFahrt = 38;
+                    sigHalt = 37;
+                    vorsigFahrt = 38;
+                    vorsigHalt = 37;
+                    break;
+                    
+                case 3:
+                    name = "Sig P3";
+                    sigFahrt = 34;
+                    sigHalt = 35;
+                    vorsigFahrt = 34;
+                    vorsigHalt = 35;
+                    break;
+                    
+                case 4:
+                    name = "Sig N2";
+                    sigFahrt = 32;
+                    sigHalt = 33;
+                    vorsigFahrt = 32;
+                    vorsigHalt = 33;
+                    break;
+                    
+                case 5:
+                    name = "Sig N3";
+                    sigFahrt = 46;
+                    sigHalt = 47;
+                    vorsigFahrt = 46;
+                    vorsigHalt = 47;
                     break;
                     
                 default:
@@ -203,6 +273,7 @@ public class Config {
             }
             
             signal.init(connector, name, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt);
+            signale[i] = signal;
         }
     }
     

@@ -5,7 +5,6 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
-import de.mmth.drs2.io.Signal;
 
 /**
  * Diese Klasse verwaltet die Funktionen zum

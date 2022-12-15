@@ -34,28 +34,33 @@ public class Mcp23017 {
     private I2CBus i2c;
     private I2CDevice[] devices;
     private int outputOffset;
+    private int[] polarity;
+    
     
     /**
-     * Initialisiert alle MCP23017 Bausteine.
+     * Initialisiert alle MCP23017 Bausteine.Der Parameter outputCount gibt an,
+ wie viele Ausgabekarten vorhanden
+ sind, inputCount gibt die Anzahl
+ der Eingabekarten an.
      * 
-     * Der Parameter outputCount gibt an,
-     * wie viele Ausgabekarten vorhanden
-     * sind, inputCount gibt die Anzahl
-     * der Eingabekarten an. Beide Arten
-     * müssen direkt nacheinander und
-     * ohne Lücken belegt werden.
+     * Beide Arten
+ müssen direkt nacheinander und
+ ohne Lücken belegt werden.
      * 
      * @param outputCount
      * @param inputCount
+     * @param polarity
      * @throws Exception 
      */
-    public void init(int outputCount, int inputCount) throws Exception {
+    public void init(int outputCount, int inputCount, int[] polarity) throws Exception {
         this.outputOffset = 3;
+        this.polarity = polarity;
+        
         devices = new I2CDevice[outputCount + outputOffset];
         
         i2c = I2CFactory.getInstance(I2CBus.BUS_1);
         for (int numDevice = 0; numDevice < (outputCount + outputOffset); numDevice++) {
-            if (numDevice != 0 && numDevice != 3) continue;
+            if (numDevice != 0 && numDevice != 3 && numDevice != 4 && numDevice != 5) continue;
             
             I2CDevice device;
         
@@ -140,6 +145,7 @@ public class Mcp23017 {
             int result = devices[cardNo].read(GPIOA_REGISTER);
             result |= ((devices[cardNo].read(GPIOB_REGISTER) << 8) & 0xff00);
 
+            result = result ^ polarity[cardNo];
             return result;
         } else {
             return 0;

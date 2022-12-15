@@ -6,6 +6,7 @@
 package de.mmth.drs2.fx;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Weiche;
 import javafx.application.Platform;
 import javafx.scene.control.TextArea;
@@ -40,6 +41,7 @@ public class MainPane extends GridPane{
         this.add(messages, 0, 0);
         
         addWeichen();
+        addSignale();
         addFahrstrassen();
     }
     
@@ -63,6 +65,25 @@ public class MainPane extends GridPane{
     }
     
     /**
+     * Fügt die Liste der Signal Controls in
+     * die MainPane ein.
+     */
+    private void addSignale() {
+        VBox box = new VBox(5);
+        Text hdr = new Text("Signale");
+        box.getChildren().add(hdr);
+        box.setMinWidth(120);
+        
+        for (Signal signal: config.signale) {
+            SignalFx sfx = new SignalFx(signal);
+            box.getChildren().add(sfx);
+            config.ticker.add(sfx);
+        }
+        
+        this.add(box, 2, 0);
+    }
+    
+    /**
      * Fügt die Liste der Fahrstrassen Controls in
      * die MainPane ein.
      */
@@ -78,7 +99,7 @@ public class MainPane extends GridPane{
             config.ticker.add(ffx);
         }
         
-        this.add(box, 2, 0);
+        this.add(box, 3, 0);
     }
     
     /**
