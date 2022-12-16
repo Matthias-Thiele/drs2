@@ -38,7 +38,7 @@ public class Drs2 extends Application {
         config.init();
         
         config.connector.init(config.ticker);
-        //outputTester();;
+        //inputTester();;
         
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
@@ -99,8 +99,8 @@ public class Drs2 extends Application {
         for (int j = 0; j < 1000; j++) {
             int valLow = dev.read(0x12);
             int valHi = dev.read(0x13);
-            Integer.toBinaryString(valLow | (valHi << 8));
-            System.out.println(Integer.toBinaryString(valLow | (valHi << 8)));
+            int valx = (valLow | (valHi << 8)) ^ 0xff80;
+            System.out.println(Integer.toHexString(valx));
             Thread.sleep(500);
         }
     }

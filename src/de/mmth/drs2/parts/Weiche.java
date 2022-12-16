@@ -11,7 +11,7 @@ import de.mmth.drs2.TickerEvent;
  *
  * @author pi
  */
-public class Weiche implements TickerEvent, TastenEvent {
+public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     private static final int BLINK_DURATION = 72;
     private Doppeltaster taste;
     private int firstWhite;
@@ -110,7 +110,8 @@ public class Weiche implements TickerEvent, TastenEvent {
     /**
      * Weichenabschnitt wurde vom Zug befahren.
      */
-    public void activate() {
+    @Override
+    public void red() {
         isActive = true;
         updateOutput();
     }
@@ -118,7 +119,8 @@ public class Weiche implements TickerEvent, TastenEvent {
     /**
      * Zug hat Weichenabschnitt verlassen.
      */
-    public void deactivate() {
+    @Override
+    public void white() {
         isActive = false;
         updateOutput();
     }

@@ -146,6 +146,7 @@ public class Mcp23017 {
             result |= ((devices[cardNo].read(GPIOB_REGISTER) << 8) & 0xff00);
 
             result = result ^ polarity[cardNo];
+            System.out.println(Integer.toHexString(result));
             return result;
         } else {
             return 0;

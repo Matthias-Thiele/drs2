@@ -8,6 +8,7 @@ import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
 import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
+import de.mmth.drs2.parts.Gleismarker;
 import de.mmth.drs2.parts.Weiche;
 
 /**
@@ -32,6 +33,11 @@ public class Config {
      * verwalte werden.
      */
     public final static int ANZAHL_SIGNALE = 6;
+    
+    /**
+     * Anzahl der Start- oder Zielgleise im System.
+     */
+    public final static int ANZAHL_GLEISE = 3;
     
     /**
      * Ticker für die Weiterschaltung und
@@ -65,6 +71,11 @@ public class Config {
     public final Signal[] signale = new Signal[ANZAHL_SIGNALE];
     
     /**
+     * Liste der Start- und Zielgleise auf dem Stellpult.
+     */
+    public final Gleismarker[] gleise = new Gleismarker[ANZAHL_GLEISE];
+    
+    /**
      * JavaFX Anzeige des Systemzustands.
      */
     public MainPane mainPane;
@@ -76,6 +87,7 @@ public class Config {
     public void init() {
         initWeichen();
         initSignale();
+        initGleise();
         initFahrstrassen();
     }
     
@@ -159,6 +171,16 @@ public class Config {
         }
     }
     
+    private void initGleise() {
+        for (int i = 0; i < ANZAHL_GLEISE; i++) {
+            gleise[i] = new Gleismarker();
+        }
+        
+        gleise[0].init(this, 30, 31);
+        gleise[1].init(this, 28, 29);
+        gleise[2].init(this, 26, 27);
+    }
+    
     /**
      * Stellt die Weichen und Portnummern für die 8 Fahrstrassen ein.
      */
@@ -166,44 +188,56 @@ public class Config {
         for (int i = 0; i < ANZAHL_FAHRSTRASSEN; i++) {
             var fahrstrasse = new Fahrstrasse();
             String name;
-            int taste1, taste2, gleislampeWeiss, gleislampeRot, signalNummer;
-            int[] minusWeichen, plusWeichen;
+            int taste1, taste2, gleis, signalNummer;
+            int[] minusWeichen, plusWeichen, fahrwegWeichen = {};
             
             switch(i) {
                 case 0:
                     name = "Von M auf G2";
-                    taste1 = 8;
-                    taste2 = 9;
-                    gleislampeWeiss = 20;
-                    gleislampeRot = 21;
-                    int[] minusWeichen0 = {1, 2};
+                    taste1 = 10;
+                    taste2 = 8;
+                    gleis = 1;
+                    int[] minusWeichen0 = {};
                     minusWeichen = minusWeichen0;
-                    int[] plusWeichen0 = {0};
+                    int[] plusWeichen0 = {0, 1, 2, 3, 4, 5};
                     plusWeichen = plusWeichen0;
                     signalNummer = 0;
                     break;
                     
                 case 1:
-                    name = "Einfahrt Alsenz Gleis 2";
-                    taste1 = 8;
-                    taste2 = 10;
-                    gleislampeWeiss = 22;
-                    gleislampeRot = 23;
-                    int[] minusWeichen1 = {0, 2};
+                    name = "Von M auf G3";
+                    taste1 = 10;
+                    taste2 = 9;
+                    gleis = 2;
+                    int[] minusWeichen1 = {2, 3};
                     minusWeichen = minusWeichen1;
-                    int[] plusWeichen1 = {1};
+                    int[] plusWeichen1 = {0, 1, 4, 5};
                     plusWeichen = plusWeichen1;
+                    int[] fahrwegWeichen1 = {1, 2};
+                    fahrwegWeichen = fahrwegWeichen1;
+                    signalNummer = 0;
+                    break;
+                    
+                case 2:
+                    name = "Von H auf G1";
+                    taste1 = 11;
+                    taste2 = 7;
+                    gleis = 0;
+                    int[] minusWeichen2 = {};
+                    minusWeichen = minusWeichen2;
+                    int[] plusWeichen2 = {0, 1, 4, 5};
+                    plusWeichen = plusWeichen2;
                     signalNummer = 1;
                     break;
                     
                 default:
                     name = "TBD";
-                    taste1 = taste2 = gleislampeWeiss = gleislampeRot = -1; signalNummer = 0;
+                    taste1 = taste2 = gleis = -1; signalNummer = 0;
                     plusWeichen = new int[0];
                     minusWeichen = new int[0];
             }
             
-            fahrstrasse.init(this, name, plusWeichen, minusWeichen, taste1, taste2, gleislampeWeiss, gleislampeRot, signalNummer);
+            fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, taste1, taste2, gleise[gleis], signalNummer);
             fahrstrassen[i] = fahrstrasse;
         }
     }
@@ -215,7 +249,7 @@ public class Config {
         for (int i = 0; i < ANZAHL_SIGNALE; i++) {
             Signal signal = new Signal();
             String name;
-            int sigFahrt, sigHalt, vorsigFahrt, vorsigHalt;
+            int sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, fahrwegWhite = -1, fahrwegRed = -1;
             switch (i) {
                 case 0:
                     name = "Sig A";
@@ -272,7 +306,7 @@ public class Config {
                     
             }
             
-            signal.init(connector, name, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt);
+            signal.init(connector, name, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, fahrwegWhite, fahrwegRed);
             signale[i] = signal;
         }
     }

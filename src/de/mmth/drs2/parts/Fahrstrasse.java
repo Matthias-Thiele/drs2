@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.TickerEvent;
 
 /**
  * Diese Klasse verwaltet die Funktionen zum
@@ -13,18 +14,27 @@ import de.mmth.drs2.Config;
  * 
  * @author pi
  */
-public class Fahrstrasse implements TastenEvent{
-
+public class Fahrstrasse implements TastenEvent, TickerEvent {
+    private final static int SIGNAL_FIRST_OUTBOUND = 2;
+    private final static int STEP_WAIT = 50;
+    private final static int DORMANT = -1;
+    private final static int INBOUND_RED = -2;
+    private final static int INIT = -3;
+    
     private Config config;
     private Weiche[] plusWeichen;
     private Weiche[] minusWeichen;
+    private Weiche[] fahrwegWeichen;
     private Doppeltaster taster;
     
     private boolean isLocked = false;
-    private int gleisLampeWeiss;
+    private Gleismarker gleis;
     private String name;
     private Signal signal;
-    private int gleisLampeRot;
+    private boolean isInbound;
+    
+    private int state = DORMANT;
+    private int nextStep = -1;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -33,12 +43,13 @@ public class Fahrstrasse implements TastenEvent{
      * @param name
      * @param plusWeichen diese Weichen müssen in Plus Stellung stehen
      * @param minusWeichen diese Weichen müssen in Minus Stellung stehen
+     * @param fahrwegWeichen
      * @param signalTaste
      * @param gleisTaste
-     * @param gleisLampeWeiss diese Lampe zeigt an, dass die Fahrstraße aktiv ist.
+     * @param gleis
      * @param signalNummer Ein- oder Ausfahrtsignal zu dieser Fahrstraße.
      */
-    public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int signalTaste, int gleisTaste, int gleisLampeWeiss, int gleisLampeRot, int signalNummer) {
+    public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, int signalTaste, int gleisTaste, Gleismarker gleis, int signalNummer) {
         this.config = config;
         this.name = name;
         
@@ -52,14 +63,19 @@ public class Fahrstrasse implements TastenEvent{
             this.minusWeichen[i] = config.weichen[minusWeichen[i]];
         }
         
+        this.fahrwegWeichen = new Weiche[fahrwegWeichen.length];
+        for (int i = 0; i <fahrwegWeichen.length; i++) {
+            this.fahrwegWeichen[i] = config.weichen[fahrwegWeichen[i]];
+        }
+        
         taster = new Doppeltaster();
         if (signalTaste >= 0) {
             taster.init(config, this, signalTaste, gleisTaste);
         }
         
-        this.gleisLampeWeiss = gleisLampeWeiss;
-        this.gleisLampeRot = gleisLampeRot;
+        this.gleis = gleis;
         this.signal = config.signale[signalNummer];
+        isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
     }
 
     /**
@@ -70,6 +86,7 @@ public class Fahrstrasse implements TastenEvent{
      */
     @Override
     public void whenPressed() {
+        config.alert("Die Fahrstrasse " + name + " wurde ausgewählt.");
         if (isLocked) {
             config.alert("Die Fahrstrasse " + name + " ist bereits verrigelt.");
             return;
@@ -108,7 +125,10 @@ public class Fahrstrasse implements TastenEvent{
         }
         
         isLocked = true;
-        config.connector.setOut(gleisLampeWeiss, true);
+        gleis.white();
+        signal.fahrt();
+        state = INIT;
+        
         config.alert("Die Fahrstraße " + name + " wurde verschlossen.");
     }
     
@@ -134,7 +154,7 @@ public class Fahrstrasse implements TastenEvent{
         }
         
         isLocked = false;
-        config.connector.setOut(gleisLampeWeiss, false);
+        gleis.clear();
         config.alert("Die Fahrstraße " + name + " wurde aufgelöst.");
     }
     
@@ -153,5 +173,82 @@ public class Fahrstrasse implements TastenEvent{
      */
     public boolean isLocked() {
         return isLocked;
+    }
+
+    @Override
+    public void tick(int count) {
+        if (isInbound) {
+            inboundTick(count);
+        } else {
+            outboundTick(count);
+        }
+    }
+    
+    /**
+     * Statemaschine für Ausfahrten.
+     * @param count 
+     */
+    public void outboundTick(int count) {
+        
+    }
+    
+    /**
+     * Statemaschine für Einfahrten.
+     * @param count 
+     */
+    public void inboundTick(int count) {
+        if (count < nextStep) {
+            return;
+        }
+        
+        switch (this.state) {
+            case  DORMANT:
+                return; // do nothing
+                
+            case INIT:
+                signal.white();
+                nextStep = count + STEP_WAIT;
+                state = INBOUND_RED; // Fahrstraße wurde ausgewählt.
+                
+            case INBOUND_RED:
+                signal.red();
+                nextStep = count + STEP_WAIT;
+                state = 0; // erste Weiche
+                break;
+            
+            default:
+                // Weiche 0 bis n
+                // Es wird immer abwechselnd eine Weiche als befahren markiert
+                // und ein vorhergehender Abschnitt als wieder frei markiert.
+                
+                boolean isClear = (state & 1) == 1;
+                int weiche = state >> 1;
+                
+                if (isClear) {
+                    if (weiche == 0) {
+                        // erste Weiche, es gibt keinen Vorgänger, sondern nur
+                        // den Streckenabschnitt zum Einfahrtssignal.
+                        signal.white();
+                    } else {
+                        fahrwegWeichen[weiche - 1].white();
+                        if (weiche < fahrwegWeichen.length) {
+                            // Fahrt abgeschlossen.
+                            state = DORMANT;
+                            return;
+                        }
+                    }
+                } else {
+                    if (weiche < fahrwegWeichen.length) {
+                        fahrwegWeichen[weiche].red();
+                    } else {
+                        // Zielgleis erreicht
+                        gleis.red();
+                    }
+                }
+                
+                state++;
+                nextStep = count + STEP_WAIT;
+                break;
+        }
     }
 }

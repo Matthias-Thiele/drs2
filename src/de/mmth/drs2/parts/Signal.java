@@ -11,7 +11,7 @@ import de.mmth.drs2.io.Connector;
  * Verwendung eines Signals.
  * @author pi
  */
-public class Signal {
+public class Signal implements ColorMarker {
 
     private Connector conn;
     private String name;
@@ -19,7 +19,11 @@ public class Signal {
     private int sigHalt;
     private int vorsigFahrt;
     private int vorsigHalt;
+    private int fahrwegWhite;
+    private int fahrwegRed;
+    
     private boolean isFahrt = false;
+    private int fahrwegMarker = -1;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -32,13 +36,15 @@ public class Signal {
      * @param vorsigFahrt
      * @param vorsigHalt 
      */
-    public void init(Connector conn, String name, int sigFahrt, int sigHalt, int vorsigFahrt, int vorsigHalt) {
+    public void init(Connector conn, String name, int sigFahrt, int sigHalt, int vorsigFahrt, int vorsigHalt, int fahrwegWhite, int fahrwegRed) {
         this.name = name;
         this.conn = conn;
         this.sigFahrt = sigFahrt;
         this.sigHalt = sigHalt;
         this.vorsigFahrt = vorsigFahrt;
         this.vorsigHalt = vorsigHalt;
+        this.fahrwegWhite = fahrwegWhite;
+        this.fahrwegRed = fahrwegRed;
         halt();
     }
     
@@ -87,5 +93,27 @@ public class Signal {
         conn.setOut(sigHalt, !isFahrt);
         conn.setOut(vorsigFahrt, isFahrt);
         conn.setOut(vorsigHalt, !isFahrt);
+        
+        conn.setOut(fahrwegWhite, false);
+        conn.setOut(fahrwegRed, false);
+        if (fahrwegMarker >= 0) {
+            conn.setOut(fahrwegMarker, true);
+        }
+    }
+
+    /**
+     * Leuchtet den Fahrweg Marker weiss aus.
+     */
+    @Override
+    public void white() {
+        fahrwegMarker = this.fahrwegWhite;
+    }
+
+    /**
+     * Leuchtet den Fahrweg Marker rot aus.
+     */
+    @Override
+    public void red() {
+        fahrwegMarker = this.fahrwegRed;
     }
 }
