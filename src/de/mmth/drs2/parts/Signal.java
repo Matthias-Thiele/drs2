@@ -107,6 +107,7 @@ public class Signal implements ColorMarker {
     @Override
     public void white() {
         fahrwegMarker = this.fahrwegWhite;
+        updateView();
     }
 
     /**
@@ -115,5 +116,15 @@ public class Signal implements ColorMarker {
     @Override
     public void red() {
         fahrwegMarker = this.fahrwegRed;
+        updateView();
+    }
+    
+    /**
+     * Löscht den Fahrwerg Marker nach Abschluss der Fahrt.
+     */
+    @Override
+    public void clear() {
+        fahrwegMarker = -1;
+        updateView();
     }
 }

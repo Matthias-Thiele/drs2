@@ -26,7 +26,7 @@ public class Config {
      * Anzahl der Fahrstrassen die über das
      * System verwaltet werden.
      */
-    public final static int ANZAHL_FAHRSTRASSEN = 8;
+    public final static int ANZAHL_FAHRSTRASSEN = 4;
     
     /**
      * Anzahl der Signale die über das System
@@ -201,6 +201,8 @@ public class Config {
                     minusWeichen = minusWeichen0;
                     int[] plusWeichen0 = {0, 1, 2, 3, 4, 5};
                     plusWeichen = plusWeichen0;
+                    int[] fahrwegWeichen0 = {1, 2};
+                    fahrwegWeichen = fahrwegWeichen0;
                     signalNummer = 0;
                     break;
                     
@@ -227,12 +229,28 @@ public class Config {
                     minusWeichen = minusWeichen2;
                     int[] plusWeichen2 = {0, 1, 4, 5};
                     plusWeichen = plusWeichen2;
+                    int[] fahrwegWeichen2 = {5};
+                    fahrwegWeichen = fahrwegWeichen2;
+                    signalNummer = 1;
+                    break;
+                    
+                case 3:
+                    name = "Von H auf G3";
+                    taste1 = 11;
+                    taste2 = 9;
+                    gleis = 2;
+                    int[] minusWeichen3 = {3, 4, 5};
+                    minusWeichen = minusWeichen3;
+                    int[] plusWeichen3 = {2};
+                    plusWeichen = plusWeichen3;
+                    int[] fahrwegWeichen3 = {5, 4, 3};
+                    fahrwegWeichen = fahrwegWeichen3;
                     signalNummer = 1;
                     break;
                     
                 default:
                     name = "TBD";
-                    taste1 = taste2 = gleis = -1; signalNummer = 0;
+                    taste1 = taste2 = gleis = 2; signalNummer = 0;
                     plusWeichen = new int[0];
                     minusWeichen = new int[0];
             }
@@ -257,6 +275,8 @@ public class Config {
                     sigHalt = 25;
                     vorsigFahrt = 24;
                     vorsigHalt = 25;
+                    fahrwegWhite = 45;
+                    fahrwegRed = 44;
                     break;
                     
                 case 1:
@@ -265,6 +285,8 @@ public class Config {
                     sigHalt = 39;
                     vorsigFahrt = 36;
                     vorsigHalt = 39;
+                    fahrwegWhite = 43;
+                    fahrwegRed = 42;
                     break;
                     
                 case 2:

@@ -125,6 +125,12 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         updateOutput();
     }
     
+    @Override
+    public void clear() {
+        // Weichenfahrwege bleiben immer ausgeleuchtet
+        white();
+    }
+    
     /**
      * Meldet zurück ob die Weiche verschlossen ist.
      * @return 

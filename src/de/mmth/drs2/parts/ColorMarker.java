@@ -18,4 +18,9 @@ public interface ColorMarker {
      * Schaltet den Fahrwegmarker auf rot.
      */
     public void red();
+    
+    /**
+     * Löscht den Fahrwegmarker.
+     */
+    public void clear();
 }

@@ -111,7 +111,7 @@ public class Connector implements TickerEvent {
      * @param value 
      */
     public void setOut(int portNo, boolean value) {
-        if (portNo < drs2Out.length) {
+        if (portNo >= 0 && portNo < drs2Out.length) {
             drs2Out[portNo] = value;
         }
     }

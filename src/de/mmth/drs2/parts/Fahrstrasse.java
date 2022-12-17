@@ -16,10 +16,12 @@ import de.mmth.drs2.TickerEvent;
  */
 public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int SIGNAL_FIRST_OUTBOUND = 2;
-    private final static int STEP_WAIT = 50;
+    private final static int STEP_SHORT_WAIT = 15;
+    private final static int STEP_LONG_WAIT = 5 * STEP_SHORT_WAIT;
     private final static int DORMANT = -1;
     private final static int INBOUND_RED = -2;
     private final static int INIT = -3;
+    private final static int SIGNAL_HP0 = -4;
     
     private Config config;
     private Weiche[] plusWeichen;
@@ -76,6 +78,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.gleis = gleis;
         this.signal = config.signale[signalNummer];
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
+        config.ticker.add(this);
     }
 
     /**
@@ -206,16 +209,25 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 return; // do nothing
                 
             case INIT:
+                config.alert("Fahrt gestartet.");
                 signal.white();
-                nextStep = count + STEP_WAIT;
+                nextStep = count + STEP_LONG_WAIT;
                 state = INBOUND_RED; // Fahrstraße wurde ausgewählt.
+                break;
                 
             case INBOUND_RED:
+                config.alert("Zug im Signalblock.");
                 signal.red();
-                nextStep = count + STEP_WAIT;
-                state = 0; // erste Weiche
+                nextStep = count + STEP_LONG_WAIT;
+                state = SIGNAL_HP0; // Signal wieder auf Halt zurückstellen.
                 break;
             
+            case SIGNAL_HP0:
+                signal.halt();
+                nextStep = count + STEP_SHORT_WAIT;
+                state = 0; // erste Weiche
+                break;
+                
             default:
                 // Weiche 0 bis n
                 // Es wird immer abwechselnd eine Weiche als befahren markiert
@@ -228,26 +240,32 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                     if (weiche == 0) {
                         // erste Weiche, es gibt keinen Vorgänger, sondern nur
                         // den Streckenabschnitt zum Einfahrtssignal.
+                        config.alert("Zug verlässt Signalblock.");
                         signal.white();
                     } else {
                         fahrwegWeichen[weiche - 1].white();
-                        if (weiche < fahrwegWeichen.length) {
+                        if (weiche >= fahrwegWeichen.length) {
                             // Fahrt abgeschlossen.
+                            config.alert("Fahrt beendet.");
+                            signal.clear();
                             state = DORMANT;
                             return;
                         }
                     }
+                    nextStep = count + STEP_LONG_WAIT;
                 } else {
                     if (weiche < fahrwegWeichen.length) {
+                        config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
                         fahrwegWeichen[weiche].red();
                     } else {
                         // Zielgleis erreicht
+                        config.alert("Zielgleis erreicht.");
                         gleis.red();
                     }
+                    nextStep = count + STEP_SHORT_WAIT;
                 }
                 
                 state++;
-                nextStep = count + STEP_WAIT;
                 break;
         }
     }
