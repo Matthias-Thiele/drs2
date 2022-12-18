@@ -192,7 +192,74 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * @param count 
      */
     public void outboundTick(int count) {
+        if (count < nextStep) {
+            return;
+        }
         
+        switch (this.state) {
+            case  DORMANT:
+                return; // do nothing
+                
+            case INIT:
+                config.alert("Fahrt gestartet.");
+                signal.white();
+                nextStep = count + STEP_LONG_WAIT;
+                state = INBOUND_RED; // Fahrstraße wurde ausgewählt.
+                break;
+                
+            case INBOUND_RED:
+                config.alert("Zug im Signalblock.");
+                signal.red();
+                nextStep = count + STEP_LONG_WAIT;
+                state = SIGNAL_HP0; // Signal wieder auf Halt zurückstellen.
+                break;
+            
+            case SIGNAL_HP0:
+                signal.halt();
+                nextStep = count + STEP_SHORT_WAIT;
+                state = 0; // erste Weiche
+                break;
+                
+            default:
+                // Weiche 0 bis n
+                // Es wird immer abwechselnd eine Weiche als befahren markiert
+                // und ein vorhergehender Abschnitt als wieder frei markiert.
+                
+                boolean isClear = (state & 1) == 1;
+                int weiche = state >> 1;
+                
+                if (isClear) {
+                    if (weiche == 0) {
+                        // erste Weiche, es gibt keinen Vorgänger, sondern nur
+                        // den Streckenabschnitt zum Einfahrtssignal.
+                        config.alert("Zug verlässt Signalblock.");
+                        signal.white();
+                    } else {
+                        fahrwegWeichen[weiche - 1].white();
+                        if (weiche >= fahrwegWeichen.length) {
+                            // Fahrt abgeschlossen.
+                            config.alert("Fahrt beendet.");
+                            signal.clear();
+                            state = DORMANT;
+                            return;
+                        }
+                    }
+                    nextStep = count + STEP_LONG_WAIT;
+                } else {
+                    if (weiche < fahrwegWeichen.length) {
+                        config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
+                        fahrwegWeichen[weiche].red();
+                    } else {
+                        // Zielgleis erreicht
+                        config.alert("Zielgleis erreicht.");
+                        gleis.red();
+                    }
+                    nextStep = count + STEP_SHORT_WAIT;
+                }
+                
+                state++;
+                break;
+        }
     }
     
     /**
