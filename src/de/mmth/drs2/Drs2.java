@@ -38,7 +38,8 @@ public class Drs2 extends Application {
         config.init();
         
         config.connector.init(config.ticker);
-        //inputTester();;
+        //inputTester();
+        //outputTester2(32, 48);
         
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
@@ -66,6 +67,19 @@ public class Drs2 extends Application {
     public static void main(String[] args) {
         System.out.println("drs2");
         launch(args);
+    }
+    
+    public void outputTester2(int fromPort, int toPort) throws InterruptedException {
+        for (int clr = 0; clr < 48; clr++) {
+            config.connector.setOut(clr, false);
+        }
+        
+        for (int i = fromPort; i < toPort; i++) {
+            config.connector.setOut(i - 1, false);
+            config.connector.setOut(i,true);
+            config.connector.tick(i);
+            Thread.sleep(300);
+        }
     }
     
     public void outputTester() throws Exception {

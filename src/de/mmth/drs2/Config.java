@@ -26,7 +26,7 @@ public class Config {
      * Anzahl der Fahrstrassen die über das
      * System verwaltet werden.
      */
-    public final static int ANZAHL_FAHRSTRASSEN = 4;
+    public final static int ANZAHL_FAHRSTRASSEN = 8;
     
     /**
      * Anzahl der Signale die über das System
@@ -37,7 +37,7 @@ public class Config {
     /**
      * Anzahl der Start- oder Zielgleise im System.
      */
-    public final static int ANZAHL_GLEISE = 3;
+    public final static int ANZAHL_GLEISE = 5;
     
     /**
      * Ticker für die Weiterschaltung und
@@ -179,6 +179,8 @@ public class Config {
         gleise[0].init(this, 30, 31);
         gleise[1].init(this, 28, 29);
         gleise[2].init(this, 26, 27);
+        gleise[3].init(this, 41, 40);
+        gleise[4].init(this, 41, 40);
     }
     
     /**
@@ -188,7 +190,7 @@ public class Config {
         for (int i = 0; i < ANZAHL_FAHRSTRASSEN; i++) {
             var fahrstrasse = new Fahrstrasse();
             String name;
-            int taste1, taste2, gleis, signalNummer;
+            int taste1, taste2, gleis, signalNummer, ausfahrt = -1;
             int[] minusWeichen, plusWeichen, fahrwegWeichen = {};
             
             switch(i) {
@@ -213,7 +215,7 @@ public class Config {
                     gleis = 2;
                     int[] minusWeichen1 = {2, 3};
                     minusWeichen = minusWeichen1;
-                    int[] plusWeichen1 = {0, 1, 4, 5};
+                    int[] plusWeichen1 = {0, 1};
                     plusWeichen = plusWeichen1;
                     int[] fahrwegWeichen1 = {1, 2};
                     fahrwegWeichen = fahrwegWeichen1;
@@ -248,6 +250,66 @@ public class Config {
                     signalNummer = 1;
                     break;
                     
+                case 4:
+                    name = "Von Gleis 1 nach M";
+                    taste1 = 12;
+                    taste2 = 7;
+                    gleis = 0;
+                    ausfahrt = 3;
+                    int[] minusWeichen4 = {};
+                    minusWeichen = minusWeichen4;
+                    int[] plusWeichen4 = {0, 1};
+                    plusWeichen = plusWeichen4;
+                    int[] fahrwegWeichen4 = {0};
+                    fahrwegWeichen = fahrwegWeichen4;
+                    signalNummer = 2;
+                    break;
+                    
+                case 5:
+                    name = "Von Gleis 3 nach M";
+                    taste1 = 13;
+                    taste2 = 9;
+                    gleis = 2;
+                    ausfahrt = 3;
+                    int[] minusWeichen5 = {0, 1, 2};
+                    minusWeichen = minusWeichen5;
+                    int[] plusWeichen5 = {};
+                    plusWeichen = plusWeichen5;
+                    int[] fahrwegWeichen5 = {2, 1, 0};
+                    fahrwegWeichen = fahrwegWeichen5;
+                    signalNummer = 3;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                    break;
+                    
+                case 6:
+                    name = "Von Gleis 2 nach H";
+                    taste1 = 14;
+                    taste2 = 8;
+                    gleis = 1;
+                    ausfahrt = 4;
+                    int[] minusWeichen6 = {};
+                    minusWeichen = minusWeichen6;
+                    int[] plusWeichen6 = {4, 5};
+                    plusWeichen = plusWeichen6;
+                    int[] fahrwegWeichen6 = {3, 4, 5};
+                    fahrwegWeichen = fahrwegWeichen6;
+                    signalNummer = 4;
+                    break;
+                    
+                case 7:
+                    name = "Von Gleis 3 nach H";
+                    taste1 = 15;
+                    taste2 = 9;
+                    gleis = 2;
+                    ausfahrt = 4;
+                    int[] minusWeichen7 = {3};
+                    minusWeichen = minusWeichen7;
+                    int[] plusWeichen7 = {4};
+                    plusWeichen = plusWeichen7;
+                    int[] fahrwegWeichen7 = {3, 4};
+                    fahrwegWeichen = fahrwegWeichen7;
+                    signalNummer = 5;
+                    break;
+                    
                 default:
                     name = "TBD";
                     taste1 = taste2 = gleis = 2; signalNummer = 0;
@@ -255,7 +317,8 @@ public class Config {
                     minusWeichen = new int[0];
             }
             
-            fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, taste1, taste2, gleise[gleis], signalNummer);
+            Gleismarker ausfahrtsGleis = (ausfahrt == -1) ? null : gleise[ausfahrt];
+            fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, taste1, taste2, gleise[gleis], signalNummer, ausfahrtsGleis);
             fahrstrassen[i] = fahrstrasse;
         }
     }

@@ -129,6 +129,7 @@ public class Mcp23017 {
         }
     }
     
+    private int testIn = -1;
     /**
      * Liest 16 Bit aus dem Kanal cardNo und gibt sie als
      * int Wert zurück.
@@ -146,6 +147,13 @@ public class Mcp23017 {
             result |= ((devices[cardNo].read(GPIOB_REGISTER) << 8) & 0xff00);
 
             result = result ^ polarity[cardNo];
+            
+            // nur zum Testen
+            if (result != testIn) {
+                System.out.println(Integer.toHexString(result) + " - " + Integer.toBinaryString(result));
+                testIn = result;
+            }
+            
             return result;
         } else {
             return 0;

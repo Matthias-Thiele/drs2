@@ -17,6 +17,7 @@ public class Gleismarker implements ColorMarker {
     private Config config;
     private int markerWhite;
     private int markerRed;
+    private boolean isInUse = false;
 
     public void init(Config config, int markerWhite, int markerRed) {
         this.config = config;
@@ -24,20 +25,32 @@ public class Gleismarker implements ColorMarker {
         this.markerRed = markerRed;
     }
     
+    /**
+     * Meldet zurück, ob das Gleis durch einen Zug belegt ist.
+     * @return 
+     */
+    public boolean isInUse() {
+        return isInUse;
+    }
+    
     @Override
     public void white() {
         config.connector.setOut(markerRed, false);
         config.connector.setOut(markerWhite, true);
+        isInUse = false;
     }
 
     @Override
     public void red() {
         config.connector.setOut(markerRed, true);
         config.connector.setOut(markerWhite, false);
+        isInUse = true;
     }
     
+    @Override
     public void clear() {
         config.connector.setOut(markerRed, false);
         config.connector.setOut(markerWhite, false);
+        isInUse = false;
     };
 }
