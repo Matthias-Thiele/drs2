@@ -35,6 +35,8 @@ public class Signal implements ColorMarker {
      * @param sigHalt
      * @param vorsigFahrt
      * @param vorsigHalt 
+     * @param fahrwegWhite 
+     * @param fahrwegRed 
      */
     public void init(Connector conn, String name, int sigFahrt, int sigHalt, int vorsigFahrt, int vorsigHalt, int fahrwegWhite, int fahrwegRed) {
         this.name = name;

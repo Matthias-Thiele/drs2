@@ -247,14 +247,14 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
               
             case AUSFAHRT1:
                 ausfahrtsGleis.red();
-                nextStep = count + STEP_SHORT_WAIT;
+                nextStep = count + STEP_LONG_WAIT;
                 state = AUSFAHRT2;
                 break;
                 
             case AUSFAHRT2:
                 config.alert("Fahrt abgeschlossen.");
                 fahrwegWeichen[fahrwegWeichen.length - 1].white();
-                nextStep = count + STEP_SHORT_WAIT;
+                nextStep = count + STEP_LONG_WAIT;
                 state = DONE;
                 break;
                 

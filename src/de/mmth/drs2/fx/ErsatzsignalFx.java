@@ -5,6 +5,7 @@
 package de.mmth.drs2.fx;
 
 import de.mmth.drs2.TickerEvent;
+import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Signal;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -21,9 +22,9 @@ import javafx.scene.text.Text;
  *
  * @author pi
  */
-public class SignalFx extends GridPane implements TickerEvent {
+public class ErsatzsignalFx extends GridPane implements TickerEvent {
 
-    private final Signal signal;
+    private final Ersatzsignal signal;
     private final Text name;
     
     /**
@@ -32,7 +33,7 @@ public class SignalFx extends GridPane implements TickerEvent {
      * 
      * @param signal 
      */
-    public SignalFx(Signal signal) {
+    public ErsatzsignalFx(Ersatzsignal signal) {
         BorderStroke borderStroke = new BorderStroke(Color.BLUE, BorderStrokeStyle.SOLID, new CornerRadii(3),
                 new BorderWidths(1));
         Border border = new Border(borderStroke);   
@@ -44,11 +45,7 @@ public class SignalFx extends GridPane implements TickerEvent {
         name = new Text(signal.toString());
         this.add(name, 0, 0, 2, 1);
         name.setOnMouseClicked(ev -> {
-            if (signal.isFahrt()) {
-                signal.halt();
-            } else {
-                signal.fahrt();
-            }
+            signal.whenPressed();
             updateView();
         });
     }
@@ -72,4 +69,5 @@ public class SignalFx extends GridPane implements TickerEvent {
             updateView();
         });
     }
+    
 }

@@ -60,7 +60,7 @@ public class Mcp23017 {
         
         i2c = I2CFactory.getInstance(I2CBus.BUS_1);
         for (int numDevice = 0; numDevice < (outputCount + outputOffset); numDevice++) {
-            if (numDevice != 0 && numDevice != 3 && numDevice != 4 && numDevice != 5) continue;
+            if (numDevice != 0 && numDevice != 1 && numDevice != 3 && numDevice != 4 && numDevice != 5 && numDevice != 6) continue;
             
             I2CDevice device;
         
@@ -129,7 +129,8 @@ public class Mcp23017 {
         }
     }
     
-    private int testIn = -1;
+    private int testIn[] = new int[3];
+    
     /**
      * Liest 16 Bit aus dem Kanal cardNo und gibt sie als
      * int Wert zurück.
@@ -149,9 +150,9 @@ public class Mcp23017 {
             result = result ^ polarity[cardNo];
             
             // nur zum Testen
-            if (result != testIn) {
-                System.out.println(Integer.toHexString(result) + " - " + Integer.toBinaryString(result));
-                testIn = result;
+            if (result != testIn[cardNo]) {
+                System.out.println("Card: " + cardNo + " - " + Integer.toHexString(result) + " - " + Integer.toBinaryString(result));
+                testIn[cardNo] = result;
             }
             
             return result;

@@ -6,6 +6,8 @@ package de.mmth.drs2;
 
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
+import de.mmth.drs2.parts.Counter;
+import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Gleismarker;
@@ -40,6 +42,11 @@ public class Config {
     public final static int ANZAHL_GLEISE = 5;
     
     /**
+     * Anzahl der Ersatzsignale im System.
+     */
+    public final static int ANZAHL_ERSATZSIGNALE = 6;
+    
+    /**
      * Ticker für die Weiterschaltung und
      * Aktualisierung der verschiedenen
      * Systeme.
@@ -71,6 +78,11 @@ public class Config {
     public final Signal[] signale = new Signal[ANZAHL_SIGNALE];
     
     /**
+     * Liste der Ersatzsignale auf dem Stellpult.
+     */
+    public final Ersatzsignal[] ersatzsignale = new Ersatzsignal[ANZAHL_ERSATZSIGNALE];
+    
+    /**
      * Liste der Start- und Zielgleise auf dem Stellpult.
      */
     public final Gleismarker[] gleise = new Gleismarker[ANZAHL_GLEISE];
@@ -80,6 +92,7 @@ public class Config {
      */
     public MainPane mainPane;
     
+    public Counter ersatzsignalCounter = new Counter();
     
     /**
      * Initialisiert die Systemkonfiguration
@@ -87,8 +100,17 @@ public class Config {
     public void init() {
         initWeichen();
         initSignale();
+        initErsatzsignale();
         initGleise();
         initFahrstrassen();
+        initCounter();
+    }
+    
+    /**
+     * Initialisiert die Zähler Ansteuerung
+     */
+    private void initCounter() {
+        ersatzsignalCounter.init(this, "Ersatzsignal", 63);
     }
     
     /**
@@ -180,7 +202,7 @@ public class Config {
         gleise[1].init(this, 28, 29);
         gleise[2].init(this, 26, 27);
         gleise[3].init(this, 41, 40);
-        gleise[4].init(this, 41, 40);
+        gleise[4].init(this, 55, 54);
     }
     
     /**
@@ -288,9 +310,9 @@ public class Config {
                     ausfahrt = 4;
                     int[] minusWeichen6 = {};
                     minusWeichen = minusWeichen6;
-                    int[] plusWeichen6 = {4, 5};
+                    int[] plusWeichen6 = {3, 4, 5};
                     plusWeichen = plusWeichen6;
-                    int[] fahrwegWeichen6 = {3, 4, 5};
+                    int[] fahrwegWeichen6 = {3, 4};
                     fahrwegWeichen = fahrwegWeichen6;
                     signalNummer = 4;
                     break;
@@ -320,6 +342,78 @@ public class Config {
             Gleismarker ausfahrtsGleis = (ausfahrt == -1) ? null : gleise[ausfahrt];
             fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, taste1, taste2, gleise[gleis], signalNummer, ausfahrtsGleis);
             fahrstrassen[i] = fahrstrasse;
+        }
+    }
+    
+    /**
+     * Erzeugt und initialisiert die Liste der Ersatzsignale.
+     */
+    private void initErsatzsignale() {
+        for (int i = 0; i < ANZAHL_ERSATZSIGNALE; i++) {
+            ersatzsignale[i] = new Ersatzsignal();
+        }
+        
+        for (int i = 0; i < ANZAHL_ERSATZSIGNALE; i++) {
+            Ersatzsignal signal = ersatzsignale[i];
+            String name = "";
+            int ersGT = 16;
+            int taste = -1;
+            int lampe = -1;
+            int interlock1 = -1;
+            int interlock2 = -1;
+            
+            switch(i) {
+                case 0:
+                    name = "Ers A";
+                    taste = 10;
+                    lampe = 53;
+                    interlock1 = 4;
+                    interlock2 = 5;
+                    break;
+                    
+                case 1:
+                    name = "Ers F";
+                    taste = 11;
+                    lampe = 50;
+                    interlock1 = 2;
+                    interlock2 = 3;
+                    break;
+                    
+                case 2:
+                    name = "Ers N2";
+                    taste = 14;
+                    lampe = 52;
+                    interlock1 = 1;
+                    interlock2 = 3;
+                    break;
+                    
+                case 3:
+                    name = "Ers N3";
+                    taste = 15;
+                    lampe = 51;
+                    interlock1 = 1;
+                    interlock2 = 2;
+                    break;
+                    
+                case 4:
+                    name = "Ers P1";
+                    taste = 12;
+                    lampe = 49;
+                    interlock1 = 0;
+                    interlock2 = 5;
+                    break;
+                    
+                case 5:
+                    name = "Ers P3";
+                    taste = 13;
+                    lampe = 48;
+                    interlock1 = 0;
+                    interlock2 = 4;
+                    break;
+            }
+            
+            signal.init(this, name, ersGT, taste, lampe,
+                    ersatzsignale[interlock1], ersatzsignale[interlock2]);
         }
     }
     

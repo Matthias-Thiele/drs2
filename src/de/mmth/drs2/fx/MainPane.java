@@ -6,6 +6,7 @@
 package de.mmth.drs2.fx;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Weiche;
 import javafx.application.Platform;
@@ -42,6 +43,7 @@ public class MainPane extends GridPane{
         
         addWeichen();
         addSignale();
+        addErsatzsignale();
         addFahrstrassen();
     }
     
@@ -84,6 +86,25 @@ public class MainPane extends GridPane{
     }
     
     /**
+     * Fügt die Liste der Ersatzsignal Controls in
+     * die MainPane ein.
+     */
+    private void addErsatzsignale() {
+        VBox box = new VBox(5);
+        Text hdr = new Text("Ersatzsignale");
+        box.getChildren().add(hdr);
+        box.setMinWidth(120);
+        
+        for (Ersatzsignal signal: config.ersatzsignale) {
+            ErsatzsignalFx sfx = new ErsatzsignalFx(signal);
+            box.getChildren().add(sfx);
+            config.ticker.add(sfx);
+        }
+        
+        this.add(box, 3, 0);
+    }
+    
+    /**
      * Fügt die Liste der Fahrstrassen Controls in
      * die MainPane ein.
      */
@@ -99,7 +120,7 @@ public class MainPane extends GridPane{
             config.ticker.add(ffx);
         }
         
-        this.add(box, 3, 0);
+        this.add(box, 4, 0);
     }
     
     /**

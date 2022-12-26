@@ -39,14 +39,14 @@ public class Drs2 extends Application {
         
         config.connector.init(config.ticker);
         //inputTester();
-        //outputTester2(32, 48);
+        //outputTester2(48, 64);
         
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
         root.getChildren().add(main);
         config.mainPane = main;
         
-        Scene scene = new Scene(root, 1200, 500);
+        Scene scene = new Scene(root, 1600, 700);
         
         primaryStage.setTitle("WSB-Calw DRS 2");
         primaryStage.setScene(scene);
