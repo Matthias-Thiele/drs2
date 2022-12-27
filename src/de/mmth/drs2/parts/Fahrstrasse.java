@@ -111,6 +111,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             return;
         }
         
+        // Zielgleis prüfen
+        if (isInbound && bahnhofsGleis.isInUse()) {
+            config.alert("Das Zielgleis ist bereits belegt.");
+            return;
+        }
+        
         // Weichenstellung prüfen.
         for (Weiche plusWeiche : plusWeichen) {
             if (!plusWeiche.isPlus()) {
@@ -307,6 +313,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                         // Ausfahrtsgleis erreicht
                         config.alert("Bahnhof verlassen.");
                         bahnhofsGleis.white();
+                        unlock();
                     }
                     nextStep = count + STEP_SHORT_WAIT;
                 }
@@ -376,6 +383,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                             config.alert("Fahrt beendet.");
                             signal.clear();
                             markStrecke(false);
+                            unlock();
                             state = DORMANT;
                             return;
                         }
