@@ -26,6 +26,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int AUSFAHRT1 = -6;
     private final static int AUSFAHRT2 = -7;
     private final static int INCOMMING_TRAIN = -8;
+    private final static int OUTGOING_TRAIN = -9;
     
     private Config config;
     private Weiche[] plusWeichen;
@@ -252,6 +253,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 signal.red();
                 nextStep = count + STEP_SHORT_WAIT;
                 state = SIGNAL_HP0;
+                markStrecke(true);
                 break;
             
             case SIGNAL_HP0:
@@ -272,11 +274,16 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 config.alert("Fahrt abgeschlossen.");
                 fahrwegWeichen[fahrwegWeichen.length - 1].white();
                 nextStep = count + STEP_LONG_WAIT;
-                state = DONE;
+                state = OUTGOING_TRAIN;
                 break;
                 
-            case DONE:
+            case OUTGOING_TRAIN:
                 ausfahrtsGleis.white();
+                nextStep = count + STEP_LONG_WAIT;
+                state = DONE;
+                
+            case DONE:
+                markStrecke(false);
                 state = DORMANT;
                 break;
                 

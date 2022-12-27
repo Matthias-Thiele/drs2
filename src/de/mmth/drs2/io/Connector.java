@@ -21,7 +21,7 @@ public class Connector implements TickerEvent {
     /**
      * Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein.
      */
-    public final static int OUTPUT_COUNT = 64;
+    public final static int OUTPUT_COUNT = 80;
     
     private final boolean[] drs2In = new boolean[INPUT_COUNT];
     private final boolean[] drs2Out = new boolean[OUTPUT_COUNT];
@@ -58,7 +58,7 @@ public class Connector implements TickerEvent {
      * @throws Exception 
      */
     public void init(Ticker ticker) throws Exception {
-        mcp.init(4, 2, polarity);
+        mcp.init(5, 2, polarity);
         ticker.add(this);
         
         for (int i = 0; i < drs2In.length; i++) {

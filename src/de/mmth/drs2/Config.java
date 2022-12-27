@@ -294,6 +294,8 @@ public class Config {
                     int[] fahrwegWeichen4 = {0};
                     fahrwegWeichen = fahrwegWeichen4;
                     signalNummer = 2;
+                    streckeWeiss = 56;
+                    streckeRot = 71;
                     break;
                     
                 case 5:
@@ -309,6 +311,8 @@ public class Config {
                     int[] fahrwegWeichen5 = {2, 1, 0};
                     fahrwegWeichen = fahrwegWeichen5;
                     signalNummer = 3;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                    streckeWeiss = 56;
+                    streckeRot = 71;
                     break;
                     
                 case 6:
@@ -324,6 +328,8 @@ public class Config {
                     int[] fahrwegWeichen6 = {3, 4};
                     fahrwegWeichen = fahrwegWeichen6;
                     signalNummer = 4;
+                    streckeWeiss = 58;
+                    streckeRot = 57;
                     break;
                     
                 case 7:
@@ -339,6 +345,8 @@ public class Config {
                     int[] fahrwegWeichen7 = {3, 4};
                     fahrwegWeichen = fahrwegWeichen7;
                     signalNummer = 5;
+                    streckeWeiss = 58;
+                    streckeRot = 57;
                     break;
                     
                 default:

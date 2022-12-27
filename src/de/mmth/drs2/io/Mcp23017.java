@@ -60,7 +60,7 @@ public class Mcp23017 {
         
         i2c = I2CFactory.getInstance(I2CBus.BUS_1);
         for (int numDevice = 0; numDevice < (outputCount + outputOffset); numDevice++) {
-            if (numDevice != 0 && numDevice != 1 && numDevice != 3 && numDevice != 4 && numDevice != 5 && numDevice != 6) continue;
+            if (numDevice != 0 && numDevice != 1 && numDevice != 3 && numDevice != 4 && numDevice != 5 && numDevice != 6 && numDevice != 7) continue;
             
             I2CDevice device;
         
