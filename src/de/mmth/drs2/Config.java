@@ -214,6 +214,7 @@ public class Config {
             String name;
             int taste1, taste2, gleis, signalNummer, ausfahrt = -1;
             int[] minusWeichen, plusWeichen, fahrwegWeichen = {};
+            int streckeWeiss = -1, streckeRot = -1;
             
             switch(i) {
                 case 0:
@@ -228,6 +229,8 @@ public class Config {
                     int[] fahrwegWeichen0 = {1, 2};
                     fahrwegWeichen = fahrwegWeichen0;
                     signalNummer = 0;
+                    streckeWeiss = 60;
+                    streckeRot = 59;
                     break;
                     
                 case 1:
@@ -242,6 +245,8 @@ public class Config {
                     int[] fahrwegWeichen1 = {1, 2};
                     fahrwegWeichen = fahrwegWeichen1;
                     signalNummer = 0;
+                    streckeWeiss = 60;
+                    streckeRot = 59;
                     break;
                     
                 case 2:
@@ -256,6 +261,8 @@ public class Config {
                     int[] fahrwegWeichen2 = {5};
                     fahrwegWeichen = fahrwegWeichen2;
                     signalNummer = 1;
+                    streckeWeiss = 62;
+                    streckeRot = 61;
                     break;
                     
                 case 3:
@@ -270,6 +277,8 @@ public class Config {
                     int[] fahrwegWeichen3 = {5, 4, 3};
                     fahrwegWeichen = fahrwegWeichen3;
                     signalNummer = 1;
+                    streckeWeiss = 62;
+                    streckeRot = 61;
                     break;
                     
                 case 4:
@@ -340,7 +349,10 @@ public class Config {
             }
             
             Gleismarker ausfahrtsGleis = (ausfahrt == -1) ? null : gleise[ausfahrt];
-            fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, taste1, taste2, gleise[gleis], signalNummer, ausfahrtsGleis);
+            fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, 
+                    taste1, taste2, gleise[gleis], signalNummer, ausfahrtsGleis,
+                    streckeWeiss, streckeRot);
+            
             fahrstrassen[i] = fahrstrasse;
         }
     }

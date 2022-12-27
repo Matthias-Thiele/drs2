@@ -25,6 +25,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int DONE = -5;
     private final static int AUSFAHRT1 = -6;
     private final static int AUSFAHRT2 = -7;
+    private final static int INCOMMING_TRAIN = -8;
     
     private Config config;
     private Weiche[] plusWeichen;
@@ -41,6 +42,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private int state = DORMANT;
     private int nextStep = -1;
     private Gleismarker ausfahrtsGleis;
+    private int streckeWeiss;
+    private int streckeRot;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -54,8 +57,13 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * @param gleisTaste
      * @param bahnhofsGleis
      * @param signalNummer Ein- oder Ausfahrtsignal zu dieser Fahrstraße.
+     * @param ausfahrtsGleis
+     * @param streckeWeiss
+     * @param streckeRot
      */
-    public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, Gleismarker ausfahrtsGleis) {
+    public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, 
+            int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, 
+            Gleismarker ausfahrtsGleis, int streckeWeiss, int streckeRot) {
         this.config = config;
         this.name = name;
         
@@ -82,7 +90,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.bahnhofsGleis = bahnhofsGleis;
         this.ausfahrtsGleis = ausfahrtsGleis;
         this.signal = config.signale[signalNummer];
+        this.streckeWeiss = streckeWeiss;
+        this.streckeRot = streckeRot;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
+        markStrecke(false);
         config.ticker.add(this);
     }
 
@@ -322,7 +333,13 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 config.alert("Fahrt gestartet.");
                 signal.white();
                 nextStep = count + STEP_LONG_WAIT;
-                state = INBOUND_RED; // Fahrstraße wurde ausgewählt.
+                state = INCOMMING_TRAIN; // Fahrstraße wurde ausgewählt.
+                break;
+                
+            case INCOMMING_TRAIN:
+                markStrecke(true);
+                state = INBOUND_RED;
+                nextStep = count + STEP_LONG_WAIT;
                 break;
                 
             case INBOUND_RED:
@@ -358,6 +375,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                             // Fahrt abgeschlossen.
                             config.alert("Fahrt beendet.");
                             signal.clear();
+                            markStrecke(false);
                             state = DORMANT;
                             return;
                         }
@@ -378,5 +396,16 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 state++;
                 break;
         }
+    }
+    
+    /**
+     * Setzt den Streckenpfeil auf Weiß oder Rot, je nachdem
+     * ob die Strecke belegt ist.
+     * 
+     * @param besetzt 
+     */
+    private void markStrecke(boolean besetzt) {
+        config.connector.setOut(streckeRot, besetzt);
+        config.connector.setOut(streckeWeiss, !besetzt);
     }
 }
