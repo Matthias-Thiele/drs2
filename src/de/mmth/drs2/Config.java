@@ -11,6 +11,7 @@ import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Gleismarker;
+import de.mmth.drs2.parts.Schluesselweiche;
 import de.mmth.drs2.parts.Weiche;
 
 /**
@@ -45,6 +46,13 @@ public class Config {
      * Anzahl der Ersatzsignale im System.
      */
     public final static int ANZAHL_ERSATZSIGNALE = 6;
+    
+    /**
+     * Anzahl der Schlüsselweichen im System.
+     * Aufgrund der begrenzten Portzahl ist nur eine
+     * Schlüsselweiche verdrahtet.
+     */
+    public final static int ANZAHL_SCHLUESSELWEICHEN = 1;
     
     /**
      * Ticker für die Weiterschaltung und
@@ -88,6 +96,11 @@ public class Config {
     public final Gleismarker[] gleise = new Gleismarker[ANZAHL_GLEISE];
     
     /**
+     * Liste der Schlüsselweichen auf dem Stellpult.
+     */
+    public final Schluesselweiche[] schluesselweichen = new Schluesselweiche[ANZAHL_SCHLUESSELWEICHEN];
+    
+    /**
      * JavaFX Anzeige des Systemzustands.
      */
     public MainPane mainPane;
@@ -104,6 +117,7 @@ public class Config {
         initGleise();
         initFahrstrassen();
         initCounter();
+        initSchluesselweichen();
     }
     
     /**
@@ -111,6 +125,23 @@ public class Config {
      */
     private void initCounter() {
         ersatzsignalCounter.init(this, "Ersatzsignal", 63);
+    }
+    
+    /**
+     * Initialisiert die Schlüsselweichen im System.
+     */
+    private void initSchluesselweichen() {
+        for (int i = 0; i < ANZAHL_SCHLUESSELWEICHEN; i++) {
+            Schluesselweiche weiche = new Schluesselweiche();
+            switch (i) {
+                case 0:
+                    weiche.init(this, 21, 70, 69);
+                    break;
+                    
+                default:
+                    // keine weiteren Schlüsselweichen
+            }
+        }
     }
     
     /**
