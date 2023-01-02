@@ -25,7 +25,7 @@ public class Connector implements TickerEvent {
     
     private final boolean[] drs2In = new boolean[INPUT_COUNT];
     private final boolean[] drs2Out = new boolean[OUTPUT_COUNT];
-    private final int[] polarity = {0xff80, 0, 0};
+    private final int[] polarity = {0xff80, 0x20, 0};
     
     public final Mcp23017 mcp = new Mcp23017();
     
