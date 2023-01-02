@@ -43,8 +43,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private int state = DORMANT;
     private int nextStep = -1;
     private Gleismarker ausfahrtsGleis;
-    private int streckeWeiss;
-    private int streckeRot;
+    private Streckenblock strecke;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -59,12 +58,14 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * @param bahnhofsGleis
      * @param signalNummer Ein- oder Ausfahrtsignal zu dieser Fahrstraße.
      * @param ausfahrtsGleis
+     * @param streckeName
      * @param streckeWeiss
      * @param streckeRot
+     * @param streckeTaster
      */
     public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, 
             int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, 
-            Gleismarker ausfahrtsGleis, int streckeWeiss, int streckeRot) {
+            Gleismarker ausfahrtsGleis, String streckeName, int streckeWeiss, int streckeRot, int streckeTaster) {
         this.config = config;
         this.name = name;
         
@@ -91,10 +92,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.bahnhofsGleis = bahnhofsGleis;
         this.ausfahrtsGleis = ausfahrtsGleis;
         this.signal = config.signale[signalNummer];
-        this.streckeWeiss = streckeWeiss;
-        this.streckeRot = streckeRot;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
-        markStrecke(false);
+        
+        strecke = new Streckenblock();
+        strecke.init(config, streckeName, streckeTaster, streckeWeiss, streckeRot);
         config.ticker.add(this);
     }
 
@@ -109,6 +110,11 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         config.alert("Die Fahrstrasse " + name + " wurde ausgewählt.");
         if (isLocked) {
             config.alert("Die Fahrstrasse " + name + " ist bereits verrigelt.");
+            return;
+        }
+        
+        if (!strecke.isFree()) {
+            config.alert("Der Streckenblock ist noch belegt.");
             return;
         }
         
@@ -191,10 +197,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             bahnhofsGleis.clear();
         }
         
-        if (!isInbound) {
-            ausfahrtsGleis.clear();
-        }
-        
         config.alert("Die Fahrstraße " + name + " wurde aufgelöst.");
     }
     
@@ -253,7 +255,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 signal.red();
                 nextStep = count + STEP_SHORT_WAIT;
                 state = SIGNAL_HP0;
-                markStrecke(true);
+                strecke.markUsed(false);
                 break;
             
             case SIGNAL_HP0:
@@ -283,7 +285,11 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 state = DONE;
                 
             case DONE:
-                markStrecke(false);
+                strecke.unblock();
+                if (!isInbound) {
+                    ausfahrtsGleis.clear();
+                }
+        
                 state = DORMANT;
                 break;
                 
@@ -351,7 +357,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             case INCOMMING_TRAIN:
-                markStrecke(true);
+                strecke.markUsed(false);
                 state = INBOUND_RED;
                 nextStep = count + STEP_LONG_WAIT;
                 break;
@@ -389,7 +395,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                             // Fahrt abgeschlossen.
                             config.alert("Fahrt beendet.");
                             signal.clear();
-                            markStrecke(false);
+                            strecke.markUsed(true);
                             unlock();
                             state = DORMANT;
                             return;
@@ -411,16 +417,5 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 state++;
                 break;
         }
-    }
-    
-    /**
-     * Setzt den Streckenpfeil auf Weiß oder Rot, je nachdem
-     * ob die Strecke belegt ist.
-     * 
-     * @param besetzt 
-     */
-    private void markStrecke(boolean besetzt) {
-        config.connector.setOut(streckeRot, besetzt);
-        config.connector.setOut(streckeWeiss, !besetzt);
     }
 }

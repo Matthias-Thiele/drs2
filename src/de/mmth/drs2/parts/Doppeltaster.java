@@ -22,7 +22,7 @@ import de.mmth.drs2.io.Connector;
  */
 public class Doppeltaster implements TickerEvent {
     private static final int ACTIVATION_COUNT = 10;
-    private static final int ALERT_COUNT = 80;
+    private static final int ALERT_COUNT = 160;
     
     private Connector drs2;
     private TastenEvent activateWhenPressed;
