@@ -15,7 +15,13 @@ package de.mmth.drs2.parts;
 public interface TastenEvent {
     /**
      * Diese Callbackfunktion wird bei Aktivierung
-     * einmalig aufgerufen.
+     * einmalig aufgerufen.Beim Doppeltaster enthält die erste Taste im
+ Allgemeinen die Gruppentaste, welche wenig
+ Aussagekraft enthält.
+     * 
+     * Dort wird deshalb die
+ zweite Tastennummer als Parameter übergeben.
+     * @param taste
      */
-    public void whenPressed();
+    public void whenPressed(int taste);
 }

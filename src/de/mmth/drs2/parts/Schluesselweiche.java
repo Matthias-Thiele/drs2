@@ -56,7 +56,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
      * Anwender hat die WGT und die Schlüsselweichentaste gedrückt.
      */
     @Override
-    public void whenPressed() {
+    public void whenPressed(int taste) {
         state = 1;
     }
 

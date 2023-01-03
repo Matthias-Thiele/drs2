@@ -12,6 +12,7 @@ import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Gleismarker;
 import de.mmth.drs2.parts.Schluesselweiche;
+import de.mmth.drs2.parts.Stoerungsmelder;
 import de.mmth.drs2.parts.Weiche;
 
 /**
@@ -105,7 +106,16 @@ public class Config {
      */
     public MainPane mainPane;
     
+    /**
+     * Zähler für die Betätigung eines Ersatzsignals.
+     */
     public Counter ersatzsignalCounter = new Counter();
+    
+    /**
+     * Anzeige und Weckerunterbrechungstaste für Weichen-
+     * und Signalstörungen.
+     */
+    public Stoerungsmelder stoerungsmelder = new Stoerungsmelder();
     
     /**
      * Initialisiert die Systemkonfiguration
@@ -118,6 +128,8 @@ public class Config {
         initFahrstrassen();
         initCounter();
         initSchluesselweichen();
+        
+        stoerungsmelder.init(this, 23, 24, 68, 67, 66);
     }
     
     /**

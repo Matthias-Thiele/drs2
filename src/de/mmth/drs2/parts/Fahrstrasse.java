@@ -106,7 +106,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * versucht nun die Fahrstraße einzurichten.
      */
     @Override
-    public void whenPressed() {
+    public void whenPressed(int taste) {
         config.alert("Die Fahrstrasse " + name + " wurde ausgewählt.");
         if (isLocked) {
             config.alert("Die Fahrstrasse " + name + " ist bereits verrigelt.");

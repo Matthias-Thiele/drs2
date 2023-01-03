@@ -55,7 +55,7 @@ public class FahrstrasseFx extends GridPane implements TickerEvent {
             if (fahrstrasse.isLocked()) {
                 fahrstrasse.unlock();
             } else {
-                fahrstrasse.whenPressed();
+                fahrstrasse.whenPressed(0);
             }
         });
         verschluss = new Text("unbekannt");

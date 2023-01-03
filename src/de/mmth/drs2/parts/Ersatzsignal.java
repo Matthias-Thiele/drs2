@@ -55,7 +55,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
      * Setzt das Ersatzsignal auf Fahrt.
      */
     @Override
-    public void whenPressed() {
+    public void whenPressed(int taste) {
         if (lock1.isFahrt() || lock2.isFahrt()) {
             String otherName = (lock1.isFahrt() ? lock1.name : lock2.name);
             conf.alert(name + ": Es ist bereits eine Fahrt freigegeben - " + otherName);
@@ -78,7 +78,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
                 conf.connector.setOut(signalLampe, isFahrt);
                 fahrtBis = count + FAHRT_DURATION;
                 conf.alert("Ersatzsignal " + this.toString());
-                conf.ersatzsignalCounter.whenPressed();
+                conf.ersatzsignalCounter.whenPressed(0);
             }
             
             if (count >= fahrtBis) {

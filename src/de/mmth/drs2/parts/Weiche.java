@@ -24,6 +24,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     private Config config;
     private String name;
     private boolean isActive;
+    private boolean isGestoert = false;
     
     /**
      * Übergibt die zugeordnete Tastereingänge und
@@ -63,10 +64,20 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     }
     
     /**
+     * Stellt ein, ob die Weiche bei der nächsten Bestätigung
+     * eine Störung anzeigt.
+     * 
+     * @param stoerung 
+     */
+    public void setStoerung(boolean stoerung) {
+        isGestoert = stoerung;
+    }
+    
+    /**
      * Doppeltaster wurden gedrückt.
      */
     @Override
-    public void whenPressed() {
+    public void whenPressed(int taste) {
         if (lockCount > 0) {
             // Verrigelte Weichen können nicht umgestellt werden.
             config.alert("Eine verrigelte Weiche kann nicht umgestellt werden: " + name);
@@ -74,7 +85,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         }
         
         inPlusStellung = !inPlusStellung;
-        blink = BLINK_DURATION;
+        blink = isGestoert ? Integer.MAX_VALUE : BLINK_DURATION;
         updateOutput();
         config.alert("Weiche " + name + " umgeschaltet nach " + (inPlusStellung ? "Plus" : "Minus"));
     }
@@ -151,20 +162,6 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     }
     
     /**
-     * Wenn eine Weiche gestört ist, blinkt
-     * sie dauerhaft.
-     * 
-     * @param stoerung 
-     */
-    public void setStoerung(boolean stoerung) {
-        if (stoerung) {
-            blink = Integer.MAX_VALUE;
-        } else {
-            blink = 0;
-        }
-    }
-    
-    /**
      * Meldet, ob die Weich noch umläuft oder
      * gestört ist.
      * 
@@ -211,6 +208,11 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      */
     @Override
     public void tick(int count) {
+        if (blink == (Integer.MAX_VALUE - 2 * BLINK_DURATION)) {
+            config.stoerungsmelder.stoerungW();
+            config.alert("Weichenstörung " + name);
+        }
+        
         if (blink > 0) {
             updateOutput();
             blink--;

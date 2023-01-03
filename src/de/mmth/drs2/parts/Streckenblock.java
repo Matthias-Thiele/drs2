@@ -89,7 +89,7 @@ public class Streckenblock implements TastenEvent {
      * Doppeltaster wurde betätigt.
      */
     @Override
-    public void whenPressed() {
+    public void whenPressed(int taste) {
         if (streckenState.equals(StreckenState.TRAIN_ARRIVED)) {
             streckenState = StreckenState.FREE;
             markStrecke();

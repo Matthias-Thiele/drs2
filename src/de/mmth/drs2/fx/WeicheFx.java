@@ -33,6 +33,7 @@ public class WeicheFx extends GridPane implements TickerEvent {
     private final Weiche weiche;
     private final Text stellung;
     private final Text verschluss;
+    private boolean stoerung = false;
     
     /**
      * Der Konstruktor enthält die Weiche deren
@@ -50,12 +51,17 @@ public class WeicheFx extends GridPane implements TickerEvent {
         this.setHgap(5);
         this.weiche = weiche;
         Text name = new Text(weiche.getName());
+        name.setOnMouseClicked(ev -> {
+            stoerung = !stoerung;
+            name.setText(weiche.getName() + (stoerung ? " (gestört)" : ""));
+            weiche.setStoerung(stoerung);
+        });
         this.add(name, 0, 0, 2, 1);
         
         // Stellung
         Text labelStellung = new Text("Stellung");
         labelStellung.setOnMouseClicked(ev -> {
-            weiche.whenPressed();
+            weiche.whenPressed(0);
         });
         this.add(labelStellung, 0, 1);
         stellung = new Text("unbekannt");
