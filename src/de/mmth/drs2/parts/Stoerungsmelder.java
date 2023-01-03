@@ -8,8 +8,10 @@ import de.mmth.drs2.Config;
 import de.mmth.drs2.TickerEvent;
 
 /**
- *
- * @author pi
+ * Diese Klasse implementiert die Behandlung der
+ * Störmeldungen.
+ * 
+ * @author Matthias Thiele
  */
 public class Stoerungsmelder implements TickerEvent, TastenEvent {
 
@@ -24,6 +26,17 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     private boolean strgW = false;
     private int klingel;
     
+    /**
+     * Initialisiert die Ports für die Tastenabschalter und
+     * Anzeigen sowie den Wecker.
+     * 
+     * @param config
+     * @param tasteS
+     * @param tasteW
+     * @param lampeS
+     * @param lampeW
+     * @param klingel 
+     */
     public void init(Config config, int tasteS, int tasteW, int lampeS, int lampeW, int klingel) {
         this.config = config;
         tasteSint = tasteS;
@@ -37,14 +50,24 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
         config.ticker.add(this);
     }
     
+    /**
+     * Ein Signal meldet eine Signalstörung.
+     */
     public void stoerungS() {
         strgS = true;
     }
     
+    /**
+     * Eine Weiche meldet eine Weichenstörung.
+     */
     public void stoerungW() {
         strgW = true;
     }
     
+    /**
+     * Intervallsteuerung für Anzeige und Wecker.
+     * @param count 
+     */
     @Override
     public void tick(int count) {
         if (strgS) {
@@ -59,6 +82,12 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
         }
     }
 
+    /**
+     * Überwacht die Tasten zur Weckerunterbrechung und
+     * schaltet die Störmeldungsanzeige bei Betätigung ab.
+     * 
+     * @param taste 
+     */
     @Override
     public void whenPressed(int taste) {
         if (taste == tasteSint) {
