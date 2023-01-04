@@ -27,6 +27,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int AUSFAHRT2 = -7;
     private final static int INCOMMING_TRAIN = -8;
     private final static int OUTGOING_TRAIN = -9;
+    private final static int WAIT_FOR_HP1 = -10;
     
     private Config config;
     private Weiche[] plusWeichen;
@@ -39,11 +40,13 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private String name;
     private Signal signal;
     private boolean isInbound;
+    private boolean reportWait;
     
     private int state = DORMANT;
     private int nextStep = -1;
     private Gleismarker ausfahrtsGleis;
     private Streckenblock strecke;
+    private int ersatzSignalNummer;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -64,7 +67,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * @param streckeTaster
      */
     public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, 
-            int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, 
+            int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, int ersatzSignalNummer,
             Gleismarker ausfahrtsGleis, String streckeName, int streckeWeiss, int streckeRot, int streckeTaster) {
         this.config = config;
         this.name = name;
@@ -92,6 +95,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.bahnhofsGleis = bahnhofsGleis;
         this.ausfahrtsGleis = ausfahrtsGleis;
         this.signal = config.signale[signalNummer];
+        this.ersatzSignalNummer = ersatzSignalNummer;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
         
         strecke = new Streckenblock();
@@ -167,6 +171,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         
         signal.fahrt();
         state = INIT;
+        reportWait = true;
         
         config.alert("Die Fahrstraße " + name + " wurde verschlossen.");
     }
@@ -240,20 +245,41 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 return; // do nothing
                 
             case INIT:
-                config.alert("Fahrt gestartet.");
                 signal.white();
                 nextStep = count + STEP_LONG_WAIT;
                 if (bahnhofsGleis.isInUse()) {
-                    state = INBOUND_RED; // Fahrstraße wurde ausgewählt.
+                    config.alert("Fahrt gestartet.");
+                    state = WAIT_FOR_HP1; // Fahrstraße wurde ausgewählt.
+                    reportWait = true;
                 } else {
-                    config.alert("Warte auf Zug.");
+                    if (reportWait) {
+                        config.alert("Warte auf Zug.");
+                        reportWait = false;
+                    }
+                }
+                break;
+                
+            case WAIT_FOR_HP1:
+                boolean isFahrt = signal.isFahrt();
+                if (!isFahrt && (ersatzSignalNummer >= 0)) {
+                    isFahrt = config.ersatzsignale[ersatzSignalNummer].isFahrt();
+                }
+                
+                if (isFahrt) {
+                    nextStep = count + STEP_SHORT_WAIT;
+                    state = INBOUND_RED;
+                } else {
+                    if (reportWait) {
+                        config.alert("Zug wartet auf HP1.");
+                        reportWait = false;
+                    }
                 }
                 break;
                 
             case INBOUND_RED:
                 config.alert("Zug fährt aus.");
                 signal.red();
-                nextStep = count + STEP_SHORT_WAIT;
+                nextStep = count + STEP_LONG_WAIT;
                 state = SIGNAL_HP0;
                 strecke.markUsed(false);
                 break;
@@ -354,12 +380,30 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 signal.white();
                 nextStep = count + STEP_LONG_WAIT;
                 state = INCOMMING_TRAIN; // Fahrstraße wurde ausgewählt.
+                reportWait = true;
                 break;
                 
             case INCOMMING_TRAIN:
                 strecke.markUsed(false);
-                state = INBOUND_RED;
+                state = WAIT_FOR_HP1;
                 nextStep = count + STEP_LONG_WAIT;
+                break;
+                
+            case WAIT_FOR_HP1:
+                boolean isFahrt = signal.isFahrt();
+                if (!isFahrt && (ersatzSignalNummer >= 0)) {
+                    isFahrt = config.ersatzsignale[ersatzSignalNummer].isFahrt();
+                }
+                
+                if (isFahrt) {
+                    nextStep = count + STEP_SHORT_WAIT;
+                    state = INBOUND_RED;
+                } else {
+                    if (reportWait) {
+                        config.alert("Zug wartet auf HP1.");
+                        reportWait = false;
+                    }
+                }
                 break;
                 
             case INBOUND_RED:

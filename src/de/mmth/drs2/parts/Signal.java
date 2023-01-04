@@ -4,6 +4,7 @@
  */
 package de.mmth.drs2.parts;
 
+import de.mmth.drs2.Config;
 import de.mmth.drs2.io.Connector;
 
 /**
@@ -11,7 +12,7 @@ import de.mmth.drs2.io.Connector;
  * Verwendung eines Signals.
  * @author pi
  */
-public class Signal implements ColorMarker {
+public class Signal implements ColorMarker, TastenEvent {
 
     private Connector conn;
     private String name;
@@ -24,13 +25,16 @@ public class Signal implements ColorMarker {
     
     private boolean isFahrt = false;
     private int fahrwegMarker = -1;
+    private Doppeltaster sigTaste;
+    private Config config;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
      * und die Nummern der verwendeten Anzeigelampen übergeben.
      * 
-     * @param conn
+     * @param config
      * @param name
+     * @param sigTaste
      * @param sigFahrt
      * @param sigHalt
      * @param vorsigFahrt
@@ -38,9 +42,12 @@ public class Signal implements ColorMarker {
      * @param fahrwegWhite 
      * @param fahrwegRed 
      */
-    public void init(Connector conn, String name, int sigFahrt, int sigHalt, int vorsigFahrt, int vorsigHalt, int fahrwegWhite, int fahrwegRed) {
+    public void init(Config config, String name, int sigTaste, int sigFahrt, int sigHalt, int vorsigFahrt, int vorsigHalt, int fahrwegWhite, int fahrwegRed) {
+        this.config = config;
         this.name = name;
-        this.conn = conn;
+        this.conn = config.connector;
+        this.sigTaste = new Doppeltaster();
+        this.sigTaste.init(config, this, 20, sigTaste);
         this.sigFahrt = sigFahrt;
         this.sigHalt = sigHalt;
         this.vorsigFahrt = vorsigFahrt;
@@ -128,5 +135,11 @@ public class Signal implements ColorMarker {
     public void clear() {
         fahrwegMarker = -1;
         updateView();
+    }
+
+    @Override
+    public void whenPressed(int taste) {
+        halt();
+        config.alert("Signal über HaGT auf HP0 gestellt.");
     }
 }

@@ -258,6 +258,7 @@ public class Config {
             int taste1, taste2, gleis, signalNummer, ausfahrt = -1;
             int[] minusWeichen, plusWeichen, fahrwegWeichen = {};
             int streckeWeiss = -1, streckeRot = -1, streckenTaster = -1;
+            int ersatz = -1;
             String streckeName = "?";
             
             switch(i) {
@@ -276,6 +277,7 @@ public class Config {
                     streckeWeiss = 60;
                     streckeRot = 59;
                     streckenTaster = 17;
+                    ersatz = 0;
                     streckeName = "M";
                     break;
                     
@@ -294,6 +296,7 @@ public class Config {
                     streckeWeiss = 60;
                     streckeRot = 59;
                     streckenTaster = 17;
+                    ersatz = 0;
                     streckeName = "M";
                     break;
                     
@@ -312,6 +315,7 @@ public class Config {
                     streckeWeiss = 62;
                     streckeRot = 61;
                     streckenTaster = 18;
+                    ersatz = 1;
                     streckeName = "H";
                     break;
                     
@@ -330,6 +334,7 @@ public class Config {
                     streckeWeiss = 62;
                     streckeRot = 61;
                     streckenTaster = 18;
+                    ersatz = 1;
                     streckeName = "H";
                     break;
                     
@@ -348,6 +353,7 @@ public class Config {
                     signalNummer = 2;
                     streckeWeiss = 56;
                     streckeRot = 71;
+                    ersatz = 4;
                     break;
                     
                 case 5:
@@ -365,6 +371,7 @@ public class Config {
                     signalNummer = 3;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
                     streckeWeiss = 56;
                     streckeRot = 71;
+                    ersatz = 5;
                     break;
                     
                 case 6:
@@ -382,6 +389,7 @@ public class Config {
                     signalNummer = 4;
                     streckeWeiss = 58;
                     streckeRot = 57;
+                    ersatz = 2;
                     break;
                     
                 case 7:
@@ -399,6 +407,7 @@ public class Config {
                     signalNummer = 5;
                     streckeWeiss = 58;
                     streckeRot = 57;
+                    ersatz = 3;
                     break;
                     
                 default:
@@ -410,7 +419,7 @@ public class Config {
             
             Gleismarker ausfahrtsGleis = (ausfahrt == -1) ? null : gleise[ausfahrt];
             fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, 
-                    taste1, taste2, gleise[gleis], signalNummer, ausfahrtsGleis,
+                    taste1, taste2, gleise[gleis], signalNummer, ersatz, ausfahrtsGleis,
                     streckeName, streckeWeiss, streckeRot, streckenTaster);
             
             fahrstrassen[i] = fahrstrasse;
@@ -496,10 +505,11 @@ public class Config {
         for (int i = 0; i < ANZAHL_SIGNALE; i++) {
             Signal signal = new Signal();
             String name;
-            int sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, fahrwegWhite = -1, fahrwegRed = -1;
+            int sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, fahrwegWhite = -1, fahrwegRed = -1;
             switch (i) {
                 case 0:
                     name = "Sig A";
+                    sigTaste = 10;
                     sigFahrt = 24;
                     sigHalt = 25;
                     vorsigFahrt = 24;
@@ -510,6 +520,7 @@ public class Config {
                     
                 case 1:
                     name = "Sig F";
+                    sigTaste = 11;
                     sigFahrt = 36;
                     sigHalt = 39;
                     vorsigFahrt = 36;
@@ -520,6 +531,7 @@ public class Config {
                     
                 case 2:
                     name = "Sig P1";
+                    sigTaste = 12;
                     sigFahrt = 38;
                     sigHalt = 37;
                     vorsigFahrt = 38;
@@ -528,6 +540,7 @@ public class Config {
                     
                 case 3:
                     name = "Sig P3";
+                    sigTaste = 13;
                     sigFahrt = 34;
                     sigHalt = 35;
                     vorsigFahrt = 34;
@@ -536,6 +549,7 @@ public class Config {
                     
                 case 4:
                     name = "Sig N2";
+                    sigTaste = 14;
                     sigFahrt = 32;
                     sigHalt = 33;
                     vorsigFahrt = 32;
@@ -544,6 +558,7 @@ public class Config {
                     
                 case 5:
                     name = "Sig N3";
+                    sigTaste = 15;
                     sigFahrt = 46;
                     sigHalt = 47;
                     vorsigFahrt = 46;
@@ -552,12 +567,12 @@ public class Config {
                     
                 default:
                     name = "TBD";
-                    sigFahrt = sigHalt = vorsigFahrt = vorsigHalt = -1;
+                    sigTaste = sigFahrt = sigHalt = vorsigFahrt = vorsigHalt = -1;
                     break;
                     
             }
             
-            signal.init(connector, name, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, fahrwegWhite, fahrwegRed);
+            signal.init(this, name, sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, fahrwegWhite, fahrwegRed);
             signale[i] = signal;
         }
     }
