@@ -45,7 +45,7 @@ public class ErsatzsignalFx extends GridPane implements TickerEvent {
         name = new Text(signal.toString());
         this.add(name, 0, 0, 2, 1);
         name.setOnMouseClicked(ev -> {
-            signal.whenPressed(0);
+            signal.whenPressed(0, 0);
             updateView();
         });
     }

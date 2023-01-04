@@ -16,12 +16,12 @@ public interface TastenEvent {
     /**
      * Diese Callbackfunktion wird bei Aktivierung
      * einmalig aufgerufen.Beim Doppeltaster enthält die erste Taste im
- Allgemeinen die Gruppentaste, welche wenig
- Aussagekraft enthält.
+     * Allgemeinen die Gruppentaste, welche wenig
+     * Aussagekraft enthält.Deshalb werden beide Tastennummern als Parameter übergeben.
      * 
-     * Dort wird deshalb die
- zweite Tastennummer als Parameter übergeben.
-     * @param taste
+     * 
+     * @param taste1
+     * @param taste2
      */
-    public void whenPressed(int taste);
+    public void whenPressed(int taste1, int taste2);
 }

@@ -61,7 +61,7 @@ public class WeicheFx extends GridPane implements TickerEvent {
         // Stellung
         Text labelStellung = new Text("Stellung");
         labelStellung.setOnMouseClicked(ev -> {
-            weiche.whenPressed(0);
+            weiche.whenPressed(0, 0);
         });
         this.add(labelStellung, 0, 1);
         stellung = new Text("unbekannt");

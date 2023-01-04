@@ -55,7 +55,7 @@ public class Doppeltaster implements TickerEvent {
         
         if (((taste1Count == ACTIVATION_COUNT) && (taste2Count >= ACTIVATION_COUNT))
          || ((taste2Count == ACTIVATION_COUNT) && (taste1Count >= ACTIVATION_COUNT))) {
-            activateWhenPressed.whenPressed(taste2);
+            activateWhenPressed.whenPressed(taste1, taste2);
         }
         
         if (taste1Count == ALERT_COUNT) {

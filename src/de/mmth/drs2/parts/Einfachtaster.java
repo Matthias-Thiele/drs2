@@ -59,7 +59,7 @@ public class Einfachtaster implements TickerEvent {
         }
         
         if (tasteCount == ACTIVATION_COUNT)  {
-            activateWhenPressed.whenPressed(taste);
+            activateWhenPressed.whenPressed(taste, taste);
         }
         
         if (tasteCount == ALERT_COUNT) {

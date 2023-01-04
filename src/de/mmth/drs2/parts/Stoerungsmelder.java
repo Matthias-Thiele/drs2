@@ -89,8 +89,8 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
      * @param taste 
      */
     @Override
-    public void whenPressed(int taste) {
-        if (taste == tasteSint) {
+    public void whenPressed(int taste1, int taste2) {
+        if (taste1 == tasteSint) {
             strgS = false;
             config.connector.setOut(lampeS, false);
         } else {

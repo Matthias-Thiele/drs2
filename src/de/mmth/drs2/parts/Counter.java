@@ -29,7 +29,7 @@ public class Counter implements TastenEvent, TickerEvent {
     }
     
     @Override
-    public void whenPressed(int taste) {
+    public void whenPressed(int taste1, int taste2) {
         shutdown = ACTIVATE;
     }
 

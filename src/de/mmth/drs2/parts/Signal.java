@@ -138,7 +138,7 @@ public class Signal implements ColorMarker, TastenEvent {
     }
 
     @Override
-    public void whenPressed(int taste) {
+    public void whenPressed(int taste1, int taste2) {
         halt();
         config.alert("Signal über HaGT auf HP0 gestellt.");
     }

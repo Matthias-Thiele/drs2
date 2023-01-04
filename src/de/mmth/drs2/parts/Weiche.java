@@ -77,7 +77,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      * Doppeltaster wurden gedrückt.
      */
     @Override
-    public void whenPressed(int taste) {
+    public void whenPressed(int taste1, int taste2) {
         if (lockCount > 0) {
             // Verrigelte Weichen können nicht umgestellt werden.
             config.alert("Eine verrigelte Weiche kann nicht umgestellt werden: " + name);
