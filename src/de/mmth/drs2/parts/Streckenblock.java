@@ -76,13 +76,21 @@ public class Streckenblock implements TastenEvent {
     }
     
     /**
+     * Die Fahrstraße wurde manuell aufgelöst, es gibt
+     * keine Information über den Verbleib des Zuges.
+     */
+    public void cancel() {
+        streckenState = StreckenState.TRAIN_CANCELED;
+    }
+    
+    /**
      * Über diese Funktion kann die Fahrstraße abfragen, ob der
      * Streckenblock frei ist.
      * 
      * @return 
      */
     public boolean isFree() {
-        return streckenState.equals(StreckenState.FREE);
+        return streckenState.equals(StreckenState.FREE) || streckenState.equals(StreckenState.TRAIN_CANCELED);
     }
     
     /**
@@ -90,7 +98,7 @@ public class Streckenblock implements TastenEvent {
      */
     @Override
     public void whenPressed(int taste1, int taste2) {
-        if (streckenState.equals(StreckenState.TRAIN_ARRIVED)) {
+        if (streckenState.equals(StreckenState.TRAIN_ARRIVED) || streckenState.equals(StreckenState.TRAIN_CANCELED)) {
             streckenState = StreckenState.FREE;
             markStrecke();
             config.alert("Endfeld " + name + " zurückgeblockt.");

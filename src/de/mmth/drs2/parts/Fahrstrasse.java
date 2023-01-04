@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 
 /**
@@ -15,6 +16,7 @@ import de.mmth.drs2.TickerEvent;
  * @author pi
  */
 public class Fahrstrasse implements TastenEvent, TickerEvent {
+    
     private final static int SIGNAL_FIRST_OUTBOUND = 2;
     private final static int STEP_SHORT_WAIT = 15;
     private final static int STEP_LONG_WAIT = 5 * STEP_SHORT_WAIT;
@@ -33,7 +35,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private Weiche[] plusWeichen;
     private Weiche[] minusWeichen;
     private Weiche[] fahrwegWeichen;
-    private Doppeltaster taster;
+    private Doppeltaster fahrstrassenAktivierung;
+    private Doppeltaster hilfsaufloesung;
     
     private boolean isLocked = false;
     private Gleismarker bahnhofsGleis;
@@ -41,6 +44,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private Signal signal;
     private boolean isInbound;
     private boolean reportWait;
+    private boolean pendingTrain;
     
     private int state = DORMANT;
     private int nextStep = -1;
@@ -87,10 +91,13 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             this.fahrwegWeichen[i] = config.weichen[fahrwegWeichen[i]];
         }
         
-        taster = new Doppeltaster();
+        fahrstrassenAktivierung = new Doppeltaster();
         if (signalTaste >= 0) {
-            taster.init(config, this, signalTaste, gleisTaste);
+            fahrstrassenAktivierung.init(config, this, gleisTaste, signalTaste);
         }
+        
+        hilfsaufloesung = new Doppeltaster();
+        hilfsaufloesung.init(config, this, Const.FHT, signalTaste);
         
         this.bahnhofsGleis = bahnhofsGleis;
         this.ausfahrtsGleis = ausfahrtsGleis;
@@ -111,6 +118,35 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      */
     @Override
     public void whenPressed(int taste1, int taste2) {
+        if (taste1 == Const.FHT) {
+            fahrstrassenaufloesung();
+        } else {
+            fahrstrassenfestlegung();
+        }
+    }
+    
+    /**
+     * Callback Funktion vom Doppeltaster.
+     * Der Fahrdienstleiter hat die FHT Taste
+     * und die Signaltaste bedient um die
+     * Fahrstraße manuell aufzulösen.
+     */
+    private void fahrstrassenaufloesung() {
+        config.alert("Fahrstraße manuell aufgelöst.");
+        pendingTrain = (state == INIT) || (state == WAIT_FOR_HP1);
+        signal.clear();
+        unlock();
+        strecke.cancel();
+        state = DORMANT;
+    }
+    
+    /**
+     * Callback Funktion vom Doppeltaster.
+     * Der Fahrdienstleiter hat die Signaltaste
+     * und die Gleistaste betätigt. Das System
+     * versucht nun die Fahrstraße einzurichten.
+     */
+    private void fahrstrassenfestlegung() {
         config.alert("Die Fahrstrasse " + name + " wurde ausgewählt.");
         if (isLocked) {
             config.alert("Die Fahrstrasse " + name + " ist bereits verrigelt.");
@@ -171,8 +207,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         
         signal.fahrt();
         state = INIT;
-        reportWait = true;
+        if (isInbound && pendingTrain) {
+            state = WAIT_FOR_HP1;
+            config.alert("Begonnen Fahrt wird fortgesetzt.");
+        }
         
+        reportWait = true;
         config.alert("Die Fahrstraße " + name + " wurde verschlossen.");
     }
     

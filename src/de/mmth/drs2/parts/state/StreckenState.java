@@ -11,5 +11,6 @@ package de.mmth.drs2.parts.state;
 public enum StreckenState {
     FREE,
     WAIT_FOR_TRAIN,
-    TRAIN_ARRIVED
+    TRAIN_ARRIVED,
+    TRAIN_CANCELED
 }
