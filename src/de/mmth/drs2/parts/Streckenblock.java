@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.parts.state.StreckenState;
 
 /**
@@ -41,7 +42,7 @@ public class Streckenblock implements TastenEvent {
         this.streckeRot = streckeRot;
         if (streckenTaste >= 0) {
             this.streckeTaster = new Doppeltaster();
-            this.streckeTaster.init(config, this, 22, streckenTaste);
+            this.streckeTaster.init(config, this, Const.BlGT, streckenTaste);
             config.ticker.add(streckeTaster);
         }
         

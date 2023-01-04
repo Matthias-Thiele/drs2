@@ -129,7 +129,7 @@ public class Config {
         initCounter();
         initSchluesselweichen();
         
-        stoerungsmelder.init(this, 23, 24, 68, 67, 66);
+        stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66);
     }
     
     /**
@@ -163,12 +163,12 @@ public class Config {
         for (int i = 0; i < ANZAHL_WEICHEN; i++) {
             var weiche = new Weiche();
             String name;
-            int taste1, taste2, whitePlus, whiteMinus, redPlus, redMinus;
+            int taste1 = Const.WGT;
+            int taste2, whitePlus, whiteMinus, redPlus, redMinus;
             
             switch (i) {
                 case 0:
                     name = "W3";
-                    taste1 = 0;
                     taste2 = 1;
                     whitePlus = 7;
                     whiteMinus = 6;
@@ -178,7 +178,6 @@ public class Config {
                 
                 case 1:
                     name = "W4";
-                    taste1 = 0;
                     taste2 = 2;
                     whitePlus = 3;
                     whiteMinus = 2;
@@ -188,7 +187,6 @@ public class Config {
                 
                 case 2:
                     name = "W5";
-                    taste1 = 0;
                     taste2 = 3;
                     whitePlus = 15;
                     whiteMinus = 14;
@@ -198,7 +196,6 @@ public class Config {
                 
                 case 3:
                     name = "W18";
-                    taste1 = 0;
                     taste2 = 4;
                     whitePlus = 11;
                     whiteMinus = 10;
@@ -208,7 +205,6 @@ public class Config {
                 
                 case 4:
                     name = "W19";
-                    taste1 = 0;
                     taste2 = 5;
                     whitePlus = 22;
                     whiteMinus = 23;
@@ -218,7 +214,6 @@ public class Config {
                 
                 case 5:
                     name = "W20";
-                    taste1 = 0;
                     taste2 = 6;
                     whitePlus = 19;
                     whiteMinus = 18;
@@ -228,7 +223,7 @@ public class Config {
                     
                 default:
                     name = "TBD";
-                    taste1 = taste2 = whitePlus = whiteMinus = redPlus = redMinus = -1;
+                    taste2 = whitePlus = whiteMinus = redPlus = redMinus = -1;
             }
             
             weiche.init(this, name, taste1, taste2, whitePlus, whiteMinus, redPlus, redMinus);
@@ -437,7 +432,6 @@ public class Config {
         for (int i = 0; i < ANZAHL_ERSATZSIGNALE; i++) {
             Ersatzsignal signal = ersatzsignale[i];
             String name = "";
-            int ersGT = 16;
             int taste = -1;
             int lampe = -1;
             int interlock1 = -1;
@@ -493,7 +487,7 @@ public class Config {
                     break;
             }
             
-            signal.init(this, name, ersGT, taste, lampe,
+            signal.init(this, name, Const.ErsGT, taste, lampe,
                     ersatzsignale[interlock1], ersatzsignale[interlock2]);
         }
     }

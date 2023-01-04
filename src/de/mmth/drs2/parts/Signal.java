@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.io.Connector;
 
 /**
@@ -47,7 +48,7 @@ public class Signal implements ColorMarker, TastenEvent {
         this.name = name;
         this.conn = config.connector;
         this.sigTaste = new Doppeltaster();
-        this.sigTaste.init(config, this, 20, sigTaste);
+        this.sigTaste.init(config, this, Const.HaGT, sigTaste);
         this.sigFahrt = sigFahrt;
         this.sigHalt = sigHalt;
         this.vorsigFahrt = vorsigFahrt;
