@@ -480,7 +480,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                             config.alert("Fahrt beendet.");
                             signal.clear();
                             strecke.markUsed(true);
-                            unlock();
+                            //unlock();
                             state = DORMANT;
                             return;
                         }

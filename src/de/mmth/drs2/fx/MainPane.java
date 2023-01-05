@@ -7,9 +7,11 @@ package de.mmth.drs2.fx;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.parts.Ersatzsignal;
+import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Weiche;
 import javafx.application.Platform;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -39,14 +41,45 @@ public class MainPane extends GridPane{
         this.setVgap(5);
         
         messages = new TextArea();
-        this.add(messages, 0, 0);
+        this.add(messages, 0, 0, 1, 2);
         
         addWeichen();
         addSignale();
         addErsatzsignale();
         addFahrstrassen();
+        addSchluesselschalter();
     }
     
+    /**
+     * Fügt die Schlüsselschalter für die
+     * Fahrstraßenauflösung in die MainPane ein.
+     */
+    private void addSchluesselschalter() {
+        var schlA = new Button("Schlüssel A");
+        schlA.setOnAction(ev -> {
+            condReleaseFahrstrasse(config.fahrstrassen[0]);
+            condReleaseFahrstrasse(config.fahrstrassen[1]);
+        });
+        this.add(schlA, 2, 1);
+        
+        var schlF = new Button("Schlüssel F");
+        schlF.setOnMouseClicked(ev -> {
+            condReleaseFahrstrasse(config.fahrstrassen[2]);
+            condReleaseFahrstrasse(config.fahrstrassen[3]);
+        });
+        this.add(schlF, 3, 1);
+    }
+    
+    /**
+     * Prüft, ob die Fahrstraße verschlossen ist und löst
+     * Sie bei Bedarf auf.
+     * @param fahrstrasse 
+     */
+    private void condReleaseFahrstrasse(Fahrstrasse fahrstrasse) {
+        if (fahrstrasse.isLocked()) {
+            fahrstrasse.unlock();
+        }
+    }
     /**
      * Fügt die Liste der Weichen Controls in
      * die MainPane ein.
@@ -63,7 +96,7 @@ public class MainPane extends GridPane{
             config.ticker.add(wfx);
         }
         
-        this.add(box, 1, 0);
+        this.add(box, 1, 0, 1, 2);
     }
     
     /**
@@ -120,7 +153,7 @@ public class MainPane extends GridPane{
             config.ticker.add(ffx);
         }
         
-        this.add(box, 4, 0);
+        this.add(box, 4, 0, 1, 2);
     }
     
     /**
