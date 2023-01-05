@@ -500,7 +500,9 @@ public class Config {
         for (int i = 0; i < ANZAHL_SIGNALE; i++) {
             Signal signal = new Signal();
             String name;
-            int sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, fahrwegWhite = -1, fahrwegRed = -1;
+            int sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt;
+            int sh1Lampe = -1, sh1WPlus = -1, sh1WMinus = -1;
+            int fahrwegWhite = -1, fahrwegRed = -1;
             switch (i) {
                 case 0:
                     name = "Sig A";
@@ -531,6 +533,8 @@ public class Config {
                     sigHalt = 37;
                     vorsigFahrt = 38;
                     vorsigHalt = 37;
+                    sh1Lampe = 64;
+                    sh1WPlus = 0; // Weiche 3
                     break;
                     
                 case 3:
@@ -540,6 +544,8 @@ public class Config {
                     sigHalt = 35;
                     vorsigFahrt = 34;
                     vorsigHalt = 35;
+                    sh1Lampe = 79;
+                    sh1WMinus = 0; // Weiche 3
                     break;
                     
                 case 4:
@@ -549,6 +555,8 @@ public class Config {
                     sigHalt = 33;
                     vorsigFahrt = 32;
                     vorsigHalt = 33;
+                    sh1Lampe = 78;
+                    sh1WPlus = 3;
                     break;
                     
                 case 5:
@@ -558,6 +566,8 @@ public class Config {
                     sigHalt = 47;
                     vorsigFahrt = 46;
                     vorsigHalt = 47;
+                    sh1Lampe = 77;
+                    sh1WMinus = 3;
                     break;
                     
                 default:
@@ -567,7 +577,10 @@ public class Config {
                     
             }
             
-            signal.init(this, name, sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, fahrwegWhite, fahrwegRed);
+            signal.init(this, name, sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, 
+                    fahrwegWhite, fahrwegRed, 
+                    sh1Lampe, sh1WPlus, sh1WMinus);
+            
             signale[i] = signal;
         }
     }
