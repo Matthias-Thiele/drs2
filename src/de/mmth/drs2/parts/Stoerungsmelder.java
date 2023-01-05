@@ -25,6 +25,8 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     private boolean strgS = false;
     private boolean strgW = false;
     private int klingel;
+    private int tu;
+    private boolean strgT;
     
     /**
      * Initialisiert die Ports für die Tastenabschalter und
@@ -37,7 +39,8 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
      * @param lampeW
      * @param klingel 
      */
-    public void init(Config config, int tasteS, int tasteW, int lampeS, int lampeW, int klingel) {
+    public void init(Config config, int tasteS, int tasteW, int lampeS, int lampeW, int klingel,
+            int tastenUeberwacher) {
         this.config = config;
         tasteSint = tasteS;
         this.tasteS = new Einfachtaster();
@@ -47,6 +50,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
         this.lampeS = lampeS;
         this.lampeW = lampeW;
         this.klingel = klingel;
+        this.tu = tastenUeberwacher;
         config.ticker.add(this);
     }
     
@@ -64,6 +68,14 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     public void stoerungW() {
         strgW = true;
         config.connector.setOut(klingel, true);
+    }
+    
+    public void stoerungT() {
+        strgT = true;
+    }
+    
+    public void startCheckT() {
+        strgT = false;
     }
     
     /**
@@ -85,6 +97,9 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
         } else {
             config.connector.setOut(lampeW, false);
         }
+        
+        config.connector.setOut(klingel, strgS || strgT || strgW);
+        config.connector.setOut(tu, strgT);
     }
 
     /**
@@ -128,8 +143,6 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
             strgW = false;
             config.connector.setOut(lampeW, false);
         }
-        
-        config.connector.setOut(klingel, false);
     }
     
 }

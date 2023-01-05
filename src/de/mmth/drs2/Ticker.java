@@ -16,6 +16,11 @@ public class Ticker extends Thread {
     final List<TickerEvent> callbackList = new ArrayList<>();
     final private long TICKER_DELAY = 62;
     private int tickCount = 0;
+    private final Config config;
+    
+    public Ticker(Config config) {
+        this.config = config;
+    }
     
     /**
      * Ruft 16 mal pro Sekunde das Ticker Event
@@ -30,6 +35,7 @@ public class Ticker extends Thread {
                 break;
             }
             
+            config.stoerungsmelder.startCheckT();
             for (TickerEvent ev: callbackList) {
                 ev.tick(tickCount);
             }

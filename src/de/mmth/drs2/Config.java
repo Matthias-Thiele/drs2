@@ -60,7 +60,7 @@ public class Config {
      * Aktualisierung der verschiedenen
      * Systeme.
      */
-    public final Ticker ticker = new Ticker();
+    public Ticker ticker = null;
     
     /**
      * Anbindung der DRS 2 Hardware. Das Modul stellt
@@ -121,6 +121,7 @@ public class Config {
      * Initialisiert die Systemkonfiguration
      */
     public void init() {
+        ticker = new Ticker(this);
         initWeichen();
         initSignale();
         initErsatzsignale();
@@ -129,7 +130,7 @@ public class Config {
         initCounter();
         initSchluesselweichen();
         
-        stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66);
+        stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66, 65);
     }
     
     /**

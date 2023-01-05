@@ -65,6 +65,10 @@ public class Doppeltaster implements TickerEvent {
         if (taste2Count == ALERT_COUNT) {
             config.alert("Taste " + taste2 + " hängt.");
         }
+        
+        if ((taste1Count >= ALERT_COUNT) || (taste2Count >= ALERT_COUNT)) {
+            config.stoerungsmelder.stoerungT();
+        }
     }
     
     /**
