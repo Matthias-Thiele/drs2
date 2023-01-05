@@ -8,6 +8,8 @@ import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.parts.Signal;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -25,6 +27,7 @@ public class SignalFx extends GridPane implements TickerEvent {
 
     private final Signal signal;
     private final Text name;
+    private boolean stoerung = false;
     
     /**
      * Der Konstruktor enthält das Signal dessen
@@ -44,11 +47,19 @@ public class SignalFx extends GridPane implements TickerEvent {
         name = new Text(signal.toString());
         this.add(name, 0, 0, 2, 1);
         name.setOnMouseClicked(ev -> {
-            if (signal.isFahrt()) {
-                signal.halt();
-            } else {
-                signal.fahrt();
+            if (ev.getButton().equals(PRIMARY)) {
+                if (signal.isFahrt()) {
+                    signal.halt();
+                } else {
+                    signal.fahrt();
+                }
             }
+            
+            if (ev.getButton().equals(SECONDARY)) {
+                stoerung = !stoerung;
+                signal.setStoerung(stoerung);
+            }
+            
             updateView();
         });
     }

@@ -71,6 +71,18 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      */
     public void setStoerung(boolean stoerung) {
         isGestoert = stoerung;
+        
+        if (isGestoert) {
+            config.stoerungsmelder.stoerungW();
+        }
+    }
+    
+    /**
+     * Meldet zurück, ob eine Störung vorliegt.
+     * @return 
+     */
+    public boolean isGestoert() {
+        return isGestoert;
     }
     
     /**

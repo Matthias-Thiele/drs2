@@ -28,6 +28,7 @@ public class Signal implements ColorMarker, TastenEvent {
     private int fahrwegMarker = -1;
     private Doppeltaster sigTaste;
     private Config config;
+    private boolean isGestoert;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -86,12 +87,37 @@ public class Signal implements ColorMarker, TastenEvent {
     }
     
     /**
+     * Setzt das Flag welches eine Störung simuliert.
+     * @param isGestoert 
+     */
+    public void setStoerung(boolean isGestoert) {
+        this.isGestoert = isGestoert;
+        updateView();
+        
+        if (isGestoert) {
+            config.stoerungsmelder.stoerungS();
+        }
+    }
+    
+    /**
+     * Meldet zurück, ob eine Störung vorliegt.
+     * @return 
+     */
+    public boolean isGestoert() {
+        return isGestoert;
+    }
+    
+    /**
      * Gibt den aktuellen Zustand in Textform zurück.
      * @return 
      */
     @Override
     public String toString() {
-        return name + ": " + (isFahrt ? "hp1/2" : "hp0");
+        if (isGestoert) {
+            return name + " (Gestört)";
+        } else {
+            return name + ": " + (isFahrt ? "hp1/2" : "hp0");
+        }
     }
     
     /**
@@ -99,10 +125,17 @@ public class Signal implements ColorMarker, TastenEvent {
      * gemäß der aktuellen Fahrt Einstellung.
      */
     private void updateView() {
-        conn.setOut(sigFahrt, isFahrt);
-        conn.setOut(sigHalt, !isFahrt);
-        conn.setOut(vorsigFahrt, isFahrt);
-        conn.setOut(vorsigHalt, !isFahrt);
+        if (isGestoert) {
+            conn.setOut(sigFahrt, false);
+            conn.setOut(sigHalt, false);
+            conn.setOut(vorsigFahrt, false);
+            conn.setOut(vorsigHalt, false);            
+        } else {
+            conn.setOut(sigFahrt, isFahrt);
+            conn.setOut(sigHalt, !isFahrt);
+            conn.setOut(vorsigFahrt, isFahrt);
+            conn.setOut(vorsigHalt, !isFahrt);
+        }
         
         conn.setOut(fahrwegWhite, false);
         conn.setOut(fahrwegRed, false);
