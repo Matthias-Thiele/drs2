@@ -509,8 +509,8 @@ public class Config {
                     sigTaste = 10;
                     sigFahrt = 24;
                     sigHalt = 25;
-                    vorsigFahrt = 24;
-                    vorsigHalt = 25;
+                    vorsigFahrt = 75;
+                    vorsigHalt = 76;
                     fahrwegWhite = 45;
                     fahrwegRed = 44;
                     break;
@@ -520,8 +520,8 @@ public class Config {
                     sigTaste = 11;
                     sigFahrt = 36;
                     sigHalt = 39;
-                    vorsigFahrt = 36;
-                    vorsigHalt = 39;
+                    vorsigFahrt = 73;
+                    vorsigHalt = 74;
                     fahrwegWhite = 43;
                     fahrwegRed = 42;
                     break;
@@ -531,8 +531,8 @@ public class Config {
                     sigTaste = 12;
                     sigFahrt = 38;
                     sigHalt = 37;
-                    vorsigFahrt = 38;
-                    vorsigHalt = 37;
+                    vorsigFahrt = 86;
+                    vorsigHalt = 85;
                     sh1Lampe = 64;
                     sh1WPlus = 0; // Weiche 3
                     break;
@@ -542,7 +542,7 @@ public class Config {
                     sigTaste = 13;
                     sigFahrt = 34;
                     sigHalt = 35;
-                    vorsigFahrt = 34;
+                    vorsigFahrt = 87;
                     vorsigHalt = 35;
                     sh1Lampe = 79;
                     sh1WMinus = 0; // Weiche 3
@@ -553,7 +553,7 @@ public class Config {
                     sigTaste = 14;
                     sigFahrt = 32;
                     sigHalt = 33;
-                    vorsigFahrt = 32;
+                    vorsigFahrt = 72;
                     vorsigHalt = 33;
                     sh1Lampe = 78;
                     sh1WPlus = 3;
@@ -564,7 +564,7 @@ public class Config {
                     sigTaste = 15;
                     sigFahrt = 46;
                     sigHalt = 47;
-                    vorsigFahrt = 46;
+                    vorsigFahrt = 72;
                     vorsigHalt = 47;
                     sh1Lampe = 77;
                     sh1WMinus = 3;

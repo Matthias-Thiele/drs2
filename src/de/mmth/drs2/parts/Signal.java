@@ -156,6 +156,10 @@ public class Signal implements ColorMarker, TastenEvent {
             conn.setOut(sigHalt, !isFahrt);
             conn.setOut(vorsigFahrt, isFahrt);
             conn.setOut(vorsigHalt, !isFahrt);
+            if (vorsigFahrt == Const.WVp1) {
+                // Sonderbehandlung für P1 mit zwei Vorsignalen
+                conn.setOut(Const.Vp13, isFahrt);
+            }
         }
         
         conn.setOut(fahrwegWhite, false);

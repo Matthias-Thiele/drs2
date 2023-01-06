@@ -17,4 +17,7 @@ public class Const {
     public static final int WGT = 0;
     public static final int WuT_S = 23;
     public static final int WuT_W = 24;
+    
+    public static final int Vp13 = 87;
+    public static final int WVp1 = 86;
 }

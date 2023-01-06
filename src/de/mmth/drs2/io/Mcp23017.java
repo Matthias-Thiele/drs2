@@ -28,9 +28,6 @@ public class Mcp23017 {
     private static final int GPIOA_REGISTER = 0x12; //GPIOA Register. Write or read value
     private static final int GPIOB_REGISTER = 0x13; //GPIOB Register. Write or read value
     
-    private static final int GPPUA_REGISTER = 0x0C; //PORT A Pull-up value. If set configures the internal pull-ups
-    private static final int GPPUB_REGISTER = 0x0D; ///PORT B Pull-up value. If set configures the internal pull-ups
-    
     private I2CBus i2c;
     private I2CDevice[] devices;
     private int outputOffset;
@@ -60,7 +57,10 @@ public class Mcp23017 {
         
         i2c = I2CFactory.getInstance(I2CBus.BUS_1);
         for (int numDevice = 0; numDevice < (outputCount + outputOffset); numDevice++) {
-            if (numDevice != 0 && numDevice != 1 && numDevice != 3 && numDevice != 4 && numDevice != 5 && numDevice != 6 && numDevice != 7) continue;
+            if (numDevice == 2) {
+                // Input 3 wurde zu Output 6
+                continue;
+            }
             
             I2CDevice device;
         
@@ -68,8 +68,8 @@ public class Mcp23017 {
                 // Eingabe konfigurieren
                 device = initInput(numDevice);
             } else {
-                // Ausgabe konfigurieren
-                device = initOutput(numDevice);
+                // Ausgabe konfigurieren (Out 8 auf 2 mappen)
+                device = initOutput((numDevice == 8) ? 2 : numDevice);
             }
             
             devices[numDevice] = device;
@@ -108,9 +108,7 @@ public class Mcp23017 {
     public I2CDevice initInput(int numDevice) throws IOException {
         I2CDevice device = i2c.getDevice(MCP23017_ADDRESS + numDevice);
         device.write(IODIRA_REGISTER, (byte) 0xFF);
-        device.write(GPPUA_REGISTER, (byte) 0xFF);
         device.write(IODIRB_REGISTER, (byte) 0xFF);
-        device.write(GPPUB_REGISTER, (byte) 0xFF);
         
         return device;
     }
@@ -123,6 +121,11 @@ public class Mcp23017 {
      * @throws IOException 
      */
     public void write16(int cardNo, int value) throws IOException {
+        if (cardNo == 8) {
+            // Output 8 auf 2 mappen (Output statt Input)
+            cardNo = 2;
+        }
+        
         if (devices[cardNo + outputOffset] != null) {
             devices[cardNo + outputOffset].write(GPIOA_REGISTER, (byte) value); 
             devices[cardNo + outputOffset].write(GPIOB_REGISTER, (byte) (value >> 8)); 
