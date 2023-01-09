@@ -51,6 +51,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private Gleismarker ausfahrtsGleis;
     private Streckenblock strecke;
     private int ersatzSignalNummer;
+    private int festlegemelder;
+    private int sperrRaeumungsmelder;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -64,15 +66,19 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * @param gleisTaste
      * @param bahnhofsGleis
      * @param signalNummer Ein- oder Ausfahrtsignal zu dieser Fahrstraße.
+     * @param ersatzSignalNummer
      * @param ausfahrtsGleis
      * @param streckeName
      * @param streckeWeiss
      * @param streckeRot
      * @param streckeTaster
+     * @param festlegemelder
+     * @param sperrRaeumungsmelder
      */
     public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, 
             int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, int ersatzSignalNummer,
-            Gleismarker ausfahrtsGleis, String streckeName, int streckeWeiss, int streckeRot, int streckeTaster) {
+            Gleismarker ausfahrtsGleis, String streckeName, int streckeWeiss, int streckeRot, int streckeTaster,
+            int festlegemelder, int sperrRaeumungsmelder) {
         this.config = config;
         this.name = name;
         
@@ -106,7 +112,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
         
         strecke = new Streckenblock();
-        strecke.init(config, streckeName, streckeTaster, streckeWeiss, streckeRot);
+        strecke.init(config, streckeName, streckeTaster, streckeWeiss, streckeRot,
+                sperrRaeumungsmelder);
+        
+        this.festlegemelder = festlegemelder;
+        this.sperrRaeumungsmelder = sperrRaeumungsmelder;
+        
         config.ticker.add(this);
     }
 
@@ -473,6 +484,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                         // den Streckenabschnitt zum Einfahrtssignal.
                         config.alert("Zug verlässt Signalblock.");
                         signal.white();
+                        strecke.activateSR();
                     } else {
                         fahrwegWeichen[weiche - 1].white();
                         if (weiche >= fahrwegWeichen.length) {

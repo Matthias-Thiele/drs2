@@ -254,7 +254,7 @@ public class Config {
             int taste1, taste2, gleis, signalNummer, ausfahrt = -1;
             int[] minusWeichen, plusWeichen, fahrwegWeichen = {};
             int streckeWeiss = -1, streckeRot = -1, streckenTaster = -1;
-            int ersatz = -1;
+            int ersatz = -1, sperrRaeumungsmelder = -1, festlegemelder = -1;
             String streckeName = "?";
             
             switch(i) {
@@ -275,6 +275,7 @@ public class Config {
                     streckenTaster = 17;
                     ersatz = 0;
                     streckeName = "M";
+                    sperrRaeumungsmelder = 82;
                     break;
                     
                 case 1:
@@ -294,6 +295,7 @@ public class Config {
                     streckenTaster = 17;
                     ersatz = 0;
                     streckeName = "M";
+                    sperrRaeumungsmelder = 82;
                     break;
                     
                 case 2:
@@ -313,6 +315,7 @@ public class Config {
                     streckenTaster = 18;
                     ersatz = 1;
                     streckeName = "H";
+                    sperrRaeumungsmelder = 81;
                     break;
                     
                 case 3:
@@ -332,6 +335,7 @@ public class Config {
                     streckenTaster = 18;
                     ersatz = 1;
                     streckeName = "H";
+                    sperrRaeumungsmelder = 81;
                     break;
                     
                 case 4:
@@ -416,7 +420,8 @@ public class Config {
             Gleismarker ausfahrtsGleis = (ausfahrt == -1) ? null : gleise[ausfahrt];
             fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, 
                     taste1, taste2, gleise[gleis], signalNummer, ersatz, ausfahrtsGleis,
-                    streckeName, streckeWeiss, streckeRot, streckenTaster);
+                    streckeName, streckeWeiss, streckeRot, streckenTaster,
+                    festlegemelder, sperrRaeumungsmelder);
             
             fahrstrassen[i] = fahrstrasse;
         }

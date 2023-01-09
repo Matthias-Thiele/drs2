@@ -18,6 +18,12 @@ public class Const {
     public static final int WuT_S = 23;
     public static final int WuT_W = 24;
     
+    // Zusätzliche Vorsignale für Durchfahrten
     public static final int Vp13 = 87;
     public static final int WVp1 = 86;
+    
+    // Anzeigelampen und Zeiten für Motorinduktor
+    public static final int MJ1 = 92;
+    public static final int MJ2 = 91;
+    public static final int KURBELINDUKTOR_RUNDEN = 120;
 }

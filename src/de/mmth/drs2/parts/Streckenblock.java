@@ -6,6 +6,7 @@ package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
+import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.parts.state.StreckenState;
 
 /**
@@ -16,7 +17,7 @@ import de.mmth.drs2.parts.state.StreckenState;
  * 
  * @author Matthias Thiele
  */
-public class Streckenblock implements TastenEvent {
+public class Streckenblock implements TastenEvent, TickerEvent {
 
     private Config config;
     private int streckeWeiss;
@@ -24,6 +25,9 @@ public class Streckenblock implements TastenEvent {
     private Doppeltaster streckeTaster;
     private StreckenState streckenState;
     private String name;
+    private int sperrRaeumungsmelder;
+    private boolean useMJ1MJ2;
+    int rueckblockenUntil;
     
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -34,12 +38,14 @@ public class Streckenblock implements TastenEvent {
      * @param streckenTaste
      * @param streckeWeiss
      * @param streckeRot 
+     * @param sperrRaeumungsmelder 
      */
-    public void init(Config config, String name, int streckenTaste, int streckeWeiss, int streckeRot) {
+    public void init(Config config, String name, int streckenTaste, int streckeWeiss, int streckeRot, int sperrRaeumungsmelder) {
         this.config = config;
         this.name = name;
         this.streckeWeiss = streckeWeiss;
         this.streckeRot = streckeRot;
+        this.sperrRaeumungsmelder = sperrRaeumungsmelder;
         if (streckenTaste >= 0) {
             this.streckeTaster = new Doppeltaster();
             this.streckeTaster.init(config, this, Const.BlGT, streckenTaste);
@@ -47,7 +53,9 @@ public class Streckenblock implements TastenEvent {
         }
         
         streckenState = StreckenState.FREE;
+        rueckblockenUntil = Integer.MAX_VALUE;
         markStrecke();
+        config.ticker.add(this);
     }
 
     /**
@@ -95,6 +103,15 @@ public class Streckenblock implements TastenEvent {
     }
     
     /**
+     * Sperr- oder Räumungsmelder aktivieren.
+     */
+    public void activateSR() {
+        if (sperrRaeumungsmelder != -1) {
+            config.connector.setOut(sperrRaeumungsmelder, true);
+        }
+    }
+    
+    /**
      * Doppeltaster wurde betätigt.
      */
     @Override
@@ -102,7 +119,11 @@ public class Streckenblock implements TastenEvent {
         if (streckenState.equals(StreckenState.TRAIN_ARRIVED) || streckenState.equals(StreckenState.TRAIN_CANCELED)) {
             streckenState = StreckenState.FREE;
             markStrecke();
+            if (sperrRaeumungsmelder != -1) {
+                config.connector.setOut(sperrRaeumungsmelder, true);
+            }
             config.alert("Endfeld " + name + " zurückgeblockt.");
+            rueckblockenUntil = 0;
         }
     }
 
@@ -117,5 +138,28 @@ public class Streckenblock implements TastenEvent {
         boolean besetzt = streckenState != StreckenState.FREE;
         config.connector.setOut(streckeRot, besetzt);
         config.connector.setOut(streckeWeiss, !besetzt);
+    }
+
+    /**
+     * Zum Rückblocken läuft ein Kurbelinduktor für etwa
+     * 9 Sekunden. Es gibt zwei Induktoren, die abwechselnd
+     * verwendet werden (Anzeigelampen MJ1 und MJ2).
+     * @param count 
+     */
+    @Override
+    public void tick(int count) {
+        if (rueckblockenUntil == 0) {
+            rueckblockenUntil = count + Const.KURBELINDUKTOR_RUNDEN;
+            useMJ1MJ2 = !useMJ1MJ2;
+            config.connector.setOut(useMJ1MJ2 ? Const.MJ1 : Const.MJ2, true);
+            config.alert("Rückblocken " + name + " gestartet.");
+        } else {
+            if (count > rueckblockenUntil) {
+                config.connector.setOut(Const.MJ1, false);
+                config.connector.setOut(Const.MJ2, false);
+                config.alert("Rückblocken " + name + " beendet.");
+                rueckblockenUntil = Integer.MAX_VALUE;
+            }
+        }
     }
 }
