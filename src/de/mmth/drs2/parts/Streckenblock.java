@@ -28,6 +28,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
     private int sperrRaeumungsmelder;
     private boolean useMJ1MJ2;
     int rueckblockenUntil;
+    private boolean isInbound;
     
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -35,14 +36,16 @@ public class Streckenblock implements TastenEvent, TickerEvent {
      * 
      * @param config
      * @param name
+     * @param isInbound
      * @param streckenTaste
      * @param streckeWeiss
      * @param streckeRot 
      * @param sperrRaeumungsmelder 
      */
-    public void init(Config config, String name, int streckenTaste, int streckeWeiss, int streckeRot, int sperrRaeumungsmelder) {
+    public void init(Config config, String name, boolean isInbound, int streckenTaste, int streckeWeiss, int streckeRot, int sperrRaeumungsmelder) {
         this.config = config;
         this.name = name;
+        this.isInbound = isInbound;
         this.streckeWeiss = streckeWeiss;
         this.streckeRot = streckeRot;
         this.sperrRaeumungsmelder = sperrRaeumungsmelder;
@@ -71,6 +74,9 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         streckenState = trainArrived ? StreckenState.TRAIN_ARRIVED : StreckenState.WAIT_FOR_TRAIN;
         markStrecke();
         config.alert("Strecke " + name + " vorgeblockt.");
+        if (!isInbound && (sperrRaeumungsmelder != -1)) {
+            config.connector.setOut(sperrRaeumungsmelder, false);
+        }
     }
     
     /**
@@ -82,6 +88,9 @@ public class Streckenblock implements TastenEvent, TickerEvent {
     public void unblock() {
         streckenState = StreckenState.FREE;
         markStrecke();
+        if (!isInbound && (sperrRaeumungsmelder != -1)) {
+            config.connector.setOut(sperrRaeumungsmelder, false);
+        }
     }
     
     /**
@@ -120,9 +129,12 @@ public class Streckenblock implements TastenEvent, TickerEvent {
             streckenState = StreckenState.FREE;
             markStrecke();
             if (sperrRaeumungsmelder != -1) {
-                config.connector.setOut(sperrRaeumungsmelder, true);
+                config.connector.setOut(sperrRaeumungsmelder, false);
             }
-            config.alert("Endfeld " + name + " zurückgeblockt.");
+            if (isInbound) {
+                config.alert("Endfeld " + name + " zurückgeblockt.");
+            }
+            
             rueckblockenUntil = 0;
         }
     }
@@ -138,6 +150,10 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         boolean besetzt = streckenState != StreckenState.FREE;
         config.connector.setOut(streckeRot, besetzt);
         config.connector.setOut(streckeWeiss, !besetzt);
+        
+        if (!isInbound) {
+            rueckblockenUntil = 0;
+        }
     }
 
     /**

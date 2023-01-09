@@ -112,7 +112,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
         
         strecke = new Streckenblock();
-        strecke.init(config, streckeName, streckeTaster, streckeWeiss, streckeRot,
+        strecke.init(config, streckeName, isInbound, streckeTaster, streckeWeiss, streckeRot,
                 sperrRaeumungsmelder);
         
         this.festlegemelder = festlegemelder;
@@ -317,7 +317,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 }
                 
                 if (isFahrt) {
-                    nextStep = count + STEP_SHORT_WAIT;
+                    strecke.activateSR();
+                    nextStep = count + STEP_LONG_WAIT;
                     state = INBOUND_RED;
                 } else {
                     if (reportWait) {

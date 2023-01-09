@@ -354,6 +354,7 @@ public class Config {
                     streckeWeiss = 56;
                     streckeRot = 71;
                     ersatz = 4;
+                    sperrRaeumungsmelder = 84;
                     break;
                     
                 case 5:
@@ -372,6 +373,7 @@ public class Config {
                     streckeWeiss = 56;
                     streckeRot = 71;
                     ersatz = 5;
+                    sperrRaeumungsmelder = 84;
                     break;
                     
                 case 6:
@@ -390,6 +392,7 @@ public class Config {
                     streckeWeiss = 58;
                     streckeRot = 57;
                     ersatz = 2;
+                    sperrRaeumungsmelder = 83;
                     break;
                     
                 case 7:
@@ -408,6 +411,7 @@ public class Config {
                     streckeWeiss = 58;
                     streckeRot = 57;
                     ersatz = 3;
+                    sperrRaeumungsmelder = 83;
                     break;
                     
                 default:
