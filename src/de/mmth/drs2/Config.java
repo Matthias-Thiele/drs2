@@ -276,6 +276,7 @@ public class Config {
                     ersatz = 0;
                     streckeName = "M";
                     sperrRaeumungsmelder = 82;
+                    festlegemelder = 80;
                     break;
                     
                 case 1:
@@ -296,6 +297,7 @@ public class Config {
                     ersatz = 0;
                     streckeName = "M";
                     sperrRaeumungsmelder = 82;
+                    festlegemelder = 80;
                     break;
                     
                 case 2:
@@ -316,6 +318,7 @@ public class Config {
                     ersatz = 1;
                     streckeName = "H";
                     sperrRaeumungsmelder = 81;
+                    festlegemelder = 95;
                     break;
                     
                 case 3:
@@ -336,6 +339,7 @@ public class Config {
                     ersatz = 1;
                     streckeName = "H";
                     sperrRaeumungsmelder = 81;
+                    festlegemelder = 95;
                     break;
                     
                 case 4:
@@ -355,6 +359,7 @@ public class Config {
                     streckeRot = 71;
                     ersatz = 4;
                     sperrRaeumungsmelder = 84;
+                    festlegemelder = 93;
                     break;
                     
                 case 5:
@@ -374,6 +379,7 @@ public class Config {
                     streckeRot = 71;
                     ersatz = 5;
                     sperrRaeumungsmelder = 84;
+                    festlegemelder = 93;
                     break;
                     
                 case 6:
@@ -393,6 +399,7 @@ public class Config {
                     streckeRot = 57;
                     ersatz = 2;
                     sperrRaeumungsmelder = 83;
+                    festlegemelder = 94;
                     break;
                     
                 case 7:
@@ -412,6 +419,7 @@ public class Config {
                     streckeRot = 57;
                     ersatz = 3;
                     sperrRaeumungsmelder = 83;
+                    festlegemelder = 94;
                     break;
                     
                 default:

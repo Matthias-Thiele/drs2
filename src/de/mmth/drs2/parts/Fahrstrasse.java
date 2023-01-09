@@ -253,6 +253,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             bahnhofsGleis.clear();
         }
         
+        config.connector.setOut(festlegemelder, false);
         config.alert("Die Fahrstraße " + name + " wurde aufgelöst.");
     }
     
@@ -297,6 +298,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case INIT:
                 signal.white();
+                config.connector.setOut(festlegemelder, true);
                 nextStep = count + STEP_LONG_WAIT;
                 if (bahnhofsGleis.isInUse()) {
                     config.alert("Fahrt gestartet.");
@@ -364,6 +366,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case DONE:
                 strecke.unblock();
+                config.connector.setOut(festlegemelder, false);
                 if (!isInbound) {
                     ausfahrtsGleis.clear();
                 }
@@ -430,6 +433,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             case INIT:
                 config.alert("Fahrt gestartet.");
                 signal.white();
+                config.connector.setOut(festlegemelder, true);
                 nextStep = count + STEP_LONG_WAIT;
                 state = INCOMMING_TRAIN; // Fahrstraße wurde ausgewählt.
                 reportWait = true;

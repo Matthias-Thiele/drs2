@@ -56,8 +56,8 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         }
         
         streckenState = StreckenState.FREE;
-        rueckblockenUntil = Integer.MAX_VALUE;
         markStrecke();
+        rueckblockenUntil = Integer.MAX_VALUE;
         config.ticker.add(this);
     }
 
@@ -76,6 +76,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         config.alert("Strecke " + name + " vorgeblockt.");
         if (!isInbound && (sperrRaeumungsmelder != -1)) {
             config.connector.setOut(sperrRaeumungsmelder, false);
+            rueckblockenUntil = 0;
         }
     }
     
@@ -150,10 +151,6 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         boolean besetzt = streckenState != StreckenState.FREE;
         config.connector.setOut(streckeRot, besetzt);
         config.connector.setOut(streckeWeiss, !besetzt);
-        
-        if (!isInbound) {
-            rueckblockenUntil = 0;
-        }
     }
 
     /**
