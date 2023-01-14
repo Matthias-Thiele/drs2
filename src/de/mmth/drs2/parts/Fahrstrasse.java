@@ -53,6 +53,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private int ersatzSignalNummer;
     private int festlegemelder;
     private int sperrRaeumungsmelder;
+    private Doppeltaster tasteAsT;
+    private Doppeltaster tasteAsLT;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -118,6 +120,16 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.festlegemelder = festlegemelder;
         this.sperrRaeumungsmelder = sperrRaeumungsmelder;
         
+        if (streckeTaster >= 0) {
+            tasteAsT = new Doppeltaster();
+            tasteAsT.init(config, this, Const.AsT, streckeTaster);
+            config.ticker.add(tasteAsT);
+            
+            tasteAsLT = new Doppeltaster();
+            tasteAsLT.init(config, this, Const.AsLT, streckeTaster);
+            config.ticker.add(tasteAsLT);
+        }
+        
         config.ticker.add(this);
     }
 
@@ -129,10 +141,21 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      */
     @Override
     public void whenPressed(int taste1, int taste2) {
-        if (taste1 == Const.FHT) {
-            fahrstrassenaufloesung();
-        } else {
-            fahrstrassenfestlegung();
+        switch (taste1) {
+            case Const.FHT:
+                fahrstrassenaufloesung();
+                break;
+                
+            case Const.AsT:
+                config.connector.setOut(festlegemelder, true);
+                break;
+                
+            case Const.AsLT:
+                config.connector.setOut(festlegemelder, false);
+                break;
+                
+            default:
+                fahrstrassenfestlegung();
         }
     }
     
