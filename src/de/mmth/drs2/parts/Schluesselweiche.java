@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 
 /**
@@ -27,23 +28,27 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
     private Config config;
     private int rot;
     private int weiss;
-    private Doppeltaster taste;
+    private Doppeltaster tasteSlFT;
     private int blinkUntil;
     private int redUntil;
+    private Doppeltaster tasteSlFLT;
     
     /**
      * Initialisiert das Objekt mit der Tastennummer und den
      * Lampennummern.
      * 
      * @param config
-     * @param taste
+     * @param tasteSlFT
+     * @param tasteSlFLT
      * @param rot
      * @param weiss 
      */
-    public void init(Config config, int taste, int rot, int weiss) {
+    public void init(Config config, int tasteSlFT, int tasteSlFLT, int rot, int weiss) {
         this.config = config;
-        this.taste = new Doppeltaster();
-        this.taste.init(config, this, 0, taste);
+        this.tasteSlFT = new Doppeltaster();
+        this.tasteSlFT.init(config, this, Const.WGT, tasteSlFT);
+        this.tasteSlFLT = new Doppeltaster();
+        this.tasteSlFLT.init(config, this, tasteSlFLT, tasteSlFT);
         this.rot = rot;
         this.weiss = weiss;
         
@@ -57,7 +62,26 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
      */
     @Override
     public void whenPressed(int taste1, int taste2) {
-        state = 1;
+        if (taste1 == Const.WGT) {
+            state = 1;
+        } else {
+            // Löschtaste wurde betätigt
+            switch (state) {
+                case 0:
+                    config.alert("Schlüssel war noch nicht freigegeben.");
+                    break;
+                    
+                case 1:
+                case 2:
+                    state = 0;
+                    config.alert("Schlüsselfreigabe zurückgenommen.");
+                    break;
+                    
+                case 3:
+                    config.alert("Schlüssel wurde bereits entnommen.");
+                    break;
+            } 
+        }
     }
 
     /**

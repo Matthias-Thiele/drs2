@@ -148,7 +148,7 @@ public class Config {
             Schluesselweiche weiche = new Schluesselweiche();
             switch (i) {
                 case 0:
-                    weiche.init(this, 21, 70, 69);
+                    weiche.init(this, Const.SlFT, Const.SlFLT, 70, 69);
                     break;
                     
                 default:

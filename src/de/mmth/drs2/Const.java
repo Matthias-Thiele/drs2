@@ -14,9 +14,14 @@ public class Const {
     public static final int FHT = 25;
     public static final int HaGT = 20;
     public static final int SGT = 19;
-    public static final int WGT = 0;
     public static final int WuT_S = 23;
     public static final int WuT_W = 24;
+    
+    // Weichentasten
+    public static final int WGT = 0;
+    public static final int SlFT = 21;
+    public static final int SlFLT = 26;
+    
     
     // Zusätzliche Vorsignale für Durchfahrten
     public static final int Vp13 = 87;
