@@ -9,6 +9,10 @@ package de.mmth.drs2;
  * @author pi
  */
 public class Const {
+    // Tastenanschalter
+    public static final int TA = 31;
+    
+    // Gruppentasten allgemein
     public static final int ErsGT = 16;
     public static final int FHT = 25;
     public static final int HaGT = 20;
@@ -20,6 +24,8 @@ public class Const {
     public static final int BlGT = 22;
     public static final int AsT = 27;
     public static final int AsLT = 28;
+    public static final int VbHT_H = 29;
+    public static final int VbHT_M = 30;
     
     // Weichentasten
     public static final int WGT = 0;

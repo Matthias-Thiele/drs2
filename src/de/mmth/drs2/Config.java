@@ -19,7 +19,7 @@ import de.mmth.drs2.parts.Weiche;
  *
  * @author pi
  */
-public class Config {
+public class Config implements TickerEvent {
     /**
      * Anzahl der Weichen im DRS 2 Stellpult die
      * über das System verwaltet werden.
@@ -117,6 +117,8 @@ public class Config {
      */
     public Stoerungsmelder stoerungsmelder = new Stoerungsmelder();
     
+    public boolean tastenAnschalter = false;
+    
     /**
      * Initialisiert die Systemkonfiguration
      */
@@ -131,6 +133,8 @@ public class Config {
         initSchluesselweichen();
         
         stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66, 65);
+        
+        ticker.add(this);
     }
     
     /**
@@ -609,5 +613,13 @@ public class Config {
     public void alert(String message) {
         System.out.println(message);
         mainPane.addMessage(message);
+    }
+
+    @Override
+    public void tick(int count) {
+        if (tastenAnschalter != this.connector.isInSet(Const.TA)) {
+            tastenAnschalter = this.connector.isInSet(Const.TA);
+            alert("Tastenfeld " + (tastenAnschalter ? "eingeschaltet." : "abgeschaltet."));
+        }
     }
 }

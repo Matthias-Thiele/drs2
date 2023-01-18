@@ -41,6 +41,10 @@ public class Doppeltaster implements TickerEvent {
      */
     @Override
     public void tick(int count) {
+        if (!config.tastenAnschalter) {
+            return;
+        }
+        
         if (drs2.isInSet(taste1)) {
             taste1Count++;
         } else {
