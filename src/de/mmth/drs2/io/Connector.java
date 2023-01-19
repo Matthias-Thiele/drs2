@@ -4,31 +4,37 @@
  */
 package de.mmth.drs2.io;
 
-import de.mmth.drs2.Const;
+import com.pi4j.io.gpio.GpioController;
 import de.mmth.drs2.Ticker;
 import de.mmth.drs2.TickerEvent;
 import java.io.IOException;
-
+import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalInput;
+import com.pi4j.io.gpio.RaspiPin;
 /**
  *
  * @author pi
  */
 public class Connector implements TickerEvent {
+    public final Mcp23017 mcp = new Mcp23017();
+    
     /**
      * Anzahl der Eingänge von der DRS2, muss ein vielfaches von 16 sein.
      */
     public final static int INPUT_COUNT = 32;
+    private final static int LOCAL_INPUT_COUNT = 2;
     
     /**
      * Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein.
      */
     public final static int OUTPUT_COUNT = 96;
     
-    private final boolean[] drs2In = new boolean[INPUT_COUNT];
+    private final boolean[] drs2In = new boolean[INPUT_COUNT + LOCAL_INPUT_COUNT];
     private final boolean[] drs2Out = new boolean[OUTPUT_COUNT];
     private final int[] polarity = {0xff80, 0x647e, 0};
     
-    public final Mcp23017 mcp = new Mcp23017();
+    private GpioPinDigitalInput tastenanschalter;
+    private GpioPinDigitalInput nc;
     
     /**
      * Das Tickerevent löst das Lesen der DRS 2 Tastereingänge
@@ -42,6 +48,10 @@ public class Connector implements TickerEvent {
             //long start = System.nanoTime();
             readInputs();
             writeOutputs();
+            
+            // Lokale Eingänge lesen
+            drs2In[INPUT_COUNT] = tastenanschalter.getState().isHigh();
+            drs2In[INPUT_COUNT + 1] = nc.getState().isHigh();
             //long duration = System.nanoTime() - start;
             //System.out.println("Time: " + duration);
         } catch (IOException ex) {
@@ -65,6 +75,11 @@ public class Connector implements TickerEvent {
         for (int i = 0; i < drs2In.length; i++) {
             drs2In[i] = false;
         }
+        
+        // Lokale Eingänge - Achtung Portnummer nach der alten wiring Zählweise!
+        final GpioController gpio = GpioFactory.getInstance();
+        tastenanschalter = gpio.provisionDigitalInputPin(RaspiPin.GPIO_02);
+        nc = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03);
     }
     
     /**

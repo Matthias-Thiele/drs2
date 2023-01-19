@@ -10,7 +10,7 @@ package de.mmth.drs2;
  */
 public class Const {
     // Tastenanschalter
-    public static final int TA = 31;
+    public static final int TA = 32;
     
     // Gruppentasten allgemein
     public static final int ErsGT = 16;
@@ -26,6 +26,7 @@ public class Const {
     public static final int AsLT = 28;
     public static final int VbHT_H = 29;
     public static final int VbHT_M = 30;
+    public static final int RbHGT = 31;
     
     // Weichentasten
     public static final int WGT = 0;
