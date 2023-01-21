@@ -134,7 +134,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     private void checkWeichenstoerung() {
         for (Weiche weiche : config.weichen) {
             if (weiche.isGestoert()) {
-                if (weiche.getName().equals(lastWeichenStoerung)) {
+                if (!weiche.getName().equals(lastWeichenStoerung)) {
                     strgW = true;
                     lastWeichenStoerung = weiche.getName();
                     config.alert("Weichenstörung: " + lastWeichenStoerung);
