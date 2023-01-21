@@ -24,10 +24,12 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
 
     private boolean strgS = false;
     private boolean strgW = false;
+    private boolean strgT = false;
+    
     private int klingel;
     private int tu;
-    private String lastStoerung = "";
-    private boolean strgT;
+    private String lastSignalStoerung = "";
+    private Object lastWeichenStoerung = "";
     
     /**
      * Initialisiert die Ports für die Tastenabschalter und
@@ -111,9 +113,10 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     private void checkSignalstoerung() {
         for (Signal signal : config.signale) {
             if (signal.isGestoert()) {
-                if (!signal.getName().equals(lastStoerung)) {
+                if (!signal.getName().equals(lastSignalStoerung)) {
                     strgS = true;
-                    lastStoerung = signal.getName();
+                    lastSignalStoerung = signal.getName();
+                    config.alert("Signalstörung: " + lastSignalStoerung);
                 }
                 
                 return;
@@ -121,21 +124,28 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
         }
         
         strgS = false;
-        lastStoerung = "";
+        lastSignalStoerung = "";
     }
     
     /**
-     * Prüft nach, ob an einem der Signale
+     * Prüft nach, ob an einer der Weichen
      * eine Störung vorliegt.
      */
     private void checkWeichenstoerung() {
-        strgW = false;
-        for (Weiche weichen : config.weichen) {
-            if (weichen.isGestoert()) {
-                strgW = true;
-                break;
+        for (Weiche weiche : config.weichen) {
+            if (weiche.isGestoert()) {
+                if (weiche.getName().equals(lastWeichenStoerung)) {
+                    strgW = true;
+                    lastWeichenStoerung = weiche.getName();
+                    config.alert("Weichenstörung: " + lastWeichenStoerung);
+                }
+                
+                return;
             }
         }
+        
+        strgW = false;
+        lastWeichenStoerung = "";
     }
     
     /**
