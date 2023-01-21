@@ -26,6 +26,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     private boolean strgW = false;
     private int klingel;
     private int tu;
+    private String lastStoerung = "";
     private boolean strgT;
     
     /**
@@ -38,6 +39,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
      * @param lampeS
      * @param lampeW
      * @param klingel 
+     * @param tastenUeberwacher 
      */
     public void init(Config config, int tasteS, int tasteW, int lampeS, int lampeW, int klingel,
             int tastenUeberwacher) {
@@ -98,7 +100,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
             config.connector.setOut(lampeW, false);
         }
         
-        config.connector.setOut(klingel, strgS || strgT || strgW);
+        config.connector.setOut(klingel, (strgS || strgT || strgW) && ((count & 0x1e) == 2));
         config.connector.setOut(tu, strgT);
     }
 
@@ -107,13 +109,19 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
      * eine Störung vorliegt.
      */
     private void checkSignalstoerung() {
-        strgS = false;
-        for (Signal signale : config.signale) {
-            if (signale.isGestoert()) {
-                strgS = true;
-                break;
+        for (Signal signal : config.signale) {
+            if (signal.isGestoert()) {
+                if (!signal.getName().equals(lastStoerung)) {
+                    strgS = true;
+                    lastStoerung = signal.getName();
+                }
+                
+                return;
             }
         }
+        
+        strgS = false;
+        lastStoerung = "";
     }
     
     /**

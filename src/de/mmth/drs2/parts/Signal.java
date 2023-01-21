@@ -140,6 +140,14 @@ public class Signal implements ColorMarker, TastenEvent {
     }
     
     /**
+     * Liefert den Namen des Signals zurück.
+     * @return 
+     */
+    public String getName() {
+        return name;
+    }
+    
+    /**
      * Aktualisiert den Zustand der Anzeigelampen
      * gemäß der aktuellen Fahrt Einstellung.
      */
