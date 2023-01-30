@@ -4,13 +4,14 @@
  */
 package de.mmth.drs2.io;
 
-import com.pi4j.io.gpio.GpioController;
+import com.pi4j.Pi4J;
+import com.pi4j.context.Context;
+import com.pi4j.io.gpio.digital.DigitalInput;
+import com.pi4j.io.gpio.digital.PullResistance;
+
 import de.mmth.drs2.Ticker;
 import de.mmth.drs2.TickerEvent;
 import java.io.IOException;
-import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.RaspiPin;
 /**
  *
  * @author pi
@@ -22,7 +23,11 @@ public class Connector implements TickerEvent {
      * Anzahl der Eingänge von der DRS2, muss ein vielfaches von 16 sein.
      */
     public final static int INPUT_COUNT = 32;
-    private final static int LOCAL_INPUT_COUNT = 2;
+    private final static int LOCAL_INPUT_COUNT = 4;
+    private final static int LOCAL_TA = 0;
+    private final static int LOCAL_NC = 1;
+    private final static int LOCAL_SlFT = 2;
+    private final static int LOCAL_NC2 = 3;
     
     /**
      * Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein.
@@ -33,8 +38,10 @@ public class Connector implements TickerEvent {
     private final boolean[] drs2Out = new boolean[OUTPUT_COUNT];
     private final int[] polarity = {0xff80, 0x647e, 0};
     
-    private GpioPinDigitalInput tastenanschalter;
-    private GpioPinDigitalInput nc;
+    private DigitalInput tastenanschalter;
+    private DigitalInput nc;
+    private DigitalInput weichenschluessel;
+    private DigitalInput nc2;
     
     /**
      * Das Tickerevent löst das Lesen der DRS 2 Tastereingänge
@@ -50,8 +57,10 @@ public class Connector implements TickerEvent {
             writeOutputs();
             
             // Lokale Eingänge lesen
-            drs2In[INPUT_COUNT] = tastenanschalter.getState().isHigh();
-            drs2In[INPUT_COUNT + 1] = nc.getState().isHigh();
+            drs2In[INPUT_COUNT + LOCAL_TA] = tastenanschalter.isLow();
+            drs2In[INPUT_COUNT + LOCAL_NC] = nc.isHigh();
+            drs2In[INPUT_COUNT + LOCAL_SlFT] = weichenschluessel.isHigh();
+            drs2In[INPUT_COUNT + LOCAL_NC2] = nc2.isHigh();
             //long duration = System.nanoTime() - start;
             //System.out.println("Time: " + duration);
         } catch (IOException ex) {
@@ -69,17 +78,36 @@ public class Connector implements TickerEvent {
      * @throws Exception 
      */
     public void init(Ticker ticker) throws Exception {
+        var pi4j = Pi4J.newAutoContext();
+        tastenanschalter =  createInput(pi4j, "TA", 18);
+        nc = createInput(pi4j, "NC", 23);
+        weichenschluessel = createInput(pi4j, "SlFT", 24);
+        nc2 = createInput(pi4j, "NC2", 25);
+        
         mcp.init(6, 2, polarity);
         ticker.add(this);
         
         for (int i = 0; i < drs2In.length; i++) {
             drs2In[i] = false;
         }
-        
-        // Lokale Eingänge - Achtung Portnummer nach der alten wiring Zählweise!
-        final GpioController gpio = GpioFactory.getInstance();
-        tastenanschalter = gpio.provisionDigitalInputPin(RaspiPin.GPIO_02);
-        nc = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03);
+    }
+    
+    /**
+     * Erzeugt einen lokalen Eingabeport auf dem Raspberry Pi
+     * 
+     * @param pi4j
+     * @param id
+     * @param address
+     * @return 
+     */
+    private DigitalInput createInput(Context pi4j, String id, int address) {
+        var cfg = DigitalInput.newConfigBuilder(pi4j)
+                .id(id)
+                .address(address)
+                .pull(PullResistance.PULL_UP)
+                .provider("pigpio-digital-input");
+        var input = pi4j.create(cfg);
+        return input;
     }
     
     /**
@@ -152,6 +180,11 @@ public class Connector implements TickerEvent {
         }
     }
     
+    /**
+     * Schreibt das Ausgabearry zum DRS2 raus.
+     * 
+     * @throws IOException 
+     */
     private void writeOutputs() throws IOException {
         int portCount = OUTPUT_COUNT >> 4;
         int portNo = 0;

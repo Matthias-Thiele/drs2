@@ -4,12 +4,7 @@
  */
 package de.mmth.drs2;
 
-import com.pi4j.io.i2c.I2CDevice;
 import de.mmth.drs2.fx.MainPane;
-import de.mmth.drs2.io.Mcp23017;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -83,7 +78,7 @@ public class Drs2 extends Application {
         }
     }
     
-    public void outputTester() throws Exception {
+    /**public void outputTester() throws Exception {
         I2CDevice dev = config.connector.mcp.initOutput(4);
         for (int cnt = 0; cnt < 1000; cnt++) {
             dev.write(0x12, (byte) 0xff);
@@ -118,6 +113,6 @@ public class Drs2 extends Application {
             System.out.println(Integer.toHexString(valx));
             Thread.sleep(500);
         }
-    }
+    }**/
     
 }
