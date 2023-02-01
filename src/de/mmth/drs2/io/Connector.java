@@ -7,6 +7,7 @@ package de.mmth.drs2.io;
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
 import com.pi4j.io.gpio.digital.DigitalInput;
+import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.gpio.digital.PullResistance;
 
 import de.mmth.drs2.Ticker;
@@ -28,20 +29,25 @@ public class Connector implements TickerEvent {
     private final static int LOCAL_NC = 1;
     private final static int LOCAL_SlFT = 2;
     private final static int LOCAL_NC2 = 3;
-    
     /**
      * Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein.
      */
     public final static int OUTPUT_COUNT = 96;
+    public final static int LOCAL_OUTPUT_COUNT = 2;
+    public final static int LOCAL_REL1 = OUTPUT_COUNT + 0;
+    public final static int LOCAL_REL2 = OUTPUT_COUNT + 1;
     
     private final boolean[] drs2In = new boolean[INPUT_COUNT + LOCAL_INPUT_COUNT];
-    private final boolean[] drs2Out = new boolean[OUTPUT_COUNT];
+    private final boolean[] drs2Out = new boolean[OUTPUT_COUNT + LOCAL_OUTPUT_COUNT];
     private final int[] polarity = {0xff80, 0x647e, 0};
     
     private DigitalInput tastenanschalter;
     private DigitalInput nc;
     private DigitalInput weichenschluessel;
     private DigitalInput nc2;
+    
+    private DigitalOutput relais1;
+    private DigitalOutput relais2;
     
     /**
      * Das Tickerevent löst das Lesen der DRS 2 Tastereingänge
@@ -61,6 +67,11 @@ public class Connector implements TickerEvent {
             drs2In[INPUT_COUNT + LOCAL_NC] = nc.isHigh();
             drs2In[INPUT_COUNT + LOCAL_SlFT] = weichenschluessel.isHigh();
             drs2In[INPUT_COUNT + LOCAL_NC2] = nc2.isHigh();
+            
+            // Lokale Ausgänge schreiben
+            relais1.setState(drs2Out[LOCAL_REL1]);
+            relais2.setState(drs2Out[LOCAL_REL2]);
+            
             //long duration = System.nanoTime() - start;
             //System.out.println("Time: " + duration);
         } catch (IOException ex) {
@@ -83,6 +94,9 @@ public class Connector implements TickerEvent {
         nc = createInput(pi4j, "NC", 23);
         weichenschluessel = createInput(pi4j, "SlFT", 24);
         nc2 = createInput(pi4j, "NC2", 25);
+        
+        relais1 = createOutput(pi4j, "REL1", 20);
+        relais2 = createOutput(pi4j, "REL2", 21);
         
         mcp.init(6, 2, polarity);
         ticker.add(this);
@@ -108,6 +122,23 @@ public class Connector implements TickerEvent {
                 .provider("pigpio-digital-input");
         var input = pi4j.create(cfg);
         return input;
+    }
+    
+    /**
+     * Erzeugt einen lokalen Ausgang.
+     * 
+     * @param pi4j
+     * @param id
+     * @param address
+     * @return 
+     */
+    private DigitalOutput createOutput(Context pi4j, String id, int address) {
+        var cfg = DigitalOutput.newConfigBuilder(pi4j)
+                .id(id)
+                .address(address)
+                .provider("pigpio-digital-output");
+        var output = pi4j.create(cfg);
+        return output;
     }
     
     /**

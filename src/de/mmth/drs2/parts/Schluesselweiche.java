@@ -7,6 +7,7 @@ package de.mmth.drs2.parts;
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
+import static de.mmth.drs2.io.Connector.LOCAL_REL1;
 
 /**
  * Diese Klasse bindet die Schlüsselfreigabe an das
@@ -101,6 +102,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 // Schlüsselfreigabe vom DRS2 Stellpult.
                 blinkUntil = BLINK_DURATION;
                 state = 2;
+                config.connector.setOut(LOCAL_REL1, true);
                 config.alert("Schlüssel freigegeben.");
                 break;
                 
@@ -120,6 +122,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 // Warte auf die Schlüsselrückgabe, statisches rotes Licht.
                 config.connector.setOut(rot, true);
                 config.connector.setOut(weiss, false);
+                config.connector.setOut(LOCAL_REL1, false);
                 if (redUntil < count) {
                     // Schlüsselrückgabe.
                     state = 0;
