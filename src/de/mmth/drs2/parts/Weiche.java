@@ -230,4 +230,9 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
             blink--;
         }
     }
+    
+    @Override
+    public boolean hasMarker() {
+        return true;
+    }
 }

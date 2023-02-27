@@ -18,8 +18,8 @@ import de.mmth.drs2.TickerEvent;
 public class Fahrstrasse implements TastenEvent, TickerEvent {
     
     private final static int SIGNAL_FIRST_OUTBOUND = 2;
-    private final static int STEP_SHORT_WAIT = 15;
-    private final static int STEP_LONG_WAIT = 5 * STEP_SHORT_WAIT;
+    private final static int STEP_SHORT_WAIT = 20;
+    private final static int STEP_LONG_WAIT = 3 * STEP_SHORT_WAIT;
     private final static int DORMANT = -1;
     private final static int INBOUND_RED = -2;
     private final static int INIT = -3;
@@ -30,6 +30,9 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int INCOMMING_TRAIN = -8;
     private final static int OUTGOING_TRAIN = -9;
     private final static int WAIT_FOR_HP1 = -10;
+    private final static int EINFAHRT1 = -11;
+    
+    private final static int RED_DELTA_TICKS = STEP_SHORT_WAIT / 2;
     
     private Config config;
     private Weiche[] plusWeichen;
@@ -55,6 +58,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private int sperrRaeumungsmelder;
     private Doppeltaster tasteAsT;
     private Doppeltaster tasteAsLT;
+    
+    private ColorMarker lastRed;
+    private ColorMarker nextWhite;
+    private long nextWhiteTStamp = Integer.MAX_VALUE;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -299,6 +306,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
 
     @Override
     public void tick(int count) {
+        if (count > nextWhiteTStamp) {
+            System.out.println("set white: " + nextWhite.getName() + " at " + count);
+            nextWhite.white();
+            nextWhiteTStamp = Integer.MAX_VALUE;
+        }
+        
         if (isInbound) {
             inboundTick(count);
         } else {
@@ -326,6 +339,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 if (bahnhofsGleis.isInUse()) {
                     config.alert("Fahrt gestartet.");
                     state = WAIT_FOR_HP1; // Fahrstraße wurde ausgewählt.
+                    setRed(count, bahnhofsGleis); // damit setWhite funktioniert
                     reportWait = true;
                 } else {
                     if (reportWait) {
@@ -355,7 +369,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case INBOUND_RED:
                 config.alert("Zug fährt aus.");
-                signal.red();
+                setRed(count, signal);
                 nextStep = count + STEP_LONG_WAIT;
                 state = SIGNAL_HP0;
                 strecke.markUsed(false);
@@ -364,13 +378,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             case SIGNAL_HP0:
                 config.alert("Signal auf Halt.");
                 signal.halt();
-                bahnhofsGleis.white();
                 nextStep = count + STEP_SHORT_WAIT;
                 state = 0; // erste Weiche
                 break;
               
             case AUSFAHRT1:
-                ausfahrtsGleis.red();
+                setRed(count, ausfahrtsGleis);
                 nextStep = count + STEP_LONG_WAIT;
                 state = AUSFAHRT2;
                 break;
@@ -383,57 +396,35 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             case OUTGOING_TRAIN:
-                ausfahrtsGleis.white();
                 nextStep = count + STEP_LONG_WAIT;
+                // Ausfahrtsgleis erreicht
+                config.alert("Bahnhof verlassen.");
+                unlock();
                 state = DONE;
                 
             case DONE:
                 strecke.unblock();
                 config.connector.setOut(festlegemelder, false);
-                if (!isInbound) {
-                    ausfahrtsGleis.clear();
-                }
+                ausfahrtsGleis.clear();
         
+                lastRed = null;
                 state = DORMANT;
                 break;
                 
             default:
                 // Weiche 0 bis n
-                // Es wird immer abwechselnd eine Weiche als befahren markiert
-                // und ein vorhergehender Abschnitt als wieder frei markiert.
+                int weiche = state;
                 
-                boolean isClear = (state & 1) == 1;
-                int weiche = state >> 1;
-                
-                if (isClear) {
-                    if (weiche == 0) {
-                        // erste Weiche, es gibt keinen Vorgänger, sondern nur
-                        // den Streckenabschnitt zum Einfahrtssignal.
-                        config.alert("Zug verlässt Bahnhof.");
-                        signal.white();
-                    } else {
-                        fahrwegWeichen[weiche - 1].white();
-                        if (weiche >= fahrwegWeichen.length) {
-                            // Ausfahrtssignal erreicht.
-                            config.alert("Ausfahrtsgleis erreicht.");
-                            nextStep = count + STEP_SHORT_WAIT;
-                            state = AUSFAHRT1;
-                            break;
-                        }
-                    }
-                    nextStep = count + STEP_LONG_WAIT;
+                if (weiche < fahrwegWeichen.length) {
+                    config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
+                    setRed(count, fahrwegWeichen[weiche]);
                 } else {
-                    if (weiche < fahrwegWeichen.length) {
-                        config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
-                        fahrwegWeichen[weiche].red();
-                    } else {
-                        // Ausfahrtsgleis erreicht
-                        config.alert("Bahnhof verlassen.");
-                        bahnhofsGleis.white();
-                        unlock();
-                    }
+                    config.alert("Ausfahrtsgleis erreicht.");
                     nextStep = count + STEP_SHORT_WAIT;
+                    state = AUSFAHRT1;
+                    break;
                 }
+                nextStep = count + STEP_SHORT_WAIT;
                 
                 state++;
                 break;
@@ -449,7 +440,11 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             return;
         }
         
-        switch (this.state) {
+        if (state != -1) {
+            System.out.println("State: " + state + " at " + count);
+        }
+        
+        switch (state) {
             case  DORMANT:
                 return; // do nothing
                 
@@ -475,7 +470,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 }
                 
                 if (isFahrt) {
-                    nextStep = count + STEP_SHORT_WAIT;
+                    nextStep = count + STEP_LONG_WAIT;
                     state = INBOUND_RED;
                 } else {
                     if (reportWait) {
@@ -487,7 +482,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case INBOUND_RED:
                 config.alert("Zug im Signalblock.");
-                signal.red();
+                setRed(count, signal);
                 nextStep = count + STEP_LONG_WAIT;
                 state = SIGNAL_HP0; // Signal wieder auf Halt zurückstellen.
                 break;
@@ -498,48 +493,60 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 state = 0; // erste Weiche
                 break;
                 
+            case EINFAHRT1:
+                // Zielgleis erreicht
+                config.alert("Fahrt beendet.");
+                signal.clear();
+                strecke.markUsed(true);
+                lastRed = null;
+                state = DORMANT;
+                break;
+            
             default:
                 // Weiche 0 bis n
-                // Es wird immer abwechselnd eine Weiche als befahren markiert
-                // und ein vorhergehender Abschnitt als wieder frei markiert.
                 
-                boolean isClear = (state & 1) == 1;
-                int weiche = state >> 1;
+                int weiche = state;
                 
-                if (isClear) {
-                    if (weiche == 0) {
-                        // erste Weiche, es gibt keinen Vorgänger, sondern nur
-                        // den Streckenabschnitt zum Einfahrtssignal.
-                        config.alert("Zug verlässt Signalblock.");
-                        signal.white();
-                        strecke.activateSR();
-                    } else {
-                        fahrwegWeichen[weiche - 1].white();
-                        if (weiche >= fahrwegWeichen.length) {
-                            // Fahrt abgeschlossen.
-                            config.alert("Fahrt beendet.");
-                            signal.clear();
-                            strecke.markUsed(true);
-                            //unlock();
-                            state = DORMANT;
-                            return;
-                        }
-                    }
-                    nextStep = count + STEP_LONG_WAIT;
+                if (weiche == 0) {
+                    // erste Weiche, es gibt keinen Vorgänger, sondern nur
+                    // den Streckenabschnitt zum Einfahrtssignal.
+                    config.alert("Zug verlässt Signalblock.");
+                    strecke.activateSR();
+                }
+                
+                nextStep = count + STEP_SHORT_WAIT;
+                if (weiche < fahrwegWeichen.length) {
+                    config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
+                    setRed(count, fahrwegWeichen[weiche]);
                 } else {
-                    if (weiche < fahrwegWeichen.length) {
-                        config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
-                        fahrwegWeichen[weiche].red();
-                    } else {
-                        // Zielgleis erreicht
-                        config.alert("Zielgleis erreicht.");
-                        bahnhofsGleis.red();
-                    }
-                    nextStep = count + STEP_SHORT_WAIT;
+                    // Zielgleis wird angefahren
+                    config.alert("Zielgleis erreicht.");
+                    setRed(count, bahnhofsGleis);
+                    nextStep = count + STEP_LONG_WAIT;
+                    state = EINFAHRT1;
+                    return;
                 }
                 
                 state++;
                 break;
+        }
+    }
+    
+    private void setRed(int actTick, ColorMarker nextRed) {
+        if (!nextRed.hasMarker()) {
+            return;
+        }
+        
+        nextWhite = lastRed;
+        if (nextWhite != null) {
+            nextWhiteTStamp = actTick + RED_DELTA_TICKS;
+            System.out.println("set white timer to " + nextWhiteTStamp);
+        }
+        
+        lastRed = nextRed;
+        if (nextRed != null) {
+            nextRed.red();
+            System.out.println("set red: " + nextRed.getName());
         }
     }
 }

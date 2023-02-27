@@ -177,6 +177,11 @@ public class Signal implements ColorMarker, TastenEvent {
         }
     }
 
+    @Override
+    public boolean hasMarker() {
+        return fahrwegMarker >= 0;
+    }
+    
     /**
      * Leuchtet den Fahrweg Marker weiss aus.
      */

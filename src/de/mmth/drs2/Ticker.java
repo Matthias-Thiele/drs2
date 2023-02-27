@@ -35,9 +35,13 @@ public class Ticker extends Thread {
                 break;
             }
             
-            config.stoerungsmelder.startCheckT();
-            for (TickerEvent ev: callbackList) {
-                ev.tick(tickCount);
+            try {
+                config.stoerungsmelder.startCheckT();
+                for (TickerEvent ev: callbackList) {
+                    ev.tick(tickCount);
+                }
+            } catch (Throwable ex) {
+                System.out.println(ex);
             }
             
             tickCount++;

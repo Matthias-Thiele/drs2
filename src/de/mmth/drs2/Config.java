@@ -241,11 +241,11 @@ public class Config implements TickerEvent {
             gleise[i] = new Gleismarker();
         }
         
-        gleise[0].init(this, 30, 31);
-        gleise[1].init(this, 28, 29);
-        gleise[2].init(this, 26, 27);
-        gleise[3].init(this, 41, 40);
-        gleise[4].init(this, 55, 54);
+        gleise[0].init(this, "Gleis 1", 30, 31);
+        gleise[1].init(this, "Gleis 2", 28, 29);
+        gleise[2].init(this, "Gleis 3", 26, 27);
+        gleise[3].init(this, "Strecke A", 41, 40);
+        gleise[4].init(this, "Strecke F", 55, 54);
     }
     
     /**

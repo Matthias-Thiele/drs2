@@ -73,7 +73,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
     public void markUsed(boolean trainArrived) {
         streckenState = trainArrived ? StreckenState.TRAIN_ARRIVED : StreckenState.WAIT_FOR_TRAIN;
         markStrecke();
-        config.alert("Strecke " + name + " vorgeblockt.");
+        config.alert("Strecke " + name + " vor/rückgeblockt.");
         if (!isInbound && (sperrRaeumungsmelder != -1)) {
             config.connector.setOut(sperrRaeumungsmelder, false);
             rueckblockenUntil = 0;

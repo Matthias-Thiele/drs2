@@ -74,7 +74,7 @@ public class Connector implements TickerEvent {
             
             //long duration = System.nanoTime() - start;
             //System.out.println("Time: " + duration);
-        } catch (IOException ex) {
+        } catch (com.pi4j.io.exception.IOException | IOException ex) {
             System.out.println(ex);
         }
     }

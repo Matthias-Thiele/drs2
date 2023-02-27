@@ -76,6 +76,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 case 2:
                     state = 0;
                     config.alert("Schlüsselfreigabe zurückgenommen.");
+                    config.connector.setOut(LOCAL_REL1, false);
                     break;
                     
                 case 3:

@@ -23,4 +23,17 @@ public interface ColorMarker {
      * Löscht den Fahrwegmarker.
      */
     public void clear();
+    
+    /**
+     * Für logging und debugging
+     * @return 
+     */
+    public String getName();
+    
+    /**
+     * Nicht alle Signale haben einen Fahrwegmarker.
+     * 
+     * @return 
+     */
+    public boolean hasMarker();
 }
