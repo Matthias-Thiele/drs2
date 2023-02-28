@@ -5,6 +5,7 @@
 package de.mmth.drs2;
 
 import de.mmth.drs2.fx.MainPane;
+import de.mmth.drs2.io.Connector;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -32,11 +33,11 @@ public class Drs2 extends Application {
     public void start(Stage primaryStage) throws Exception {
         config.init();
         
-        config.connector.init(config.ticker);
+        config.connector.init(config);
         //inputTester();
         //outputTester2(48, 64);
         config.connector.setOut(71, true);
-        
+        config.connector.setOut(Connector.LOCAL_REL2, true);
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
         root.getChildren().add(main);
@@ -49,9 +50,11 @@ public class Drs2 extends Application {
         primaryStage.show();
         primaryStage.setOnCloseRequest(we -> {try {
             config.ticker.interrupt();
+            config.connector.setOut(Connector.LOCAL_REL2, false);
             Platform.exit();
-            } catch (Exception ex) {
-            }
+        } catch (Exception ex) {
+            System.out.println("Error on closing app: " + ex);
+        }
 });
         
         config.ticker.start();

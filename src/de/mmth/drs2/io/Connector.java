@@ -9,6 +9,7 @@ import com.pi4j.context.Context;
 import com.pi4j.io.gpio.digital.DigitalInput;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.gpio.digital.PullResistance;
+import de.mmth.drs2.Config;
 
 import de.mmth.drs2.Ticker;
 import de.mmth.drs2.TickerEvent;
@@ -49,6 +50,11 @@ public class Connector implements TickerEvent {
     private DigitalOutput relais1;
     private DigitalOutput relais2;
     
+    private static final int SWITCH_OFF_COUNT = 10000;
+    private static final int WARN_COUNT = (SWITCH_OFF_COUNT * 2) / 3;
+    private static int inactivityCount = 0;
+    private Config config;
+
     /**
      * Das Tickerevent löst das Lesen der DRS 2 Tastereingänge
      * sowie das Schreiben der DRS 2 Lampenausgänge aus.
@@ -59,6 +65,17 @@ public class Connector implements TickerEvent {
     public void tick(int count) {
         try {
             //long start = System.nanoTime();
+            inactivityCount++;
+            int state = 0;
+            if (inactivityCount >= WARN_COUNT) {
+                state = 1;
+            }
+            if (inactivityCount >= SWITCH_OFF_COUNT) {
+                state = 2;
+            }
+            config.mainPane.markTotmannschalter(state);
+            drs2Out[LOCAL_REL2] = inactivityCount < SWITCH_OFF_COUNT;
+            
             readInputs();
             writeOutputs();
             
@@ -85,10 +102,11 @@ public class Connector implements TickerEvent {
      * Abständen die Taster zu lesen und die
      * Glühlampen zu schreiben.
      * 
-     * @param ticker
+     * @param config
      * @throws Exception 
      */
-    public void init(Ticker ticker) throws Exception {
+    public void init(Config config) throws Exception {
+        this.config = config;
         var pi4j = Pi4J.newAutoContext();
         tastenanschalter =  createInput(pi4j, "TA", 18);
         nc = createInput(pi4j, "NC", 23);
@@ -96,10 +114,10 @@ public class Connector implements TickerEvent {
         nc2 = createInput(pi4j, "NC2", 25);
         
         relais1 = createOutput(pi4j, "REL1", 20);
-        relais2 = createOutput(pi4j, "REL2", 21);
+        relais2 = createOutput(pi4j, "REL2", 16);
         
         mcp.init(6, 2, polarity);
-        ticker.add(this);
+        config.ticker.add(this);
         
         for (int i = 0; i < drs2In.length; i++) {
             drs2In[i] = false;
@@ -232,6 +250,17 @@ public class Connector implements TickerEvent {
             
             mcp.write16(i, portValues);
         }
+    }
+
+    /**
+     * Der incativityCount überwacht die Tastatur des
+     * DRS2. Wenn über eine voreingestellte Zeit kein
+     * Tastendruck stattgefunden hat, wird die 24 Volt
+     * Spannung abgeschaltet und damit die Lampen und
+     * Taster inaktiv.
+     */
+    public void resetInactivityCounter() {
+        inactivityCount = 0;
     }
     
 }

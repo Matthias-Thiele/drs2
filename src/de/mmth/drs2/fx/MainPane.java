@@ -28,6 +28,8 @@ public class MainPane extends GridPane{
 
     private final Config config;
     private final TextArea messages;
+    private Button totmann;
+    private int lastTotmannState = -1;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -41,13 +43,14 @@ public class MainPane extends GridPane{
         this.setVgap(5);
         
         messages = new TextArea();
-        this.add(messages, 0, 0, 1, 2);
+        this.add(messages, 0, 0, 1, 3);
         
         addWeichen();
         addSignale();
         addErsatzsignale();
         addFahrstrassen();
         addSchluesselschalter();
+        addTotmannschalter();
     }
     
     /**
@@ -68,6 +71,51 @@ public class MainPane extends GridPane{
             condReleaseFahrstrasse(config.fahrstrassen[3]);
         });
         this.add(schlF, 3, 1);
+    }
+    
+    /**
+     * Ein inactivityCounter überwacht alle Tastendrücke.
+     * Wenn eine voreingestellte Zeit keine Aktivität
+     * war, wird die 24Volt Versorgung abgeschaltet und
+     * damit alle Lampen und alle Taster. Über diesen
+     * Button kann die Spannung wieder eingeschaltet
+     * werden oder die Abschaltung verzögert werden.
+     */
+    private void addTotmannschalter() {
+        totmann = new Button("Totmannschalter");
+        totmann.setOnAction(ev -> {
+            config.connector.resetInactivityCounter();
+        });
+        this.add(totmann, 2, 2, 2, 1);
+    }
+    
+    /**
+     * Ändert die Hintergrundfarbe des Totmannschalters
+     * in Abhängigkeit vom incativityCount.
+     * @param state 0: ok, 1: warn, 2: alarm
+     */
+    public void markTotmannschalter(int state) {
+        if (state == lastTotmannState) {
+            return;
+        }
+        
+        lastTotmannState = state;
+        switch (state) {
+            case 0:
+                totmann.setStyle("-fx-background-color: lime");
+                config.alert("Lampenspannung eingeschaltet.");
+                break;
+                
+            case 1:
+                totmann.setStyle("-fx-background-color: orange");
+                config.alert("Lampenspannung wird bald abgeschaltet.");
+                break;
+                
+            case 2:
+                totmann.setStyle("-fx-background-color: red");
+                config.alert("Lampenspannung abgeschaltet.");
+                break;
+        }
     }
     
     /**
@@ -96,7 +144,7 @@ public class MainPane extends GridPane{
             config.ticker.add(wfx);
         }
         
-        this.add(box, 1, 0, 1, 2);
+        this.add(box, 1, 0, 1, 3);
     }
     
     /**
@@ -153,7 +201,7 @@ public class MainPane extends GridPane{
             config.ticker.add(ffx);
         }
         
-        this.add(box, 4, 0, 1, 2);
+        this.add(box, 4, 0, 1, 3);
     }
     
     /**
