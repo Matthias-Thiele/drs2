@@ -11,6 +11,7 @@ import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Gleismarker;
+import de.mmth.drs2.parts.Schluesselschalter;
 import de.mmth.drs2.parts.Schluesselweiche;
 import de.mmth.drs2.parts.Stoerungsmelder;
 import de.mmth.drs2.parts.Weiche;
@@ -55,6 +56,10 @@ public class Config implements TickerEvent {
      */
     public final static int ANZAHL_SCHLUESSELWEICHEN = 1;
     
+    /**
+     * Schlüsselschalter für die Fahrstraßenauflösung.
+     */
+    public final static int ANZAHL_SCHLUESSELSCHALTER = 2;
     /**
      * Ticker für die Weiterschaltung und
      * Aktualisierung der verschiedenen
@@ -102,6 +107,10 @@ public class Config implements TickerEvent {
     public final Schluesselweiche[] schluesselweichen = new Schluesselweiche[ANZAHL_SCHLUESSELWEICHEN];
     
     /**
+     * Schlüsselschalter A und F für die Fahrstraßenauflösung.
+     */
+    public final Schluesselschalter[] schluesselschalter = new Schluesselschalter[ANZAHL_SCHLUESSELSCHALTER];
+    /**
      * JavaFX Anzeige des Systemzustands.
      */
     public MainPane mainPane;
@@ -131,6 +140,7 @@ public class Config implements TickerEvent {
         initFahrstrassen();
         initCounter();
         initSchluesselweichen();
+        initSchluesselschalter();
         
         stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66, 65);
         
@@ -142,6 +152,14 @@ public class Config implements TickerEvent {
      */
     private void initCounter() {
         ersatzsignalCounter.init(this, "Ersatzsignal", 63);
+    }
+    
+    /**
+     * Initialisiert die Schlüsselschalter für die Fahrstraßenauflösung.
+     */
+    private void initSchluesselschalter() {
+        schluesselschalter[0] = new Schluesselschalter(this, Const.SCHLUESSEL_A, 0, 1);
+        schluesselschalter[1] = new Schluesselschalter(this, Const.SCHLUESSEL_F, 2, 3);
     }
     
     /**
