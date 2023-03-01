@@ -23,15 +23,11 @@ import static de.mmth.drs2.io.Connector.LOCAL_REL1;
  * @author Matthias Thiele
  */
 public class Schluesselweiche implements TastenEvent, TickerEvent {
-    private static final int BLINK_DURATION = 128;
-    private static final int RED_DURATION = 300;
     private int state = 0;
     private Config config;
     private int rot;
     private int weiss;
     private Doppeltaster tasteSlFT;
-    private int blinkUntil;
-    private int redUntil;
     private Doppeltaster tasteSlFLT;
     
     /**
@@ -101,7 +97,6 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
              
             case 1:
                 // Schlüsselfreigabe vom DRS2 Stellpult.
-                blinkUntil = BLINK_DURATION;
                 state = 2;
                 config.connector.setOut(LOCAL_REL1, true);
                 config.alert("Schlüssel freigegeben.");
@@ -109,22 +104,28 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 
             case 2:
                 // Waretet bis der Schlüssel entnommen wird, blinkt solange rot.
-                config.connector.setOut(rot, (blinkUntil & 8) != 0);
+                config.connector.setOut(rot, (count & 8) != 0);
                 config.connector.setOut(weiss, false);
-                if (blinkUntil-- < 1) {
+                if (config.connector.isInSet(Const.WSCHLUESSEL)) {
                     // Schlüssel entnommen.
                     state = 3;
-                    redUntil = count + RED_DURATION;
                     config.alert("Schlüssel entnommen.");
                 }
                 break;
                 
             case 3:
+                // wartet bis die Schlüsselentnahme beendet ist.
+                if (!config.connector.isInSet(Const.WSCHLUESSEL)) {
+                    state = 4;
+                }
+                break;
+                
+            case 4:
                 // Warte auf die Schlüsselrückgabe, statisches rotes Licht.
                 config.connector.setOut(rot, true);
                 config.connector.setOut(weiss, false);
                 config.connector.setOut(LOCAL_REL1, false);
-                if (redUntil < count) {
+                if (config.connector.isInSet(Const.WSCHLUESSEL)) {
                     // Schlüsselrückgabe.
                     state = 0;
                     config.alert("Schlüssel zurückgegeben.");

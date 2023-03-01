@@ -33,6 +33,8 @@ public class Const {
     public static final int SlFT = 21;
     public static final int SlFLT = 26;
     
+    // Schlüsselweiche
+    public static final int WSCHLUESSEL = 38;
     
     // Zusätzliche Vorsignale für Durchfahrten
     public static final int Vp13 = 87;

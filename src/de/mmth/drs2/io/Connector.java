@@ -11,7 +11,6 @@ import com.pi4j.io.gpio.digital.DigitalOutput;
 import com.pi4j.io.gpio.digital.PullResistance;
 import de.mmth.drs2.Config;
 
-import de.mmth.drs2.Ticker;
 import de.mmth.drs2.TickerEvent;
 import java.io.IOException;
 /**
@@ -25,11 +24,16 @@ public class Connector implements TickerEvent {
      * Anzahl der Eingänge von der DRS2, muss ein vielfaches von 16 sein.
      */
     public final static int INPUT_COUNT = 32;
-    private final static int LOCAL_INPUT_COUNT = 4;
+    private final static int LOCAL_INPUT_COUNT = 8;
     private final static int LOCAL_TA = 0;
     private final static int LOCAL_NC = 1;
     private final static int LOCAL_SlFT = 2;
     private final static int LOCAL_NC2 = 3;
+    private final static int LOCAL_SIGA = 4;
+    private final static int LOCAL_SIGF = 5;
+    private final static int LOCAL_SLFT = 6;
+    private final static int LOCAL_AUX4 = 7;
+    
     /**
      * Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein.
      */
@@ -46,6 +50,11 @@ public class Connector implements TickerEvent {
     private DigitalInput nc;
     private DigitalInput weichenschluessel;
     private DigitalInput nc2;
+    
+    private DigitalInput sigA;
+    private DigitalInput sigF;
+    private DigitalInput slft;
+    private DigitalInput aux4;
     
     private DigitalOutput relais1;
     private DigitalOutput relais2;
@@ -85,6 +94,11 @@ public class Connector implements TickerEvent {
             drs2In[INPUT_COUNT + LOCAL_SlFT] = weichenschluessel.isHigh();
             drs2In[INPUT_COUNT + LOCAL_NC2] = nc2.isHigh();
             
+            drs2In[INPUT_COUNT + LOCAL_SIGA] = sigA.isLow();
+            drs2In[INPUT_COUNT + LOCAL_SIGF] = sigF.isLow();
+            drs2In[INPUT_COUNT + LOCAL_SLFT] = slft.isHigh();
+            drs2In[INPUT_COUNT + LOCAL_AUX4] = aux4.isLow();
+            
             // Lokale Ausgänge schreiben
             relais1.setState(drs2Out[LOCAL_REL1]);
             relais2.setState(drs2Out[LOCAL_REL2]);
@@ -112,6 +126,11 @@ public class Connector implements TickerEvent {
         nc = createInput(pi4j, "NC", 23);
         weichenschluessel = createInput(pi4j, "SlFT", 24);
         nc2 = createInput(pi4j, "NC2", 25);
+        
+        sigA = createInput(pi4j, "aux1", 17);
+        sigF = createInput(pi4j, "aux2", 27);
+        slft = createInput(pi4j, "aux3", 22);
+        aux4 = createInput(pi4j, "aux4", 10);
         
         relais1 = createOutput(pi4j, "REL1", 20);
         relais2 = createOutput(pi4j, "REL2", 16);

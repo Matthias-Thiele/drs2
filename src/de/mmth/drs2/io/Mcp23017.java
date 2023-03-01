@@ -6,6 +6,7 @@ package de.mmth.drs2.io;
 
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
+import com.pi4j.exception.Pi4JException;
 import com.pi4j.io.i2c.I2C;
 import com.pi4j.io.i2c.I2CConfig;
 import com.pi4j.io.i2c.I2CProvider;
@@ -117,12 +118,20 @@ public class Mcp23017 {
             .bus(1)
             .device(MCP23017_ADDRESS + numDevice)
             .build();
-        try (I2C device = i2CProvider.create(i2cConfig)) {
-            device.writeRegister(IODIRA_REGISTER, (byte) 0xFF);
-            device.writeRegister(IODIRB_REGISTER, (byte) 0xFF);
         
-            return device;
+        for (int retry = 1; retry < 4; retry++) {
+            try (I2C device = i2CProvider.create(i2cConfig)) {
+                device.writeRegister(IODIRA_REGISTER, (byte) 0xFF);
+                device.writeRegister(IODIRB_REGISTER, (byte) 0xFF);
+
+                return device;
+            } catch(Pi4JException ex) {
+                // retry
+                System.out.println("Error init input - retry " + retry);
+            }
         }
+        
+        return null;
     }
     
     /**
