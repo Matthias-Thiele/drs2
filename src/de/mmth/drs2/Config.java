@@ -281,7 +281,7 @@ public class Config implements TickerEvent {
             
             switch(i) {
                 case 0:
-                    name = "Von M auf G2";
+                    name = "Von M nach Gleis 2";
                     taste1 = 10;
                     taste2 = 8;
                     gleis = 1;
@@ -302,7 +302,7 @@ public class Config implements TickerEvent {
                     break;
                     
                 case 1:
-                    name = "Von M auf G3";
+                    name = "Von M nach Gleis 3";
                     taste1 = 10;
                     taste2 = 9;
                     gleis = 2;
@@ -323,7 +323,7 @@ public class Config implements TickerEvent {
                     break;
                     
                 case 2:
-                    name = "Von H auf G1";
+                    name = "Von H nach Gleis 1";
                     taste1 = 11;
                     taste2 = 7;
                     gleis = 0;
@@ -344,7 +344,7 @@ public class Config implements TickerEvent {
                     break;
                     
                 case 3:
-                    name = "Von H auf G3";
+                    name = "Von H nach Gleis 3";
                     taste1 = 11;
                     taste2 = 9;
                     gleis = 2;
@@ -377,6 +377,7 @@ public class Config implements TickerEvent {
                     int[] fahrwegWeichen4 = {0};
                     fahrwegWeichen = fahrwegWeichen4;
                     signalNummer = 2;
+                    streckeName = "M";
                     streckeWeiss = 56;
                     streckeRot = 71;
                     ersatz = 4;
@@ -397,6 +398,7 @@ public class Config implements TickerEvent {
                     int[] fahrwegWeichen5 = {2, 1, 0};
                     fahrwegWeichen = fahrwegWeichen5;
                     signalNummer = 3;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                    streckeName = "M";
                     streckeWeiss = 56;
                     streckeRot = 71;
                     ersatz = 5;
@@ -417,6 +419,7 @@ public class Config implements TickerEvent {
                     int[] fahrwegWeichen6 = {3, 4};
                     fahrwegWeichen = fahrwegWeichen6;
                     signalNummer = 4;
+                    streckeName = "H";
                     streckeWeiss = 58;
                     streckeRot = 57;
                     ersatz = 2;
@@ -437,6 +440,7 @@ public class Config implements TickerEvent {
                     int[] fahrwegWeichen7 = {3, 4};
                     fahrwegWeichen = fahrwegWeichen7;
                     signalNummer = 5;
+                    streckeName = "H";
                     streckeWeiss = 58;
                     streckeRot = 57;
                     ersatz = 3;
@@ -459,6 +463,11 @@ public class Config implements TickerEvent {
             
             fahrstrassen[i] = fahrstrasse;
         }
+        
+        // Durchfahrt von M nach H auf Gleis 2
+        fahrstrassen[6].addEinfahrt(0);
+        // Durchfahrt von H nach M auf Gleis 1
+        fahrstrassen[4].addEinfahrt(2);
     }
     
     /**

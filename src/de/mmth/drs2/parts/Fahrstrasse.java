@@ -63,6 +63,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private ColorMarker nextWhite;
     private long nextWhiteTStamp = Integer.MAX_VALUE;
     
+    private int verbundeneEinfahrt = -1;
+    
     /**
      * Initialisiert die Parameter der Fahrstraße.
      * 
@@ -138,6 +140,17 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         }
         
         config.ticker.add(this);
+    }
+    
+    /**
+     * Bei Durchfahrten wird die Einfahrtsfahrstraße
+     * automatisch aufgelöst sobald der Zug den
+     * Bahnhof verlassen hat.
+     * 
+     * @param verbundeneEinfahrt 
+     */
+    public void addEinfahrt(int verbundeneEinfahrt) {
+        this.verbundeneEinfahrt = verbundeneEinfahrt;
     }
 
     /**
@@ -400,6 +413,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 // Ausfahrtsgleis erreicht
                 config.alert("Bahnhof verlassen.");
                 unlock();
+                if (verbundeneEinfahrt >= 0) {
+                    // bei Durchfahrten wird die Einfahrt automatisch aufgelöst.
+                    config.fahrstrassen[verbundeneEinfahrt].unlock();
+                }
                 state = DONE;
                 
             case DONE:
