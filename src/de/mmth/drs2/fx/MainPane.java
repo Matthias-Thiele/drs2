@@ -43,7 +43,13 @@ public class MainPane extends GridPane{
         this.setVgap(5);
         
         messages = new TextArea();
-        this.add(messages, 0, 0, 1, 3);
+        messages.setPrefHeight(600.0);
+        this.add(messages, 0, 0, 1, 2);
+        Button clear = new Button("Nachrichten löschen");
+        clear.setOnAction(ev -> {
+            messages.clear();
+        });
+        this.add(clear, 0,2);
         
         addWeichen();
         addSignale();
