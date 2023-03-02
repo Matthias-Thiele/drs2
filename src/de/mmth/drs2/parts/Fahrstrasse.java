@@ -31,6 +31,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int OUTGOING_TRAIN = -9;
     private final static int WAIT_FOR_HP1 = -10;
     private final static int EINFAHRT1 = -11;
+    private final static int SET_HP1 = -12;
     
     private final static int RED_DELTA_TICKS = STEP_SHORT_WAIT / 2;
     
@@ -259,7 +260,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             ausfahrtsGleis.white();
         }
         
-        signal.fahrt();
+        if (isInbound) {
+            signal.fahrt();
+        }
+        
         state = INIT;
         if (isInbound && pendingTrain) {
             state = WAIT_FOR_HP1;
@@ -346,9 +350,15 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 return; // do nothing
                 
             case INIT:
+                strecke.markUsed(false);
                 signal.white();
                 config.connector.setOut(festlegemelder, true);
-                nextStep = count + STEP_LONG_WAIT;
+                nextStep = count + STEP_SHORT_WAIT;
+                state = SET_HP1; // Fahrstraße wurde ausgewählt.
+                break;
+                
+            case SET_HP1:
+                signal.fahrt();
                 if (bahnhofsGleis.isInUse()) {
                     config.alert("Fahrt gestartet.");
                     state = WAIT_FOR_HP1; // Fahrstraße wurde ausgewählt.
@@ -360,6 +370,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                         reportWait = false;
                     }
                 }
+                
+                nextStep = count + STEP_SHORT_WAIT;
                 break;
                 
             case WAIT_FOR_HP1:
@@ -385,7 +397,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 setRed(count, signal);
                 nextStep = count + STEP_LONG_WAIT;
                 state = SIGNAL_HP0;
-                strecke.markUsed(false);
                 break;
             
             case SIGNAL_HP0:

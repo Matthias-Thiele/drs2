@@ -165,12 +165,12 @@ public class Streckenblock implements TastenEvent, TickerEvent {
             rueckblockenUntil = count + Const.KURBELINDUKTOR_RUNDEN;
             useMJ1MJ2 = !useMJ1MJ2;
             config.connector.setOut(useMJ1MJ2 ? Const.MJ1 : Const.MJ2, true);
-            config.alert("Rückblocken " + name + " gestartet.");
+            config.alert("Vor-/ Rückblocken " + name + " gestartet.");
         } else {
             if (count > rueckblockenUntil) {
                 config.connector.setOut(Const.MJ1, false);
                 config.connector.setOut(Const.MJ2, false);
-                config.alert("Rückblocken " + name + " beendet.");
+                config.alert("Vor-/ Rückblocken " + name + " beendet.");
                 rueckblockenUntil = Integer.MAX_VALUE;
             }
         }
