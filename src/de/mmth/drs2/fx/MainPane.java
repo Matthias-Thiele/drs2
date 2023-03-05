@@ -150,7 +150,11 @@ public class MainPane extends HBox implements TickerEvent {
                 config.ticker.interrupt();
                 config.connector.switchOff();
                 config.connector.tick(0);
-                config.stage.close();
+                
+                Platform.runLater(() -> {
+                    config.stage.close();
+                });
+                        
             } catch (Exception ex) {
                 System.out.println("Error on closing app: " + ex);
             }

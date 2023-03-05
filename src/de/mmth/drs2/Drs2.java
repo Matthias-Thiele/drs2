@@ -32,8 +32,13 @@ public class Drs2 extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         config.init();
+        try {
+            config.connector.init(config);
+        } catch(Exception ex) {
+            // retry bei Kommunikationsfehler im I2C Bus
+            config.connector.init(config);
+        }
         
-        config.connector.init(config);
         //inputTester();
         //outputTester2(48, 64);
         config.connector.setOut(71, true);
@@ -54,6 +59,7 @@ public class Drs2 extends Application {
                 config.connector.switchOff();
                 config.connector.tick(0);
                 primaryStage.close();
+                System.exit(0);
             } catch (Exception ex) {
                 System.out.println("Error on closing app: " + ex);
             }
