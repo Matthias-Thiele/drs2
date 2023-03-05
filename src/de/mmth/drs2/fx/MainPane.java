@@ -6,6 +6,7 @@
 package de.mmth.drs2.fx;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Signal;
@@ -24,12 +25,17 @@ import javafx.scene.text.Text;
  * 
  * @author pi
  */
-public class MainPane extends GridPane{
-
+public class MainPane extends GridPane implements TickerEvent {
+    private final static int PENDING_TRAIN_DURATION = 60;
+    private final static int STD_BUTTON_SIZE = 130;
+    
     private final Config config;
     private final TextArea messages;
     private Button totmann;
     private int lastTotmannState = -1;
+    private boolean pendingH, pendingM;
+    private Button pendingHButton;
+    private Button pendingMButton;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -57,6 +63,8 @@ public class MainPane extends GridPane{
         addFahrstrassen();
         addSchluesselschalter();
         addTotmannschalter();
+        
+        config.ticker.add(this);
     }
     
     /**
@@ -64,19 +72,53 @@ public class MainPane extends GridPane{
      * Fahrstraßenauflösung in die MainPane ein.
      */
     private void addSchluesselschalter() {
-        var schlA = new Button("Schlüssel A");
+        var leftBox = new VBox();
+        var rightBox = new VBox();
+        
+        pendingHButton = createSizedButton("Zug von H", STD_BUTTON_SIZE);
+        pendingHButton.setOnAction(ev -> {
+            config.pendingTrainH = PENDING_TRAIN_DURATION;
+        });
+        leftBox.getChildren().add(pendingHButton);
+        
+        pendingMButton = createSizedButton("Zug von M", STD_BUTTON_SIZE);
+        pendingMButton.setOnAction(ev -> {
+            config.pendingTrainM = PENDING_TRAIN_DURATION;
+        });
+        rightBox.getChildren().add(pendingMButton);
+        
+        var schlA = createSizedButton("Schlüssel A", STD_BUTTON_SIZE);
         schlA.setOnAction(ev -> {
             condReleaseFahrstrasse(config.fahrstrassen[0]);
             condReleaseFahrstrasse(config.fahrstrassen[1]);
         });
-        this.add(schlA, 2, 1);
+        rightBox.getChildren().add(schlA);
         
-        var schlF = new Button("Schlüssel F");
-        schlF.setOnMouseClicked(ev -> {
+        var schlF = createSizedButton("Schlüssel F", STD_BUTTON_SIZE);
+        schlF.setOnAction(ev -> {
             condReleaseFahrstrasse(config.fahrstrassen[2]);
             condReleaseFahrstrasse(config.fahrstrassen[3]);
         });
-        this.add(schlF, 3, 1);
+        leftBox.getChildren().add(schlF);
+        
+        leftBox.setSpacing(5);
+        this.add(leftBox, 2, 1);
+        rightBox.setSpacing(5);
+        this.add(rightBox, 3, 1);
+    }
+    
+    /**
+     * Erzeugt einen Button mit voreingestellten Eigenschaften
+     * für den MainPane Dialog.
+     * 
+     * @param text
+     * @param prefWidth
+     * @return 
+     */
+    private Button createSizedButton(String text, int prefWidth) {
+        var button = new Button(text);
+        button.setPrefWidth(prefWidth);
+        return button;
     }
     
     /**
@@ -222,5 +264,18 @@ public class MainPane extends GridPane{
             messages.setText(txt);
             messages.setScrollTop(Double.MAX_VALUE);
         });
+    }
+
+    @Override
+    public void tick(int count) {
+        if (pendingH != (config.pendingTrainH > 0)) {
+            pendingH = !pendingH;
+            pendingHButton.setStyle(pendingH ? "-fx-background-color: lightblue" : "");
+        }
+        
+        if (pendingM != (config.pendingTrainM > 0)) {
+            pendingM = !pendingM;
+            pendingMButton.setStyle(pendingM ? "-fx-background-color: lightblue" : "");
+        }
     }
 }

@@ -126,7 +126,19 @@ public class Config implements TickerEvent {
      */
     public Stoerungsmelder stoerungsmelder = new Stoerungsmelder();
     
+    /**
+     * Zustand des Schlüsselschalters auf der DRS2
+     */
     public boolean tastenAnschalter = false;
+    
+    /**
+     * Zugstart aus M oder H manuell ausgelöst.
+     * Falls keine Fahrstraße eingerichtet wird, wird
+     * diese Information nach einer gewissen Zeit wieder
+     * gelöscht.
+     */
+    public int pendingTrainH = 0;
+    public int pendingTrainM = 0;
     
     /**
      * Initialisiert die Systemkonfiguration
@@ -647,6 +659,15 @@ public class Config implements TickerEvent {
         if (tastenAnschalter != this.connector.isInSet(Const.TA)) {
             tastenAnschalter = this.connector.isInSet(Const.TA);
             alert("Tastenfeld " + (tastenAnschalter ? "eingeschaltet." : "abgeschaltet."));
+        }
+        
+        // angemeldete Zugfahrten bleiben nicht stehen wenn sie nicht genutzt werden.
+        if (pendingTrainH > 0) {
+            pendingTrainH--;
+        }
+        
+        if (pendingTrainM > 0) {
+            pendingTrainM--;
         }
     }
 }

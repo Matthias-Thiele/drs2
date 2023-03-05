@@ -32,6 +32,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int WAIT_FOR_HP1 = -10;
     private final static int EINFAHRT1 = -11;
     private final static int SET_HP1 = -12;
+    private final static int WAIT_FOR_TRAIN = -13;
     
     private final static int RED_DELTA_TICKS = STEP_SHORT_WAIT / 2;
     
@@ -65,6 +66,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private long nextWhiteTStamp = Integer.MAX_VALUE;
     
     private int verbundeneEinfahrt = -1;
+    private String streckeName;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -93,6 +95,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             int festlegemelder, int sperrRaeumungsmelder) {
         this.config = config;
         this.name = name;
+        this.streckeName = streckeName;
         
         this.plusWeichen = new Weiche[plusWeichen.length];
         for (int i = 0; i < plusWeichen.length; i++) {
@@ -477,12 +480,24 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 return; // do nothing
                 
             case INIT:
-                config.alert("Fahrt gestartet.");
                 signal.white();
                 config.connector.setOut(festlegemelder, true);
                 nextStep = count + STEP_LONG_WAIT;
-                state = INCOMMING_TRAIN; // Fahrstraße wurde ausgewählt.
+                state = WAIT_FOR_TRAIN; // Fahrstraße wurde ausgewählt.
                 reportWait = true;
+                config.alert("Warte auf Zugfahrt von " + streckeName);
+                break;
+                
+            case WAIT_FOR_TRAIN:
+                var trainStarted = (streckeName.equals("H")) ? config.pendingTrainH > 0 : config.pendingTrainM > 0;
+                
+                if (trainStarted) {
+                    state = INCOMMING_TRAIN; // Zug wurde gestartet
+                    config.alert("Fahrt gestartet.");
+                    nextStep = count + STEP_LONG_WAIT;
+                } else {
+                    nextStep = count + STEP_SHORT_WAIT;
+                }
                 break;
                 
             case INCOMMING_TRAIN:
