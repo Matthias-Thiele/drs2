@@ -15,6 +15,7 @@ import de.mmth.drs2.parts.Schluesselschalter;
 import de.mmth.drs2.parts.Schluesselweiche;
 import de.mmth.drs2.parts.Stoerungsmelder;
 import de.mmth.drs2.parts.Weiche;
+import javafx.stage.Stage;
 
 /**
  *
@@ -110,10 +111,12 @@ public class Config implements TickerEvent {
      * Schlüsselschalter A und F für die Fahrstraßenauflösung.
      */
     public final Schluesselschalter[] schluesselschalter = new Schluesselschalter[ANZAHL_SCHLUESSELSCHALTER];
+
     /**
      * JavaFX Anzeige des Systemzustands.
      */
     public MainPane mainPane;
+    public Stage stage;
     
     /**
      * Zähler für die Betätigung eines Ersatzsignals.

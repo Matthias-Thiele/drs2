@@ -43,20 +43,23 @@ public class Drs2 extends Application {
         root.getChildren().add(main);
         config.mainPane = main;
         
-        Scene scene = new Scene(root, 1600, 700);
+        Scene scene = new Scene(root, 1660, 900);
         
         primaryStage.setTitle("WSB-Calw DRS 2");
         primaryStage.setScene(scene);
         primaryStage.show();
-        primaryStage.setOnCloseRequest(we -> {try {
-            config.ticker.interrupt();
-            config.connector.setOut(Connector.LOCAL_REL2, false);
-            Platform.exit();
-        } catch (Exception ex) {
-            System.out.println("Error on closing app: " + ex);
-        }
-});
+        primaryStage.setOnCloseRequest(we -> {
+            try {
+                config.ticker.interrupt();
+                config.connector.switchOff();
+                config.connector.tick(0);
+                primaryStage.close();
+            } catch (Exception ex) {
+                System.out.println("Error on closing app: " + ex);
+            }
+        });
         
+        config.stage = primaryStage;
         config.ticker.start();
     }
     
