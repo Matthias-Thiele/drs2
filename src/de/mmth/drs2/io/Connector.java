@@ -44,6 +44,8 @@ public class Connector implements TickerEvent {
     
     private final boolean[] drs2In = new boolean[INPUT_COUNT + LOCAL_INPUT_COUNT];
     private final boolean[] drs2Out = new boolean[OUTPUT_COUNT + LOCAL_OUTPUT_COUNT];
+    private final int[] lastOutput = new int[OUTPUT_COUNT >> 4];
+    
     private final int[] polarity = {0xff80, 0x647e, 0};
     
     private DigitalInput tastenanschalter;
@@ -72,7 +74,7 @@ public class Connector implements TickerEvent {
      */
     @Override
     public void tick(int count) {
-        //long start = System.nanoTime();
+        long start = System.nanoTime();
         inactivityCount++;
         int state = 0;
         if (inactivityCount >= WARN_COUNT) {
@@ -103,8 +105,8 @@ public class Connector implements TickerEvent {
             readInputs();
             writeOutputs();
             
-            //long duration = System.nanoTime() - start;
-            //System.out.println("Time: " + duration);
+            long duration = System.nanoTime() - start;
+            System.out.println("Time: " + duration);
         } catch (com.pi4j.io.exception.IOException | IOException ex) {
             System.out.println(ex);
         }
@@ -140,6 +142,10 @@ public class Connector implements TickerEvent {
         
         for (int i = 0; i < drs2In.length; i++) {
             drs2In[i] = false;
+        }
+        
+        for (int i = 0; i < lastOutput.length; i++) {
+            lastOutput[i] = -1;
         }
     }
     
@@ -267,7 +273,10 @@ public class Connector implements TickerEvent {
                 portNo++;
             }
             
-            mcp.write16(i, portValues);
+            if (lastOutput[i] != portValues) {
+                mcp.write16(i, portValues);
+                lastOutput[i] = portValues;
+            }
         }
     }
 
