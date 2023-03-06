@@ -67,7 +67,7 @@ public class FahrstrasseFx extends GridPane implements TickerEvent {
      * Fahrstraßenzustand.
      */
     public void updateView() {
-        verschluss.setText(fahrstrasse.isLocked() ? "Verschlossen" : "Frei");
+        verschluss.setText(fahrstrasse.isLocked() ? "Belegt" : "Frei");
     }
     
     /**
