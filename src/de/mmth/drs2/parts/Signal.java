@@ -91,8 +91,10 @@ public class Signal implements ColorMarker, TastenEvent {
      * Stellt das Signal und Vorsignal auf Halt.
      */
     public void fahrt() {
-        isFahrt = true;
-        updateView();
+        if (!isGestoert) {
+            isFahrt = true;
+            updateView();
+        }
     }
     
     /**
