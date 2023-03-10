@@ -67,6 +67,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     
     private int verbundeneEinfahrt = -1;
     private String streckeName;
+    private boolean ersatzSignalFahrt;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -126,9 +127,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.ersatzSignalNummer = ersatzSignalNummer;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
         
+        int vbHT = streckeName.equals("H") ? Const.VbHT_H : Const.VbHT_M;
         strecke = new Streckenblock();
         strecke.init(config, streckeName, isInbound, streckeTaster, streckeWeiss, streckeRot,
-                sperrRaeumungsmelder);
+                sperrRaeumungsmelder, vbHT, ersatzSignalNummer);
         
         this.festlegemelder = festlegemelder;
         this.sperrRaeumungsmelder = sperrRaeumungsmelder;
@@ -332,10 +334,93 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             nextWhiteTStamp = Integer.MAX_VALUE;
         }
         
-        if (isInbound) {
-            inboundTick(count);
+        if (!ersatzSignalFahrt && (ersatzSignalNummer >= 0) && config.ersatzsignale[ersatzSignalNummer].isFahrt() && bahnhofsGleis.isInUse()) {
+            ersatzSignalFahrt = true;
+            state = INIT;
+        }
+        
+        if (ersatzSignalFahrt) {
+            if (isInbound) {
+                inboundErsatzTick(count);
+            } else {
+                outboundErsatzTick(count);
+            }
         } else {
-            outboundTick(count);
+            if (isInbound) {
+                inboundTick(count);
+            } else {
+                outboundTick(count);
+            }
+        }
+    }
+    
+    /**
+     * Statemaschine für Ausfahrten mit Ersatzsignal.
+     * @param count 
+     */
+    public void outboundErsatzTick(int count) {
+        if (count < nextStep) {
+            return;
+        }
+        
+        switch (this.state) {
+            case  DORMANT:
+                return; // do nothing
+                
+            case INIT:
+                config.alert("Fahrt mit Ersatzsignal gestartet.");
+                state = 0; // Erste Weiche.
+                setRed(count, bahnhofsGleis); // damit setWhite funktioniert
+                nextStep = count + STEP_LONG_WAIT;
+                break;
+                
+            case AUSFAHRT1:
+                setRed(count, ausfahrtsGleis);
+                nextStep = count + STEP_LONG_WAIT;
+                state = AUSFAHRT2;
+                break;
+                
+            case AUSFAHRT2:
+                config.alert("Bahnhof verlassen.");
+                fahrwegWeichen[fahrwegWeichen.length - 1].white();
+                ausfahrtsGleis.white();
+                nextStep = count + STEP_LONG_WAIT;
+                state = OUTGOING_TRAIN;
+                break;
+                
+            case OUTGOING_TRAIN:
+                nextStep = count + STEP_LONG_WAIT;
+                if (strecke.isFree()) {
+                    config.alert("Anfangsfeld muss manuell vorgeblockt werden (VbHT + BlGT)");
+                } else {
+                    strecke.unblock();
+                    ausfahrtsGleis.clear();
+                    state = DONE;
+                }
+                break;
+                
+            case DONE:
+                config.alert("Zugfahrt beendet.");
+                state = DORMANT;
+                break;
+                
+            default:
+                // Weiche 0 bis n
+                int weiche = state;
+                
+                if (weiche < fahrwegWeichen.length) {
+                    config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
+                    setRed(count, fahrwegWeichen[weiche]);
+                } else {
+                    config.alert("Ausfahrtsgleis erreicht.");
+                    nextStep = count + STEP_SHORT_WAIT;
+                    state = AUSFAHRT1;
+                    break;
+                }
+                nextStep = count + STEP_SHORT_WAIT;
+                
+                state++;
+                break;
         }
     }
     
@@ -460,6 +545,14 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 state++;
                 break;
         }
+    }
+    
+    /**
+     * Statemaschine für Einfahrten mit Ersatzsignal.
+     * @param count 
+     */
+    public void inboundErsatzTick(int count) {
+        inboundTick(count);
     }
     
     /**

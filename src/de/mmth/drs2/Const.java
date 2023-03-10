@@ -24,8 +24,8 @@ public class Const {
     public static final int BlGT = 22;
     public static final int AsT = 27;
     public static final int AsLT = 28;
-    public static final int VbHT_H = 29;
-    public static final int VbHT_M = 30;
+    public static final int VbHT_M = 29;
+    public static final int VbHT_H = 30;
     public static final int RbHGT = 31;
     
     // Weichentasten

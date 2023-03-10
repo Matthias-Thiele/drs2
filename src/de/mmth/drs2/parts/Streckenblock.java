@@ -32,6 +32,8 @@ public class Streckenblock implements TastenEvent, TickerEvent {
     
     private boolean melder;
     private boolean hide;
+    private Doppeltaster vbHT;
+    private int ersatzSignalNummer;
     
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -44,14 +46,21 @@ public class Streckenblock implements TastenEvent, TickerEvent {
      * @param streckeWeiss
      * @param streckeRot 
      * @param sperrRaeumungsmelder 
+     * @param vorblockHilfsTaste 
+     * @param ersatzSignalNummer 
      */
-    public void init(Config config, String name, boolean isInbound, int streckenTaste, int streckeWeiss, int streckeRot, int sperrRaeumungsmelder) {
+    public void init(Config config, String name, boolean isInbound, 
+            int streckenTaste, int streckeWeiss, int streckeRot, 
+            int sperrRaeumungsmelder, int vorblockHilfsTaste,
+            int ersatzSignalNummer) {
         this.config = config;
         this.name = name;
         this.isInbound = isInbound;
         this.streckeWeiss = streckeWeiss;
         this.streckeRot = streckeRot;
         this.sperrRaeumungsmelder = sperrRaeumungsmelder;
+        this.ersatzSignalNummer = ersatzSignalNummer;
+        
         if (streckenTaste >= 0) {
             this.streckeTaster = new Doppeltaster();
             this.streckeTaster.init(config, this, Const.BlGT, streckenTaste);
@@ -61,6 +70,13 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         streckenState = StreckenState.FREE;
         markStrecke();
         rueckblockenUntil = Integer.MAX_VALUE;
+        
+        if (!isInbound && vorblockHilfsTaste >= 0) {
+            vbHT = new Doppeltaster();
+            vbHT.init(config, this, vorblockHilfsTaste, Const.BlGT);
+            config.ticker.add(vbHT);                
+        }
+        
         config.ticker.add(this);
     }
 
@@ -127,15 +143,23 @@ public class Streckenblock implements TastenEvent, TickerEvent {
      */
     @Override
     public void whenPressed(int taste1, int taste2) {
-        if (streckenState.equals(StreckenState.TRAIN_ARRIVED) || streckenState.equals(StreckenState.TRAIN_CANCELED)) {
-            streckenState = StreckenState.FREE;
-            markStrecke();
-            hide = true;
-            if (isInbound) {
-                config.alert("Endfeld " + name + " zurückgeblockt.");
+        if (taste1 == Const.BlGT) {
+            // Rückblocken nach Einfahrt
+            if (streckenState.equals(StreckenState.TRAIN_ARRIVED) || streckenState.equals(StreckenState.TRAIN_CANCELED)) {
+                streckenState = StreckenState.FREE;
+                markStrecke();
+                hide = true;
+                if (isInbound) {
+                    config.alert("Endfeld " + name + " zurückgeblockt.");
+                }
+
+                rueckblockenUntil = 0;
             }
-            
-            rueckblockenUntil = 0;
+        } else {
+            // manuelles Vorblocken für Fahrt mit Hilfssignal
+            if ((ersatzSignalNummer >= 0) && config.ersatzsignale[ersatzSignalNummer].isFahrt()) {
+                markUsed(false);
+            }
         }
     }
 
