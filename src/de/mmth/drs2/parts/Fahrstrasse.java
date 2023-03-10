@@ -502,6 +502,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case INCOMMING_TRAIN:
                 strecke.markUsed(false);
+                config.stoerungsmelder.meldung();
                 state = WAIT_FOR_HP1;
                 nextStep = count + STEP_LONG_WAIT;
                 break;

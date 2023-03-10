@@ -74,7 +74,8 @@ public class Connector implements TickerEvent {
      */
     @Override
     public void tick(int count) {
-        long start = System.nanoTime();
+        //long start = System.nanoTime();
+        
         inactivityCount++;
         int state = 0;
         if (inactivityCount >= WARN_COUNT) {
@@ -105,8 +106,8 @@ public class Connector implements TickerEvent {
             readInputs();
             writeOutputs();
             
-            long duration = System.nanoTime() - start;
-            System.out.println("Time: " + duration);
+            //long duration = System.nanoTime() - start;
+            //System.out.println("Time: " + duration);
         } catch (com.pi4j.io.exception.IOException | IOException ex) {
             System.out.println(ex);
         }

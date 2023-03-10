@@ -382,7 +382,7 @@ public class Config implements TickerEvent {
                 case 4:
                     name = "Von Gleis 1 nach M";
                     taste1 = 12;
-                    taste2 = 7;
+                    taste2 = 17;
                     gleis = 0;
                     ausfahrt = 3;
                     int[] minusWeichen4 = {};
@@ -403,7 +403,7 @@ public class Config implements TickerEvent {
                 case 5:
                     name = "Von Gleis 3 nach M";
                     taste1 = 13;
-                    taste2 = 9;
+                    taste2 = 17;
                     gleis = 2;
                     ausfahrt = 3;
                     int[] minusWeichen5 = {0, 1, 2};
@@ -424,7 +424,7 @@ public class Config implements TickerEvent {
                 case 6:
                     name = "Von Gleis 2 nach H";
                     taste1 = 14;
-                    taste2 = 8;
+                    taste2 = 18;
                     gleis = 1;
                     ausfahrt = 4;
                     int[] minusWeichen6 = {};
@@ -445,7 +445,7 @@ public class Config implements TickerEvent {
                 case 7:
                     name = "Von Gleis 3 nach H";
                     taste1 = 15;
-                    taste2 = 9;
+                    taste2 = 18;
                     gleis = 2;
                     ausfahrt = 4;
                     int[] minusWeichen7 = {3};
