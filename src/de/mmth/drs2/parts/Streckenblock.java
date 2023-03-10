@@ -30,6 +30,9 @@ public class Streckenblock implements TastenEvent, TickerEvent {
     int rueckblockenUntil;
     private boolean isInbound;
     
+    private boolean melder;
+    private boolean hide;
+    
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
      * Taste und die Nummern der weißen- und roten Pfeil-Lampe.
@@ -75,7 +78,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         markStrecke();
         config.alert("Strecke " + name + " vor/rückgeblockt.");
         if (!isInbound && (sperrRaeumungsmelder != -1)) {
-            config.connector.setOut(sperrRaeumungsmelder, false);
+            hide = true;
             rueckblockenUntil = 0;
         }
     }
@@ -90,7 +93,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         streckenState = StreckenState.FREE;
         markStrecke();
         if (!isInbound && (sperrRaeumungsmelder != -1)) {
-            config.connector.setOut(sperrRaeumungsmelder, false);
+            hide = true;
         }
     }
     
@@ -116,9 +119,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
      * Sperr- oder Räumungsmelder aktivieren.
      */
     public void activateSR() {
-        if (sperrRaeumungsmelder != -1) {
-            config.connector.setOut(sperrRaeumungsmelder, true);
-        }
+        melder = true;
     }
     
     /**
@@ -129,9 +130,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         if (streckenState.equals(StreckenState.TRAIN_ARRIVED) || streckenState.equals(StreckenState.TRAIN_CANCELED)) {
             streckenState = StreckenState.FREE;
             markStrecke();
-            if (sperrRaeumungsmelder != -1) {
-                config.connector.setOut(sperrRaeumungsmelder, false);
-            }
+            hide = true;
             if (isInbound) {
                 config.alert("Endfeld " + name + " zurückgeblockt.");
             }
@@ -161,6 +160,17 @@ public class Streckenblock implements TastenEvent, TickerEvent {
      */
     @Override
     public void tick(int count) {
+        if ((sperrRaeumungsmelder != -1) && (melder || hide)) {
+            boolean meldung = melder;
+            if (hide) {
+                hide = false;
+                melder = false;
+            }
+            
+            meldung = meldung && (count & 0x10) == 0x10;
+            config.connector.setOut(sperrRaeumungsmelder, meldung);            
+        }
+        
         if (rueckblockenUntil == 0) {
             rueckblockenUntil = count + Const.KURBELINDUKTOR_RUNDEN;
             useMJ1MJ2 = !useMJ1MJ2;
