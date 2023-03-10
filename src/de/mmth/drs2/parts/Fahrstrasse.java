@@ -353,7 +353,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 return; // do nothing
                 
             case INIT:
-                strecke.markUsed(false);
                 signal.white();
                 config.connector.setOut(festlegemelder, true);
                 nextStep = count + STEP_SHORT_WAIT;
@@ -410,6 +409,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
               
             case AUSFAHRT1:
+                strecke.markUsed(false);
                 setRed(count, ausfahrtsGleis);
                 nextStep = count + STEP_LONG_WAIT;
                 state = AUSFAHRT2;
