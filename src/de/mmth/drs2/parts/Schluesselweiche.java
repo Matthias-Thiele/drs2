@@ -137,5 +137,13 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 break;
         }
     }
+
+    /**
+     * Meldet zurück, ob der Schlüssel verrigelt ist.
+     * @return 
+     */
+    boolean isLocked() {
+        return state != 0;
+    }
     
 }

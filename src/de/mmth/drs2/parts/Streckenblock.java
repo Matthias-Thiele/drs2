@@ -189,9 +189,10 @@ public class Streckenblock implements TastenEvent, TickerEvent {
             if (hide) {
                 hide = false;
                 melder = false;
+                meldung = false;
             }
             
-            meldung = meldung && (count & 0x10) == 0x10;
+            meldung = meldung && (count & 0x8) == 0x8;
             config.connector.setOut(sperrRaeumungsmelder, meldung);            
         }
         

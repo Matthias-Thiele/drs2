@@ -34,6 +34,7 @@ public class Signal implements ColorMarker, TastenEvent {
     private int sh1Lampe;
     private int sh1WPlus;
     private int sh1WMinus;
+    private int einfahrtSignal;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -54,7 +55,7 @@ public class Signal implements ColorMarker, TastenEvent {
      */
     public void init(Config config, String name, int sigTaste, int sigFahrt, int sigHalt, 
             int vorsigFahrt, int vorsigHalt, int fahrwegWhite, int fahrwegRed,
-            int sh1Lampe, int sh1WPlus, int sh1WMinus) {
+            int sh1Lampe, int sh1WPlus, int sh1WMinus, int einfahrtSignal) {
         this.config = config;
         this.name = name;
         this.conn = config.connector;
@@ -66,6 +67,7 @@ public class Signal implements ColorMarker, TastenEvent {
         this.vorsigHalt = vorsigHalt;
         this.fahrwegWhite = fahrwegWhite;
         this.fahrwegRed = fahrwegRed;
+        this.einfahrtSignal = einfahrtSignal;
         this.sh1Lampe = sh1Lampe;
         this.sh1WPlus = sh1WPlus;
         this.sh1WMinus = sh1WMinus;
@@ -164,11 +166,21 @@ public class Signal implements ColorMarker, TastenEvent {
             conn.setOut(sh1Lampe, isSh1);
             conn.setOut(sigFahrt, isFahrt);
             conn.setOut(sigHalt, !isFahrt);
-            conn.setOut(vorsigFahrt, isFahrt);
             conn.setOut(vorsigHalt, !isFahrt);
             if (vorsigFahrt == Const.WVp1) {
                 // Sonderbehandlung für P1 mit zwei Vorsignalen
-                conn.setOut(Const.Vp13, isFahrt);
+                boolean vsigFahrt = isFahrt;
+                if ((einfahrtSignal != -1) && !config.signale[einfahrtSignal].isFahrt) {
+                    vsigFahrt = false;
+                }
+                conn.setOut(vorsigFahrt, isFahrt);
+                conn.setOut(Const.Vp13, vsigFahrt);
+            } else {
+                boolean vsigFahrt = isFahrt;
+                if ((einfahrtSignal != -1) && !config.signale[einfahrtSignal].isFahrt) {
+                    vsigFahrt = false;
+                }
+                conn.setOut(vorsigFahrt, vsigFahrt);
             }
         }
         

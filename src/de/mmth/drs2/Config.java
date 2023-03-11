@@ -191,6 +191,8 @@ public class Config implements TickerEvent {
                 default:
                     // keine weiteren Schlüsselweichen
             }
+            
+            schluesselweichen[i] = weiche;
         }
     }
     
@@ -292,6 +294,7 @@ public class Config implements TickerEvent {
             int[] minusWeichen, plusWeichen, fahrwegWeichen = {};
             int streckeWeiss = -1, streckeRot = -1, streckenTaster = -1;
             int ersatz = -1, sperrRaeumungsmelder = -1, festlegemelder = -1;
+            int schluesselweiche = -1;
             String streckeName = "?";
             
             switch(i) {
@@ -335,6 +338,7 @@ public class Config implements TickerEvent {
                     streckeName = "M";
                     sperrRaeumungsmelder = 82;
                     festlegemelder = 80;
+                    schluesselweiche = 0;
                     break;
                     
                 case 2:
@@ -377,6 +381,7 @@ public class Config implements TickerEvent {
                     streckeName = "H";
                     sperrRaeumungsmelder = 81;
                     festlegemelder = 95;
+                    schluesselweiche = 0;
                     break;
                     
                 case 4:
@@ -419,6 +424,7 @@ public class Config implements TickerEvent {
                     ersatz = 5;
                     sperrRaeumungsmelder = 84;
                     festlegemelder = 93;
+                    schluesselweiche = 0;
                     break;
                     
                 case 6:
@@ -461,6 +467,7 @@ public class Config implements TickerEvent {
                     ersatz = 3;
                     sperrRaeumungsmelder = 83;
                     festlegemelder = 94;
+                    schluesselweiche = 0;
                     break;
                     
                 default:
@@ -474,7 +481,7 @@ public class Config implements TickerEvent {
             fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, 
                     taste1, taste2, gleise[gleis], signalNummer, ersatz, ausfahrtsGleis,
                     streckeName, streckeWeiss, streckeRot, streckenTaster,
-                    festlegemelder, sperrRaeumungsmelder);
+                    festlegemelder, sperrRaeumungsmelder, schluesselweiche);
             
             fahrstrassen[i] = fahrstrasse;
         }
@@ -565,7 +572,7 @@ public class Config implements TickerEvent {
             String name;
             int sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt;
             int sh1Lampe = -1, sh1WPlus = -1, sh1WMinus = -1;
-            int fahrwegWhite = -1, fahrwegRed = -1;
+            int fahrwegWhite = -1, fahrwegRed = -1, einfahrtSignal = -1;
             switch (i) {
                 case 0:
                     name = "Sig A";
@@ -598,6 +605,7 @@ public class Config implements TickerEvent {
                     vorsigHalt = 85;
                     sh1Lampe = 64;
                     sh1WPlus = 0; // Weiche 3
+                    einfahrtSignal = 1;
                     break;
                     
                 case 3:
@@ -607,6 +615,7 @@ public class Config implements TickerEvent {
                     sigHalt = 35;
                     vorsigFahrt = 87;
                     vorsigHalt = 35;
+                    einfahrtSignal = 1;
                     sh1Lampe = 79;
                     sh1WMinus = 0; // Weiche 3
                     break;
@@ -618,6 +627,7 @@ public class Config implements TickerEvent {
                     sigHalt = 33;
                     vorsigFahrt = 72;
                     vorsigHalt = 33;
+                    einfahrtSignal = 0;
                     sh1Lampe = 78;
                     sh1WPlus = 3;
                     break;
@@ -629,6 +639,7 @@ public class Config implements TickerEvent {
                     sigHalt = 47;
                     vorsigFahrt = 72;
                     vorsigHalt = 47;
+                    einfahrtSignal = 0;
                     sh1Lampe = 77;
                     sh1WMinus = 3;
                     break;
@@ -642,7 +653,7 @@ public class Config implements TickerEvent {
             
             signal.init(this, name, sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, 
                     fahrwegWhite, fahrwegRed, 
-                    sh1Lampe, sh1WPlus, sh1WMinus);
+                    sh1Lampe, sh1WPlus, sh1WMinus, einfahrtSignal);
             
             signale[i] = signal;
         }

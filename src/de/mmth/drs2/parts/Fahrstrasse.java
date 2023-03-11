@@ -68,6 +68,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private int verbundeneEinfahrt = -1;
     private String streckeName;
     private boolean ersatzSignalFahrt;
+    private int schluesselweiche;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -93,7 +94,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, 
             int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, int ersatzSignalNummer,
             Gleismarker ausfahrtsGleis, String streckeName, int streckeWeiss, int streckeRot, int streckeTaster,
-            int festlegemelder, int sperrRaeumungsmelder) {
+            int festlegemelder, int sperrRaeumungsmelder, int schluesselweiche) {
         this.config = config;
         this.name = name;
         this.streckeName = streckeName;
@@ -125,6 +126,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.ausfahrtsGleis = ausfahrtsGleis;
         this.signal = config.signale[signalNummer];
         this.ersatzSignalNummer = ersatzSignalNummer;
+        this.schluesselweiche = schluesselweiche;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
         
         int vbHT = streckeName.equals("H") ? Const.VbHT_H : Const.VbHT_M;
@@ -247,6 +249,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             }
         }
         
+        if (schluesselweiche != -1) {
+            if (config.schluesselweichen[schluesselweiche].isLocked()) {
+                config.alert("Die Schlüsselweiche III:10, IV ist nicht verschlossen.");
+                return;
+            }
+        }
         // Weichen verrigeln
         for (Weiche plusWeiche : plusWeichen) {
             plusWeiche.lock();
@@ -305,6 +313,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             bahnhofsGleis.clear();
         }
         
+        signal.clear();
         config.connector.setOut(festlegemelder, false);
         config.alert("Die Fahrstraße " + name + " wurde aufgelöst.");
     }
@@ -633,7 +642,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             case EINFAHRT1:
                 // Zielgleis erreicht
                 config.alert("Fahrt beendet.");
-                signal.clear();
                 strecke.markUsed(true);
                 lastRed = null;
                 state = DORMANT;
