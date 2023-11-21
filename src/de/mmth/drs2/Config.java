@@ -6,6 +6,7 @@ package de.mmth.drs2;
 
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
+import de.mmth.drs2.io.Uart;
 import de.mmth.drs2.parts.Counter;
 import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Signal;
@@ -112,6 +113,11 @@ public class Config implements TickerEvent {
      */
     public final Schluesselschalter[] schluesselschalter = new Schluesselschalter[ANZAHL_SCHLUESSELSCHALTER];
 
+    /**
+     * Verbindung zu den externen Streckenblock-Adapter
+     */
+    public final Uart uart = new Uart("/dev/serial0");
+    
     /**
      * JavaFX Anzeige des Systemzustands.
      */
@@ -305,7 +311,7 @@ public class Config implements TickerEvent {
                     gleis = 1;
                     int[] minusWeichen0 = {};
                     minusWeichen = minusWeichen0;
-                    int[] plusWeichen0 = {0, 1, 2, 3, 4, 5};
+                    int[] plusWeichen0 = {0, 1, 2};
                     plusWeichen = plusWeichen0;
                     int[] fahrwegWeichen0 = {1, 2};
                     fahrwegWeichen = fahrwegWeichen0;
@@ -324,7 +330,7 @@ public class Config implements TickerEvent {
                     taste1 = 10;
                     taste2 = 9;
                     gleis = 2;
-                    int[] minusWeichen1 = {2, 3};
+                    int[] minusWeichen1 = {2};
                     minusWeichen = minusWeichen1;
                     int[] plusWeichen1 = {0, 1};
                     plusWeichen = plusWeichen1;
@@ -348,7 +354,7 @@ public class Config implements TickerEvent {
                     gleis = 0;
                     int[] minusWeichen2 = {};
                     minusWeichen = minusWeichen2;
-                    int[] plusWeichen2 = {0, 1, 4, 5};
+                    int[] plusWeichen2 = {4, 5};
                     plusWeichen = plusWeichen2;
                     int[] fahrwegWeichen2 = {5};
                     fahrwegWeichen = fahrwegWeichen2;
@@ -369,7 +375,7 @@ public class Config implements TickerEvent {
                     gleis = 2;
                     int[] minusWeichen3 = {3, 4, 5};
                     minusWeichen = minusWeichen3;
-                    int[] plusWeichen3 = {2};
+                    int[] plusWeichen3 = {};
                     plusWeichen = plusWeichen3;
                     int[] fahrwegWeichen3 = {5, 4, 3};
                     fahrwegWeichen = fahrwegWeichen3;
@@ -573,6 +579,7 @@ public class Config implements TickerEvent {
             int sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt;
             int sh1Lampe = -1, sh1WPlus = -1, sh1WMinus = -1;
             int fahrwegWhite = -1, fahrwegRed = -1, einfahrtSignal = -1;
+            int fahrstrasse1 = -1, fahrstrasse2 = -1, fahrstrasse3 = -1, fahrstrasse4 = -1;
             switch (i) {
                 case 0:
                     name = "Sig A";
@@ -606,6 +613,8 @@ public class Config implements TickerEvent {
                     sh1Lampe = 64;
                     sh1WPlus = 0; // Weiche 3
                     einfahrtSignal = 1;
+                    fahrstrasse1 = 4;
+                    fahrstrasse2 = 2;
                     break;
                     
                 case 3:
@@ -617,7 +626,11 @@ public class Config implements TickerEvent {
                     vorsigHalt = 35;
                     einfahrtSignal = 1;
                     sh1Lampe = 79;
-                    sh1WMinus = 0; // Weiche 3
+                    sh1WMinus = 2; // Weiche 5
+                    fahrstrasse1 = 5;
+                    fahrstrasse2 = 3;
+                    fahrstrasse3 = 7;
+                    fahrstrasse4 = 1;
                     break;
                     
                 case 4:
@@ -630,6 +643,8 @@ public class Config implements TickerEvent {
                     einfahrtSignal = 0;
                     sh1Lampe = 78;
                     sh1WPlus = 3;
+                    fahrstrasse1 = 6;
+                    fahrstrasse2 = 0;
                     break;
                     
                 case 5:
@@ -642,6 +657,10 @@ public class Config implements TickerEvent {
                     einfahrtSignal = 0;
                     sh1Lampe = 77;
                     sh1WMinus = 3;
+                    fahrstrasse1 = 7;
+                    fahrstrasse2 = 1;
+                    fahrstrasse3 = 5;
+                    fahrstrasse4 = 3;
                     break;
                     
                 default:
@@ -653,7 +672,8 @@ public class Config implements TickerEvent {
             
             signal.init(this, name, sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, 
                     fahrwegWhite, fahrwegRed, 
-                    sh1Lampe, sh1WPlus, sh1WMinus, einfahrtSignal);
+                    sh1Lampe, sh1WPlus, sh1WMinus, einfahrtSignal, 
+                    fahrstrasse1, fahrstrasse2,fahrstrasse3, fahrstrasse4);
             
             signale[i] = signal;
         }

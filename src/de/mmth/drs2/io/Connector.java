@@ -233,7 +233,7 @@ public class Connector implements TickerEvent {
         if (portNo >= 0 && portNo < drs2Out.length) {
             drs2Out[portNo] = value;
         }
-    }
+              }
     
     /**
      * Liest alle Eingangssignale von der DRS2 aus

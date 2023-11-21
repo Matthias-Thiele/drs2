@@ -192,7 +192,10 @@ public class Streckenblock implements TastenEvent, TickerEvent {
                 meldung = false;
             }
             
-            meldung = meldung && (count & 0x8) == 0x8;
+            if (isInbound) {
+                // Nur Räumungsmelder blinkt, Sperrmelder hat Dauerlicht
+                meldung = meldung && (count & 0x8) == 0x8;
+            }
             config.connector.setOut(sperrRaeumungsmelder, meldung);            
         }
         

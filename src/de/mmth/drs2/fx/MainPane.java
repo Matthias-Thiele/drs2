@@ -28,6 +28,8 @@ import javafx.scene.text.Text;
 public class MainPane extends HBox implements TickerEvent {
     private final static int PENDING_TRAIN_DURATION = 60;
     private final static int STD_BUTTON_SIZE = 140;
+    private final static int TEST_STOPPED = -1;
+    private final static int TEST_RANGE = 96;
     
     private final Config config;
     private TextArea messages;
@@ -36,6 +38,7 @@ public class MainPane extends HBox implements TickerEvent {
     private boolean pendingH, pendingM;
     private Button pendingHButton;
     private Button pendingMButton;
+    private int lampentest = TEST_STOPPED;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -144,6 +147,12 @@ public class MainPane extends HBox implements TickerEvent {
         });
         box.getChildren().add(totmann);
         
+        var test = new Button("Lampentest");
+        test.setOnAction(ev -> {
+            doTest();
+        });
+        box.getChildren().add(test);
+        
         var quit = new Button("Beenden");
         quit.setOnAction(ev -> {
             try {
@@ -194,6 +203,23 @@ public class MainPane extends HBox implements TickerEvent {
                 break;
         }
     }
+    
+    /**
+     * Führt einen Lampentest aus indem jeder Ausgang
+     * durchlaufend für eine kurze Zeit eingeschaltet wird.
+     */
+    private void doTest() {
+        if (lampentest == TEST_STOPPED) {
+            for (int i = 0; i < TEST_RANGE; i++) {
+                config.connector.setOut(i, false);
+            }
+
+            lampentest = 0;
+        } else {
+            config.connector.setOut(lampentest, false);
+            lampentest = TEST_STOPPED;
+        }
+    };
     
     /**
      * Prüft, ob die Fahrstraße verschlossen ist und löst
@@ -301,6 +327,16 @@ public class MainPane extends HBox implements TickerEvent {
 
     @Override
     public void tick(int count) {
+        if (lampentest != -1) {
+            if ((count & 0x7) == 7) {
+                config.connector.setOut(lampentest, false);
+                lampentest++;
+                if (lampentest == TEST_RANGE) {
+                    lampentest = 0;
+                }
+                config.connector.setOut(lampentest, true);
+            }
+        }
         if (pendingH != (config.pendingTrainH > 0)) {
             pendingH = !pendingH;
             pendingHButton.setStyle(pendingH ? "-fx-background-color: lightblue" : "");

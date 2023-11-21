@@ -4,6 +4,7 @@
  */
 package de.mmth.drs2;
 
+import com.fazecast.jSerialComm.SerialPort;
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
 import javafx.application.Application;
@@ -41,7 +42,6 @@ public class Drs2 extends Application {
         
         //inputTester();
         //outputTester2(48, 64);
-        config.connector.setOut(71, true);
         config.connector.setOut(Connector.LOCAL_REL2, true);
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();

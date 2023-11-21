@@ -35,6 +35,10 @@ public class Signal implements ColorMarker, TastenEvent {
     private int sh1WPlus;
     private int sh1WMinus;
     private int einfahrtSignal;
+    private int fahrstrasse1;
+    private int fahrstrasse2;
+    private int fahrstrasse3;
+    private int fahrstrasse4;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -52,10 +56,16 @@ public class Signal implements ColorMarker, TastenEvent {
      * @param sh1Lampe 
      * @param sh1WPlus 
      * @param sh1WMinus 
+     * @param einfahrtSignal 
+     * @param fahrstrasse1 
+     * @param fahrstrasse2 
+     * @param fahrstrasse3 
+     * @param fahrstrasse4
      */
     public void init(Config config, String name, int sigTaste, int sigFahrt, int sigHalt, 
             int vorsigFahrt, int vorsigHalt, int fahrwegWhite, int fahrwegRed,
-            int sh1Lampe, int sh1WPlus, int sh1WMinus, int einfahrtSignal) {
+            int sh1Lampe, int sh1WPlus, int sh1WMinus, int einfahrtSignal,
+            int fahrstrasse1, int fahrstrasse2, int fahrstrasse3, int fahrstrasse4) {
         this.config = config;
         this.name = name;
         this.conn = config.connector;
@@ -71,6 +81,10 @@ public class Signal implements ColorMarker, TastenEvent {
         this.sh1Lampe = sh1Lampe;
         this.sh1WPlus = sh1WPlus;
         this.sh1WMinus = sh1WMinus;
+        this.fahrstrasse1 = fahrstrasse1;
+        this.fahrstrasse2 = fahrstrasse2;
+        this.fahrstrasse3 = fahrstrasse3;
+        this.fahrstrasse4 = fahrstrasse4;
         if (sh1Lampe >= 0) {
             sh1Taste = new Doppeltaster();
             sh1Taste.init(config, this, Const.SGT, sigTaste);
@@ -241,6 +255,32 @@ public class Signal implements ColorMarker, TastenEvent {
     }
     
     /**
+     * Wenn eine der beiden möglichen Fahrstraßen zum Gleis des
+     * Ausfahrtsignals belegt ist, dann darf SH1 nicht gesetzt werden.
+     * 
+     * @return 
+     */
+    private boolean isSh1Locked() {
+        if ((fahrstrasse1 != -1) && config.fahrstrassen[fahrstrasse1].isLocked()) {
+            return true;
+        }
+        
+        if ((fahrstrasse2 != -1) && config.fahrstrassen[fahrstrasse2].isLocked()) {
+            return true;
+        }
+        
+        if ((fahrstrasse3 != -1) && config.fahrstrassen[fahrstrasse3].isLocked()) {
+            return true;
+        }
+        
+        if ((fahrstrasse4 != -1) && config.fahrstrassen[fahrstrasse4].isLocked()) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
      * Wenn die SGT Taste aktiv ist, wird das Signal auf SH1 gestellt.
      * Ist die HaGT aktiv und das Signal auf SH1, wird es auf SH0 
      * zurückgestellt. Ansonsten wird es auf HP0 zurückgestellt.
@@ -259,8 +299,12 @@ public class Signal implements ColorMarker, TastenEvent {
             }
         } else if (taste1 == Const.SGT) {
             if (checkSh1Weiche()) {
-                isSh1 = true;
-                config.alert("Signal " + name + " auf SH1 gesellt.");
+                if (!isSh1Locked()) {
+                    isSh1 = true;
+                    config.alert("Signal " + name + " auf SH1 gesellt.");
+                } else {
+                    config.alert("Gleis ist durch Fahrstraße belegt.");
+                }
             } else {
                 config.alert("Die Weiche hinter dem Sh Signal " + name + " steht falsch.");
             }
