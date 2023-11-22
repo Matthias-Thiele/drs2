@@ -44,6 +44,8 @@ public class Connector implements TickerEvent {
     
     private final boolean[] drs2In = new boolean[INPUT_COUNT + LOCAL_INPUT_COUNT];
     private final boolean[] drs2Out = new boolean[OUTPUT_COUNT + LOCAL_OUTPUT_COUNT];
+    private final int[] lastOutput = new int[OUTPUT_COUNT >> 4];
+    
     private final int[] polarity = {0xff80, 0x647e, 0};
     
     private DigitalInput tastenanschalter;
@@ -72,36 +74,37 @@ public class Connector implements TickerEvent {
      */
     @Override
     public void tick(int count) {
-        try {
-            //long start = System.nanoTime();
-            inactivityCount++;
-            int state = 0;
-            if (inactivityCount >= WARN_COUNT) {
-                state = 1;
-            }
-            if (inactivityCount >= SWITCH_OFF_COUNT) {
-                state = 2;
-            }
-            config.mainPane.markTotmannschalter(state);
-            drs2Out[LOCAL_REL2] = inactivityCount < SWITCH_OFF_COUNT;
+        //long start = System.nanoTime();
+        
+        inactivityCount++;
+        int state = 0;
+        if (inactivityCount >= WARN_COUNT) {
+            state = 1;
+        }
+        if (inactivityCount >= SWITCH_OFF_COUNT) {
+            state = 2;
+        }
+        config.mainPane.markTotmannschalter(state);
+        drs2Out[LOCAL_REL2] = inactivityCount < SWITCH_OFF_COUNT;
+
+        // Lokale Eingänge lesen
+        drs2In[INPUT_COUNT + LOCAL_TA] = tastenanschalter.isLow();
+        drs2In[INPUT_COUNT + LOCAL_NC] = nc.isHigh();
+        drs2In[INPUT_COUNT + LOCAL_SlFT] = weichenschluessel.isHigh();
+        drs2In[INPUT_COUNT + LOCAL_NC2] = nc2.isHigh();
+
+        drs2In[INPUT_COUNT + LOCAL_SIGA] = sigA.isLow();
+        drs2In[INPUT_COUNT + LOCAL_SIGF] = sigF.isLow();
+        drs2In[INPUT_COUNT + LOCAL_SLFT] = slft.isHigh();
+        drs2In[INPUT_COUNT + LOCAL_AUX4] = aux4.isLow();
+
+        // Lokale Ausgänge schreiben
+        relais1.setState(drs2Out[LOCAL_REL1]);
+        relais2.setState(drs2Out[LOCAL_REL2]);      
             
+        try {
             readInputs();
             writeOutputs();
-            
-            // Lokale Eingänge lesen
-            drs2In[INPUT_COUNT + LOCAL_TA] = tastenanschalter.isLow();
-            drs2In[INPUT_COUNT + LOCAL_NC] = nc.isHigh();
-            drs2In[INPUT_COUNT + LOCAL_SlFT] = weichenschluessel.isHigh();
-            drs2In[INPUT_COUNT + LOCAL_NC2] = nc2.isHigh();
-            
-            drs2In[INPUT_COUNT + LOCAL_SIGA] = sigA.isLow();
-            drs2In[INPUT_COUNT + LOCAL_SIGF] = sigF.isLow();
-            drs2In[INPUT_COUNT + LOCAL_SLFT] = slft.isHigh();
-            drs2In[INPUT_COUNT + LOCAL_AUX4] = aux4.isLow();
-            
-            // Lokale Ausgänge schreiben
-            relais1.setState(drs2Out[LOCAL_REL1]);
-            relais2.setState(drs2Out[LOCAL_REL2]);
             
             //long duration = System.nanoTime() - start;
             //System.out.println("Time: " + duration);
@@ -140,6 +143,10 @@ public class Connector implements TickerEvent {
         
         for (int i = 0; i < drs2In.length; i++) {
             drs2In[i] = false;
+        }
+        
+        for (int i = 0; i < lastOutput.length; i++) {
+            lastOutput[i] = -1;
         }
     }
     
@@ -226,7 +233,7 @@ public class Connector implements TickerEvent {
         if (portNo >= 0 && portNo < drs2Out.length) {
             drs2Out[portNo] = value;
         }
-    }
+              }
     
     /**
      * Liest alle Eingangssignale von der DRS2 aus
@@ -267,7 +274,10 @@ public class Connector implements TickerEvent {
                 portNo++;
             }
             
-            mcp.write16(i, portValues);
+            if (lastOutput[i] != portValues) {
+                mcp.write16(i, portValues);
+                lastOutput[i] = portValues;
+            }
         }
     }
 
@@ -280,6 +290,13 @@ public class Connector implements TickerEvent {
      */
     public void resetInactivityCounter() {
         inactivityCount = 0;
+    }
+    
+    /**
+     * Schaltet die Lampen ab.
+     */
+    public void switchOff() {
+        inactivityCount = SWITCH_OFF_COUNT + 1;
     }
     
 }

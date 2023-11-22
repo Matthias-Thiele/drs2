@@ -6,6 +6,7 @@
 package de.mmth.drs2.fx;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Signal;
@@ -13,7 +14,7 @@ import de.mmth.drs2.parts.Weiche;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
@@ -24,12 +25,20 @@ import javafx.scene.text.Text;
  * 
  * @author pi
  */
-public class MainPane extends GridPane{
-
+public class MainPane extends HBox implements TickerEvent {
+    private final static int PENDING_TRAIN_DURATION = 60;
+    private final static int STD_BUTTON_SIZE = 140;
+    private final static int TEST_STOPPED = -1;
+    private final static int TEST_RANGE = 96;
+    
     private final Config config;
-    private final TextArea messages;
+    private TextArea messages;
     private Button totmann;
     private int lastTotmannState = -1;
+    private boolean pendingH, pendingM;
+    private Button pendingHButton;
+    private Button pendingMButton;
+    private int lampentest = TEST_STOPPED;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -39,24 +48,16 @@ public class MainPane extends GridPane{
      */
     public MainPane(Config config) {
         this.config = config;
-        this.setHgap(5);
-        this.setVgap(5);
+        this.setSpacing(5);
         
-        messages = new TextArea();
-        messages.setPrefHeight(600.0);
-        this.add(messages, 0, 0, 1, 2);
-        Button clear = new Button("Nachrichten löschen");
-        clear.setOnAction(ev -> {
-            messages.clear();
-        });
-        this.add(clear, 0,2);
-        
-        addWeichen();
+        addSchalter();
         addSignale();
         addErsatzsignale();
+        addWeichen();
         addFahrstrassen();
         addSchluesselschalter();
-        addTotmannschalter();
+        
+        config.ticker.add(this);
     }
     
     /**
@@ -64,19 +65,53 @@ public class MainPane extends GridPane{
      * Fahrstraßenauflösung in die MainPane ein.
      */
     private void addSchluesselschalter() {
-        var schlA = new Button("Schlüssel A");
+        var box = new VBox();
+        
+        Text hdr = new Text("Strecke");
+        box.getChildren().add(hdr);
+        
+        pendingHButton = createSizedButton("Zug von H", STD_BUTTON_SIZE);
+        pendingHButton.setOnAction(ev -> {
+            config.pendingTrainH = PENDING_TRAIN_DURATION;
+        });
+        box.getChildren().add(pendingHButton);
+        
+        var schlF = createSizedButton("Schlüssel F", STD_BUTTON_SIZE);
+        schlF.setOnAction(ev -> {
+            condReleaseFahrstrasse(config.fahrstrassen[2]);
+            condReleaseFahrstrasse(config.fahrstrassen[3]);
+        });
+        box.getChildren().add(schlF);
+        
+        pendingMButton = createSizedButton("Zug von M", STD_BUTTON_SIZE);
+        pendingMButton.setOnAction(ev -> {
+            config.pendingTrainM = PENDING_TRAIN_DURATION;
+        });
+        box.getChildren().add(pendingMButton);
+        
+        var schlA = createSizedButton("Schlüssel A", STD_BUTTON_SIZE);
         schlA.setOnAction(ev -> {
             condReleaseFahrstrasse(config.fahrstrassen[0]);
             condReleaseFahrstrasse(config.fahrstrassen[1]);
         });
-        this.add(schlA, 2, 1);
+        box.getChildren().add(schlA);
         
-        var schlF = new Button("Schlüssel F");
-        schlF.setOnMouseClicked(ev -> {
-            condReleaseFahrstrasse(config.fahrstrassen[2]);
-            condReleaseFahrstrasse(config.fahrstrassen[3]);
-        });
-        this.add(schlF, 3, 1);
+        box.setSpacing(5);
+        this.getChildren().add(box);
+    }
+    
+    /**
+     * Erzeugt einen Button mit voreingestellten Eigenschaften
+     * für den MainPane Dialog.
+     * 
+     * @param text
+     * @param prefWidth
+     * @return 
+     */
+    private Button createSizedButton(String text, int prefWidth) {
+        var button = new Button(text);
+        button.setPrefWidth(prefWidth);
+        return button;
     }
     
     /**
@@ -87,12 +122,57 @@ public class MainPane extends GridPane{
      * Button kann die Spannung wieder eingeschaltet
      * werden oder die Abschaltung verzögert werden.
      */
-    private void addTotmannschalter() {
+    private void addSchalter() {
+        var msgColumn = new VBox();
+        msgColumn.setSpacing(5);
+        
+        messages = new TextArea();
+        messages.setPrefHeight(800.0);
+        messages.setPrefWidth(800);
+        msgColumn.getChildren().add(messages);
+        
+
+        var box = new HBox();
+        box.setSpacing(5);
+        
+        var clear = new Button("Nachrichten löschen");
+        clear.setOnAction(ev -> {
+            messages.clear();
+        });
+        box.getChildren().add(clear);
+        
         totmann = new Button("Totmannschalter");
         totmann.setOnAction(ev -> {
             config.connector.resetInactivityCounter();
         });
-        this.add(totmann, 2, 2, 2, 1);
+        box.getChildren().add(totmann);
+        
+        var test = new Button("Lampentest");
+        test.setOnAction(ev -> {
+            doTest();
+        });
+        box.getChildren().add(test);
+        
+        var quit = new Button("Beenden");
+        quit.setOnAction(ev -> {
+            try {
+                config.ticker.interrupt();
+                config.connector.switchOff();
+                config.connector.tick(0);
+                
+                Platform.runLater(() -> {
+                    config.stage.close();
+                });
+                        
+            } catch (Exception ex) {
+                System.out.println("Error on closing app: " + ex);
+            }
+        });
+        
+        box.getChildren().add(quit);
+        
+        msgColumn.getChildren().add(box);
+        this.getChildren().add(msgColumn);
     }
     
     /**
@@ -125,6 +205,23 @@ public class MainPane extends GridPane{
     }
     
     /**
+     * Führt einen Lampentest aus indem jeder Ausgang
+     * durchlaufend für eine kurze Zeit eingeschaltet wird.
+     */
+    private void doTest() {
+        if (lampentest == TEST_STOPPED) {
+            for (int i = 0; i < TEST_RANGE; i++) {
+                config.connector.setOut(i, false);
+            }
+
+            lampentest = 0;
+        } else {
+            config.connector.setOut(lampentest, false);
+            lampentest = TEST_STOPPED;
+        }
+    };
+    
+    /**
      * Prüft, ob die Fahrstraße verschlossen ist und löst
      * Sie bei Bedarf auf.
      * @param fahrstrasse 
@@ -140,9 +237,11 @@ public class MainPane extends GridPane{
      */
     private void addWeichen() {
         VBox box = new VBox(5);
+        box.setMinWidth(STD_BUTTON_SIZE+ 30);
+        box.setPrefWidth(STD_BUTTON_SIZE + 30);
+
         Text hdr = new Text("Weichen");
         box.getChildren().add(hdr);
-        box.setMinWidth(120);
         
         for (Weiche weiche: config.weichen) {
             WeicheFx wfx = new WeicheFx(weiche);
@@ -150,7 +249,7 @@ public class MainPane extends GridPane{
             config.ticker.add(wfx);
         }
         
-        this.add(box, 1, 0, 1, 3);
+        this.getChildren().add(box);
     }
     
     /**
@@ -159,9 +258,11 @@ public class MainPane extends GridPane{
      */
     private void addSignale() {
         VBox box = new VBox(5);
+        box.setMinWidth(STD_BUTTON_SIZE);
+        box.setPrefWidth(STD_BUTTON_SIZE);
+        
         Text hdr = new Text("Signale");
         box.getChildren().add(hdr);
-        box.setMinWidth(120);
         
         for (Signal signal: config.signale) {
             SignalFx sfx = new SignalFx(signal);
@@ -169,7 +270,7 @@ public class MainPane extends GridPane{
             config.ticker.add(sfx);
         }
         
-        this.add(box, 2, 0);
+        this.getChildren().add(box);
     }
     
     /**
@@ -180,7 +281,7 @@ public class MainPane extends GridPane{
         VBox box = new VBox(5);
         Text hdr = new Text("Ersatzsignale");
         box.getChildren().add(hdr);
-        box.setMinWidth(120);
+        box.setMinWidth(STD_BUTTON_SIZE);
         
         for (Ersatzsignal signal: config.ersatzsignale) {
             ErsatzsignalFx sfx = new ErsatzsignalFx(signal);
@@ -188,7 +289,7 @@ public class MainPane extends GridPane{
             config.ticker.add(sfx);
         }
         
-        this.add(box, 3, 0);
+        this.getChildren().add(box);
     }
     
     /**
@@ -199,7 +300,7 @@ public class MainPane extends GridPane{
         VBox box = new VBox(5);
         Text hdr = new Text("Fahrstrassen");
         box.getChildren().add(hdr);
-        box.setMinWidth(120);
+        box.setMinWidth(STD_BUTTON_SIZE);
         
         for (var fahrstrasse: config.fahrstrassen) {
             var ffx = new FahrstrasseFx(fahrstrasse);
@@ -207,7 +308,7 @@ public class MainPane extends GridPane{
             config.ticker.add(ffx);
         }
         
-        this.add(box, 4, 0, 1, 3);
+        this.getChildren().add(box);
     }
     
     /**
@@ -222,5 +323,28 @@ public class MainPane extends GridPane{
             messages.setText(txt);
             messages.setScrollTop(Double.MAX_VALUE);
         });
+    }
+
+    @Override
+    public void tick(int count) {
+        if (lampentest != -1) {
+            if ((count & 0x7) == 7) {
+                config.connector.setOut(lampentest, false);
+                lampentest++;
+                if (lampentest == TEST_RANGE) {
+                    lampentest = 0;
+                }
+                config.connector.setOut(lampentest, true);
+            }
+        }
+        if (pendingH != (config.pendingTrainH > 0)) {
+            pendingH = !pendingH;
+            pendingHButton.setStyle(pendingH ? "-fx-background-color: lightblue" : "");
+        }
+        
+        if (pendingM != (config.pendingTrainM > 0)) {
+            pendingM = !pendingM;
+            pendingMButton.setStyle(pendingM ? "-fx-background-color: lightblue" : "");
+        }
     }
 }

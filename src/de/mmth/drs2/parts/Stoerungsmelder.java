@@ -28,6 +28,8 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     
     private int klingel;
     private int tu;
+    private int melder;
+    
     private String lastSignalStoerung = "";
     private Object lastWeichenStoerung = "";
     
@@ -83,6 +85,13 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     }
     
     /**
+     * Streckenblockmeldung
+     */
+    public void meldung() {
+        melder = 50;
+    }
+    
+    /**
      * Intervallsteuerung für Anzeige und Wecker.
      * @param count 
      */
@@ -102,7 +111,13 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
             config.connector.setOut(lampeW, false);
         }
         
-        config.connector.setOut(klingel, (strgS || strgT || strgW) && ((count & 0x1e) == 2));
+        boolean wecker = strgS || strgT || strgW;
+        
+        if (melder > 0) {
+            wecker |= ((melder & 0x1e) == 2);
+            melder--;
+        }
+        config.connector.setOut(klingel, wecker);
         config.connector.setOut(tu, strgT);
     }
 

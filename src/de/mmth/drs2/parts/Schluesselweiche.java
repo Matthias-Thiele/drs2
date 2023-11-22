@@ -106,7 +106,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 // Waretet bis der Schlüssel entnommen wird, blinkt solange rot.
                 config.connector.setOut(rot, (count & 8) != 0);
                 config.connector.setOut(weiss, false);
-                if (config.connector.isInSet(Const.WSCHLUESSEL)) {
+                if (!config.connector.isInSet(Const.WSCHLUESSEL)) {
                     // Schlüssel entnommen.
                     state = 3;
                     config.alert("Schlüssel entnommen.");
@@ -136,6 +136,14 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 state = 0;
                 break;
         }
+    }
+
+    /**
+     * Meldet zurück, ob der Schlüssel verrigelt ist.
+     * @return 
+     */
+    boolean isLocked() {
+        return state != 0;
     }
     
 }

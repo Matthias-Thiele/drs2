@@ -4,6 +4,7 @@
  */
 package de.mmth.drs2;
 
+import com.fazecast.jSerialComm.SerialPort;
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
 import javafx.application.Application;
@@ -32,31 +33,39 @@ public class Drs2 extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         config.init();
+        try {
+            config.connector.init(config);
+        } catch(Exception ex) {
+            // retry bei Kommunikationsfehler im I2C Bus
+            config.connector.init(config);
+        }
         
-        config.connector.init(config);
         //inputTester();
         //outputTester2(48, 64);
-        config.connector.setOut(71, true);
         config.connector.setOut(Connector.LOCAL_REL2, true);
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
         root.getChildren().add(main);
         config.mainPane = main;
         
-        Scene scene = new Scene(root, 1600, 700);
+        Scene scene = new Scene(root, 1660, 900);
         
         primaryStage.setTitle("WSB-Calw DRS 2");
         primaryStage.setScene(scene);
         primaryStage.show();
-        primaryStage.setOnCloseRequest(we -> {try {
-            config.ticker.interrupt();
-            config.connector.setOut(Connector.LOCAL_REL2, false);
-            Platform.exit();
-        } catch (Exception ex) {
-            System.out.println("Error on closing app: " + ex);
-        }
-});
+        primaryStage.setOnCloseRequest(we -> {
+            try {
+                config.ticker.interrupt();
+                config.connector.switchOff();
+                config.connector.tick(0);
+                primaryStage.close();
+                System.exit(0);
+            } catch (Exception ex) {
+                System.out.println("Error on closing app: " + ex);
+            }
+        });
         
+        config.stage = primaryStage;
         config.ticker.start();
     }
     

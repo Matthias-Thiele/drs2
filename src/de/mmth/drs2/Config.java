@@ -6,6 +6,7 @@ package de.mmth.drs2;
 
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
+import de.mmth.drs2.io.Uart;
 import de.mmth.drs2.parts.Counter;
 import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Signal;
@@ -15,6 +16,7 @@ import de.mmth.drs2.parts.Schluesselschalter;
 import de.mmth.drs2.parts.Schluesselweiche;
 import de.mmth.drs2.parts.Stoerungsmelder;
 import de.mmth.drs2.parts.Weiche;
+import javafx.stage.Stage;
 
 /**
  *
@@ -110,10 +112,17 @@ public class Config implements TickerEvent {
      * Schlüsselschalter A und F für die Fahrstraßenauflösung.
      */
     public final Schluesselschalter[] schluesselschalter = new Schluesselschalter[ANZAHL_SCHLUESSELSCHALTER];
+
+    /**
+     * Verbindung zu den externen Streckenblock-Adapter
+     */
+    public final Uart uart = new Uart("/dev/serial0");
+    
     /**
      * JavaFX Anzeige des Systemzustands.
      */
     public MainPane mainPane;
+    public Stage stage;
     
     /**
      * Zähler für die Betätigung eines Ersatzsignals.
@@ -126,7 +135,19 @@ public class Config implements TickerEvent {
      */
     public Stoerungsmelder stoerungsmelder = new Stoerungsmelder();
     
+    /**
+     * Zustand des Schlüsselschalters auf der DRS2
+     */
     public boolean tastenAnschalter = false;
+    
+    /**
+     * Zugstart aus M oder H manuell ausgelöst.
+     * Falls keine Fahrstraße eingerichtet wird, wird
+     * diese Information nach einer gewissen Zeit wieder
+     * gelöscht.
+     */
+    public int pendingTrainH = 0;
+    public int pendingTrainM = 0;
     
     /**
      * Initialisiert die Systemkonfiguration
@@ -176,6 +197,8 @@ public class Config implements TickerEvent {
                 default:
                     // keine weiteren Schlüsselweichen
             }
+            
+            schluesselweichen[i] = weiche;
         }
     }
     
@@ -277,6 +300,7 @@ public class Config implements TickerEvent {
             int[] minusWeichen, plusWeichen, fahrwegWeichen = {};
             int streckeWeiss = -1, streckeRot = -1, streckenTaster = -1;
             int ersatz = -1, sperrRaeumungsmelder = -1, festlegemelder = -1;
+            int schluesselweiche = -1;
             String streckeName = "?";
             
             switch(i) {
@@ -287,7 +311,7 @@ public class Config implements TickerEvent {
                     gleis = 1;
                     int[] minusWeichen0 = {};
                     minusWeichen = minusWeichen0;
-                    int[] plusWeichen0 = {0, 1, 2, 3, 4, 5};
+                    int[] plusWeichen0 = {0, 1, 2};
                     plusWeichen = plusWeichen0;
                     int[] fahrwegWeichen0 = {1, 2};
                     fahrwegWeichen = fahrwegWeichen0;
@@ -306,7 +330,7 @@ public class Config implements TickerEvent {
                     taste1 = 10;
                     taste2 = 9;
                     gleis = 2;
-                    int[] minusWeichen1 = {2, 3};
+                    int[] minusWeichen1 = {2};
                     minusWeichen = minusWeichen1;
                     int[] plusWeichen1 = {0, 1};
                     plusWeichen = plusWeichen1;
@@ -320,6 +344,7 @@ public class Config implements TickerEvent {
                     streckeName = "M";
                     sperrRaeumungsmelder = 82;
                     festlegemelder = 80;
+                    schluesselweiche = 0;
                     break;
                     
                 case 2:
@@ -329,7 +354,7 @@ public class Config implements TickerEvent {
                     gleis = 0;
                     int[] minusWeichen2 = {};
                     minusWeichen = minusWeichen2;
-                    int[] plusWeichen2 = {0, 1, 4, 5};
+                    int[] plusWeichen2 = {4, 5};
                     plusWeichen = plusWeichen2;
                     int[] fahrwegWeichen2 = {5};
                     fahrwegWeichen = fahrwegWeichen2;
@@ -350,7 +375,7 @@ public class Config implements TickerEvent {
                     gleis = 2;
                     int[] minusWeichen3 = {3, 4, 5};
                     minusWeichen = minusWeichen3;
-                    int[] plusWeichen3 = {2};
+                    int[] plusWeichen3 = {};
                     plusWeichen = plusWeichen3;
                     int[] fahrwegWeichen3 = {5, 4, 3};
                     fahrwegWeichen = fahrwegWeichen3;
@@ -362,12 +387,13 @@ public class Config implements TickerEvent {
                     streckeName = "H";
                     sperrRaeumungsmelder = 81;
                     festlegemelder = 95;
+                    schluesselweiche = 0;
                     break;
                     
                 case 4:
                     name = "Von Gleis 1 nach M";
                     taste1 = 12;
-                    taste2 = 7;
+                    taste2 = 17;
                     gleis = 0;
                     ausfahrt = 3;
                     int[] minusWeichen4 = {};
@@ -388,7 +414,7 @@ public class Config implements TickerEvent {
                 case 5:
                     name = "Von Gleis 3 nach M";
                     taste1 = 13;
-                    taste2 = 9;
+                    taste2 = 17;
                     gleis = 2;
                     ausfahrt = 3;
                     int[] minusWeichen5 = {0, 1, 2};
@@ -404,12 +430,13 @@ public class Config implements TickerEvent {
                     ersatz = 5;
                     sperrRaeumungsmelder = 84;
                     festlegemelder = 93;
+                    schluesselweiche = 0;
                     break;
                     
                 case 6:
                     name = "Von Gleis 2 nach H";
                     taste1 = 14;
-                    taste2 = 8;
+                    taste2 = 18;
                     gleis = 1;
                     ausfahrt = 4;
                     int[] minusWeichen6 = {};
@@ -430,7 +457,7 @@ public class Config implements TickerEvent {
                 case 7:
                     name = "Von Gleis 3 nach H";
                     taste1 = 15;
-                    taste2 = 9;
+                    taste2 = 18;
                     gleis = 2;
                     ausfahrt = 4;
                     int[] minusWeichen7 = {3};
@@ -446,6 +473,7 @@ public class Config implements TickerEvent {
                     ersatz = 3;
                     sperrRaeumungsmelder = 83;
                     festlegemelder = 94;
+                    schluesselweiche = 0;
                     break;
                     
                 default:
@@ -459,7 +487,7 @@ public class Config implements TickerEvent {
             fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, 
                     taste1, taste2, gleise[gleis], signalNummer, ersatz, ausfahrtsGleis,
                     streckeName, streckeWeiss, streckeRot, streckenTaster,
-                    festlegemelder, sperrRaeumungsmelder);
+                    festlegemelder, sperrRaeumungsmelder, schluesselweiche);
             
             fahrstrassen[i] = fahrstrasse;
         }
@@ -550,7 +578,8 @@ public class Config implements TickerEvent {
             String name;
             int sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt;
             int sh1Lampe = -1, sh1WPlus = -1, sh1WMinus = -1;
-            int fahrwegWhite = -1, fahrwegRed = -1;
+            int fahrwegWhite = -1, fahrwegRed = -1, einfahrtSignal = -1;
+            int fahrstrasse1 = -1, fahrstrasse2 = -1, fahrstrasse3 = -1, fahrstrasse4 = -1;
             switch (i) {
                 case 0:
                     name = "Sig A";
@@ -583,6 +612,9 @@ public class Config implements TickerEvent {
                     vorsigHalt = 85;
                     sh1Lampe = 64;
                     sh1WPlus = 0; // Weiche 3
+                    einfahrtSignal = 1;
+                    fahrstrasse1 = 4;
+                    fahrstrasse2 = 2;
                     break;
                     
                 case 3:
@@ -592,8 +624,13 @@ public class Config implements TickerEvent {
                     sigHalt = 35;
                     vorsigFahrt = 87;
                     vorsigHalt = 35;
+                    einfahrtSignal = 1;
                     sh1Lampe = 79;
-                    sh1WMinus = 0; // Weiche 3
+                    sh1WMinus = 2; // Weiche 5
+                    fahrstrasse1 = 5;
+                    fahrstrasse2 = 3;
+                    fahrstrasse3 = 7;
+                    fahrstrasse4 = 1;
                     break;
                     
                 case 4:
@@ -603,8 +640,11 @@ public class Config implements TickerEvent {
                     sigHalt = 33;
                     vorsigFahrt = 72;
                     vorsigHalt = 33;
+                    einfahrtSignal = 0;
                     sh1Lampe = 78;
                     sh1WPlus = 3;
+                    fahrstrasse1 = 6;
+                    fahrstrasse2 = 0;
                     break;
                     
                 case 5:
@@ -614,8 +654,13 @@ public class Config implements TickerEvent {
                     sigHalt = 47;
                     vorsigFahrt = 72;
                     vorsigHalt = 47;
+                    einfahrtSignal = 0;
                     sh1Lampe = 77;
                     sh1WMinus = 3;
+                    fahrstrasse1 = 7;
+                    fahrstrasse2 = 1;
+                    fahrstrasse3 = 5;
+                    fahrstrasse4 = 3;
                     break;
                     
                 default:
@@ -627,7 +672,8 @@ public class Config implements TickerEvent {
             
             signal.init(this, name, sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, 
                     fahrwegWhite, fahrwegRed, 
-                    sh1Lampe, sh1WPlus, sh1WMinus);
+                    sh1Lampe, sh1WPlus, sh1WMinus, einfahrtSignal, 
+                    fahrstrasse1, fahrstrasse2,fahrstrasse3, fahrstrasse4);
             
             signale[i] = signal;
         }
@@ -647,6 +693,15 @@ public class Config implements TickerEvent {
         if (tastenAnschalter != this.connector.isInSet(Const.TA)) {
             tastenAnschalter = this.connector.isInSet(Const.TA);
             alert("Tastenfeld " + (tastenAnschalter ? "eingeschaltet." : "abgeschaltet."));
+        }
+        
+        // angemeldete Zugfahrten bleiben nicht stehen wenn sie nicht genutzt werden.
+        if (pendingTrainH > 0) {
+            pendingTrainH--;
+        }
+        
+        if (pendingTrainM > 0) {
+            pendingTrainM--;
         }
     }
 }

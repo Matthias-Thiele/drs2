@@ -50,7 +50,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         if (taste1 >= 0) {
             taste.init(config, this, taste1, taste2);
         }
-        updateOutput();
+        updateOutput(0);
         config.ticker.add(this);
     }
 
@@ -98,7 +98,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         
         inPlusStellung = !inPlusStellung;
         blink = isGestoert ? Integer.MAX_VALUE : BLINK_DURATION;
-        updateOutput();
+        updateOutput(0);
         config.alert("Weiche " + name + " umgeschaltet nach " + (inPlusStellung ? "Plus" : "Minus"));
     }
 
@@ -136,7 +136,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     @Override
     public void red() {
         isActive = true;
-        updateOutput();
+        updateOutput(0);
     }
     
     /**
@@ -145,7 +145,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     @Override
     public void white() {
         isActive = false;
-        updateOutput();
+        updateOutput(0);
     }
     
     @Override
@@ -187,7 +187,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      * Aktualisiert die Ausgabeports der
      * Anzeigelampen
      */
-    private void updateOutput() {
+    private void updateOutput(int count) {
         if (firstWhite < 0) {
             return; // nicht angeschlossen.
         }
@@ -195,7 +195,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         boolean l1 = inPlusStellung;
         boolean l2 = !l1;
         
-        if ((blink & 0x8) == 0x8) {
+        if ((blink > 0) && (count & 0x8) == 0x8) {
             l1 = false;
             l2 = false;
         }
@@ -226,8 +226,11 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         }
         
         if (blink > 0) {
-            updateOutput();
+            updateOutput(count);
             blink--;
+            if (blink == 0) {
+                updateOutput(0);
+            }
         }
     }
     

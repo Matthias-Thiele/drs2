@@ -89,7 +89,7 @@ public class WeicheFx extends GridPane implements TickerEvent {
         }
         stellung.setText(status);
         
-        verschluss.setText(weiche.isLocked() ? "Verschlossen" : "Frei");
+        verschluss.setText(weiche.isLocked() ? "Sperre" : "Frei");
     }
 
     /**
