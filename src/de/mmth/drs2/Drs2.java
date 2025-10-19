@@ -4,11 +4,9 @@
  */
 package de.mmth.drs2;
 
-import com.fazecast.jSerialComm.SerialPort;
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -37,18 +35,18 @@ public class Drs2 extends Application {
             config.connector.init(config);
         } catch(Exception ex) {
             // retry bei Kommunikationsfehler im I2C Bus
-            config.connector.init(config);
+            // config.connector.init(config);
         }
         
         //inputTester();
         //outputTester2(48, 64);
-        config.connector.setOut(Connector.LOCAL_REL2, true);
+        config.connector.setOut(Connector.V24_OUT, true);
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
         root.getChildren().add(main);
         config.mainPane = main;
         
-        Scene scene = new Scene(root, 1660, 900);
+        Scene scene = new Scene(root, 1860, 940);
         
         primaryStage.setTitle("WSB-Calw DRS 2");
         primaryStage.setScene(scene);
@@ -56,7 +54,6 @@ public class Drs2 extends Application {
         primaryStage.setOnCloseRequest(we -> {
             try {
                 config.ticker.interrupt();
-                config.connector.switchOff();
                 config.connector.tick(0);
                 primaryStage.close();
                 System.exit(0);

@@ -32,6 +32,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     
     private String lastSignalStoerung = "";
     private Object lastWeichenStoerung = "";
+    private int wecker;
     
     /**
      * Initialisiert die Ports für die Tastenabschalter und
@@ -44,9 +45,10 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
      * @param lampeW
      * @param klingel 
      * @param tastenUeberwacher 
+     * @param wecker 
      */
     public void init(Config config, int tasteS, int tasteW, int lampeS, int lampeW, int klingel,
-            int tastenUeberwacher) {
+            int tastenUeberwacher, int wecker) {
         this.config = config;
         tasteSint = tasteS;
         this.tasteS = new Einfachtaster();
@@ -57,6 +59,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
         this.lampeW = lampeW;
         this.klingel = klingel;
         this.tu = tastenUeberwacher;
+        this.wecker = wecker;
         config.ticker.add(this);
     }
     
@@ -88,7 +91,18 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
      * Streckenblockmeldung
      */
     public void meldung() {
-        melder = 50;
+        melder = 100;
+        config.connector.setOut(wecker, true);
+        System.out.println("Wecker ein.");
+    }
+    
+    /**
+     * Rangiermeldung
+     */
+    public void rangierMeldung() {
+        melder = 20;
+        config.connector.setOut(wecker, true);
+        System.out.println("Wecker ein.");
     }
     
     /**
@@ -111,13 +125,15 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
             config.connector.setOut(lampeW, false);
         }
         
-        boolean wecker = strgS || strgT || strgW;
+        boolean beep = strgS || strgT || strgW;
         
         if (melder > 0) {
-            wecker |= ((melder & 0x1e) == 2);
             melder--;
+        } else {
+            config.connector.setOut(wecker, false);
         }
-        config.connector.setOut(klingel, wecker);
+        
+        config.connector.setOut(klingel, beep);
         config.connector.setOut(tu, strgT);
     }
 

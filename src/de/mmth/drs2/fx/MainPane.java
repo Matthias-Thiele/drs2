@@ -7,6 +7,7 @@ package de.mmth.drs2.fx;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.TickerEvent;
+import de.mmth.drs2.io.UartCommand;
 import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Signal;
@@ -14,6 +15,7 @@ import de.mmth.drs2.parts.Weiche;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -26,7 +28,7 @@ import javafx.scene.text.Text;
  * @author pi
  */
 public class MainPane extends HBox implements TickerEvent {
-    private final static int PENDING_TRAIN_DURATION = 60;
+    private final static int PENDING_TRAIN_DURATION = 600;
     private final static int STD_BUTTON_SIZE = 140;
     private final static int TEST_STOPPED = -1;
     private final static int TEST_RANGE = 96;
@@ -50,12 +52,21 @@ public class MainPane extends HBox implements TickerEvent {
         this.config = config;
         this.setSpacing(5);
         
-        addSchalter();
-        addSignale();
-        addErsatzsignale();
-        addWeichen();
-        addFahrstrassen();
-        addSchluesselschalter();
+        var box = new HBox();
+        addSchalter(box);
+        
+        var vbox = new VBox();
+        var hbox = new HBox();
+        addSignale(hbox);
+        addErsatzsignale(hbox);
+        addWeichen(hbox);
+        addFahrstrassen(hbox);
+        addSchluesselschalter(hbox);
+        vbox.getChildren().add(hbox);
+        addRangierfahrten(vbox);
+        
+        box.getChildren().add(vbox);
+        this.getChildren().add(box);
         
         config.ticker.add(this);
     }
@@ -64,7 +75,7 @@ public class MainPane extends HBox implements TickerEvent {
      * Fügt die Schlüsselschalter für die
      * Fahrstraßenauflösung in die MainPane ein.
      */
-    private void addSchluesselschalter() {
+    private void addSchluesselschalter(HBox parent) {
         var box = new VBox();
         
         Text hdr = new Text("Strecke");
@@ -85,7 +96,11 @@ public class MainPane extends HBox implements TickerEvent {
         
         pendingMButton = createSizedButton("Zug von M", STD_BUTTON_SIZE);
         pendingMButton.setOnAction(ev -> {
-            config.pendingTrainM = PENDING_TRAIN_DURATION;
+            if (config.pendingTrainM != 0) {
+                config.pendingTrainM = 0;
+            } else {
+                config.pendingTrainM = PENDING_TRAIN_DURATION;
+            }
         });
         box.getChildren().add(pendingMButton);
         
@@ -96,8 +111,79 @@ public class MainPane extends HBox implements TickerEvent {
         });
         box.getChildren().add(schlA);
         
+        var block1 = createSizedButton("Von M", STD_BUTTON_SIZE);
+        block1.setOnAction(ev -> {
+            config.uart1.sendCommand(UartCommand.FLIP1);
+        });
+        
+        var block2 = createSizedButton("Nach M", STD_BUTTON_SIZE);
+        block2.setOnAction(ev -> {
+            config.uart1.sendCommand(UartCommand.FLIP2);
+        });
+        
+        var block3 = createSizedButton("Von H", STD_BUTTON_SIZE);
+        block3.setOnAction(ev -> {
+            config.uart1.sendCommand(UartCommand.FLIP3);
+        });
+        
+        var block4 = createSizedButton("Nach H", STD_BUTTON_SIZE);
+        block4.setOnAction(ev -> {
+            config.uart1.sendCommand(UartCommand.FLIP4);
+        });
+        
+        var block5 = createSizedButton("Block", STD_BUTTON_SIZE);
+        block5.setOnAction(ev -> {
+            config.uart1.sendCommand(UartCommand.BLOCK2);
+        });
+        
+        box.getChildren().addAll(block1,block2, block3, block4, block5);
+        
+        var gleis1 = createSizedButton("Zug G1", STD_BUTTON_SIZE);
+        gleis1.setOnAction(ev -> {
+            if (config.gleise[0].isInUse()) {
+                config.gleise[0].clear();
+            } else {
+                config.gleise[0].red();
+            }
+        });
+        
+        var gleis2 = createSizedButton("Zug G2", STD_BUTTON_SIZE);
+        gleis2.setOnAction(ev -> {
+            if (config.gleise[1].isInUse()) {
+                config.gleise[1].clear();
+            } else {
+                config.gleise[1].red();
+            }
+        });
+        
+        var gleis3 = createSizedButton("Zug G3", STD_BUTTON_SIZE);
+        gleis3.setOnAction(ev -> {
+            if (config.gleise[2].isInUse()) {
+                config.gleise[2].clear();
+            } else {
+                config.gleise[2].red();
+            }
+        });
+        
+        var checkBulbBox = new HBox();
+        var input = new TextField();
+        input.setMaxWidth(60.0);
+        var toggle = new Button();
+        toggle.setOnAction(ev -> {
+            var bulbNumber = input.getText();
+            if (!bulbNumber.isBlank()) {
+                var index = Integer.parseInt(bulbNumber);
+                System.out.println("Start toggle");
+                config.connector.toggleOut(index);
+                System.out.println("Toggle done");
+            }
+        });
+        checkBulbBox.getChildren().addAll(input, toggle);
+        
+        box.getChildren().addAll(gleis1,gleis2, gleis3, checkBulbBox);
+        
         box.setSpacing(5);
-        this.getChildren().add(box);
+        parent.getChildren().add(box);
     }
     
     /**
@@ -122,7 +208,7 @@ public class MainPane extends HBox implements TickerEvent {
      * Button kann die Spannung wieder eingeschaltet
      * werden oder die Abschaltung verzögert werden.
      */
-    private void addSchalter() {
+    private void addSchalter(HBox parent) {
         var msgColumn = new VBox();
         msgColumn.setSpacing(5);
         
@@ -141,12 +227,6 @@ public class MainPane extends HBox implements TickerEvent {
         });
         box.getChildren().add(clear);
         
-        totmann = new Button("Totmannschalter");
-        totmann.setOnAction(ev -> {
-            config.connector.resetInactivityCounter();
-        });
-        box.getChildren().add(totmann);
-        
         var test = new Button("Lampentest");
         test.setOnAction(ev -> {
             doTest();
@@ -157,7 +237,6 @@ public class MainPane extends HBox implements TickerEvent {
         quit.setOnAction(ev -> {
             try {
                 config.ticker.interrupt();
-                config.connector.switchOff();
                 config.connector.tick(0);
                 
                 Platform.runLater(() -> {
@@ -172,7 +251,20 @@ public class MainPane extends HBox implements TickerEvent {
         box.getChildren().add(quit);
         
         msgColumn.getChildren().add(box);
-        this.getChildren().add(msgColumn);
+        
+        parent.getChildren().add(msgColumn);
+    }
+    
+    private void addRangierfahrten(VBox parent) {
+        var box = new VBox();
+        for (var fahrt: config.rangierfahrten) {
+            var rf = new Button(fahrt.getName());
+            rf.setOnAction(ev -> {fahrt.start();});
+            box.getChildren().add(rf);
+        
+        }
+        
+        parent.getChildren().add(box);
     }
     
     /**
@@ -235,7 +327,7 @@ public class MainPane extends HBox implements TickerEvent {
      * Fügt die Liste der Weichen Controls in
      * die MainPane ein.
      */
-    private void addWeichen() {
+    private void addWeichen(HBox parent) {
         VBox box = new VBox(5);
         box.setMinWidth(STD_BUTTON_SIZE+ 30);
         box.setPrefWidth(STD_BUTTON_SIZE + 30);
@@ -249,14 +341,14 @@ public class MainPane extends HBox implements TickerEvent {
             config.ticker.add(wfx);
         }
         
-        this.getChildren().add(box);
+        parent.getChildren().add(box);
     }
     
     /**
      * Fügt die Liste der Signal Controls in
      * die MainPane ein.
      */
-    private void addSignale() {
+    private void addSignale(HBox parent) {
         VBox box = new VBox(5);
         box.setMinWidth(STD_BUTTON_SIZE);
         box.setPrefWidth(STD_BUTTON_SIZE);
@@ -270,14 +362,14 @@ public class MainPane extends HBox implements TickerEvent {
             config.ticker.add(sfx);
         }
         
-        this.getChildren().add(box);
+        parent.getChildren().add(box);
     }
     
     /**
      * Fügt die Liste der Ersatzsignal Controls in
      * die MainPane ein.
      */
-    private void addErsatzsignale() {
+    private void addErsatzsignale(HBox parent) {
         VBox box = new VBox(5);
         Text hdr = new Text("Ersatzsignale");
         box.getChildren().add(hdr);
@@ -289,14 +381,14 @@ public class MainPane extends HBox implements TickerEvent {
             config.ticker.add(sfx);
         }
         
-        this.getChildren().add(box);
+        parent.getChildren().add(box);
     }
     
     /**
      * Fügt die Liste der Fahrstrassen Controls in
      * die MainPane ein.
      */
-    private void addFahrstrassen() {
+    private void addFahrstrassen(HBox parent) {
         VBox box = new VBox(5);
         Text hdr = new Text("Fahrstrassen");
         box.getChildren().add(hdr);
@@ -308,7 +400,7 @@ public class MainPane extends HBox implements TickerEvent {
             config.ticker.add(ffx);
         }
         
-        this.getChildren().add(box);
+        parent.getChildren().add(box);
     }
     
     /**

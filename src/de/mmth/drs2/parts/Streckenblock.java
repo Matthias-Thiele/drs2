@@ -7,6 +7,7 @@ package de.mmth.drs2.parts;
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
+import de.mmth.drs2.io.UartCommand;
 import de.mmth.drs2.parts.state.StreckenState;
 
 /**
@@ -92,7 +93,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
     public void markUsed(boolean trainArrived) {
         streckenState = trainArrived ? StreckenState.TRAIN_ARRIVED : StreckenState.WAIT_FOR_TRAIN;
         markStrecke();
-        config.alert("Strecke " + name + " vor/rückgeblockt.");
+        config.alert("Strecke " + name + (isInbound ? " Einf." : " Ausf.") + " vor/rückgeblockt.");
         if (!isInbound && (sperrRaeumungsmelder != -1)) {
             hide = true;
             rueckblockenUntil = 0;
@@ -122,6 +123,17 @@ public class Streckenblock implements TastenEvent, TickerEvent {
     }
     
     /**
+     * Bei Verwendung des externen Streckenblocks
+     * wird hierüber die Rot/ Weiss Anzeige gesteuert.
+     * 
+     * @param state 
+     */
+    public void setState(boolean state) {
+        streckenState = (state) ? StreckenState.WAIT_FOR_TRAIN : StreckenState.FREE;
+        markStrecke();
+    }
+    
+    /**
      * Über diese Funktion kann die Fahrstraße abfragen, ob der
      * Streckenblock frei ist.
      * 
@@ -139,12 +151,29 @@ public class Streckenblock implements TastenEvent, TickerEvent {
     }
     
     /**
+     * Meldet den Zustand des Sperrmelders zurück.
+     * @return 
+     */
+    public boolean isLocked() {
+        return melder;
+    }
+    
+    /**
      * Doppeltaster wurde betätigt.
      */
     @Override
     public void whenPressed(int taste1, int taste2) {
         if (taste1 == Const.BlGT) {
             // Rückblocken nach Einfahrt
+            var cmd = name.equals("H") ? UartCommand.BLOCK3 : UartCommand.BLOCK1;
+            config.uart1.sendCommand(cmd);
+            hide = true;
+            if (isInbound) {
+                config.alert("Endfeld " + name + " zurückgeblockt.");
+            }
+
+            rueckblockenUntil = 0;
+            
             if (streckenState.equals(StreckenState.TRAIN_ARRIVED) || streckenState.equals(StreckenState.TRAIN_CANCELED)) {
                 streckenState = StreckenState.FREE;
                 markStrecke();
@@ -157,8 +186,10 @@ public class Streckenblock implements TastenEvent, TickerEvent {
             }
         } else {
             // manuelles Vorblocken für Fahrt mit Hilfssignal
-            if ((ersatzSignalNummer >= 0) && config.ersatzsignale[ersatzSignalNummer].isFahrt()) {
+            if ((ersatzSignalNummer >= 0) && !config.ersatzsignale[ersatzSignalNummer].isFahrt()) {
                 markUsed(false);
+                var cmd = name.equals("H") ? UartCommand.BLOCK4 : UartCommand.BLOCK2;
+                config.uart1.sendCommand(cmd);
             }
         }
     }
@@ -174,6 +205,7 @@ public class Streckenblock implements TastenEvent, TickerEvent {
         boolean besetzt = streckenState != StreckenState.FREE;
         config.connector.setOut(streckeRot, besetzt);
         config.connector.setOut(streckeWeiss, !besetzt);
+        hide = true;
     }
 
     /**
@@ -204,6 +236,11 @@ public class Streckenblock implements TastenEvent, TickerEvent {
             useMJ1MJ2 = !useMJ1MJ2;
             config.connector.setOut(useMJ1MJ2 ? Const.MJ1 : Const.MJ2, true);
             config.alert("Vor-/ Rückblocken " + name + " gestartet.");
+            if (name.equals("M")) {
+                config.uart1.sendCommand(UartCommand.BLOCK1);
+            } else {
+                config.uart1.sendCommand(UartCommand.BLOCK3);
+            }
         } else {
             if (count > rueckblockenUntil) {
                 config.connector.setOut(Const.MJ1, false);

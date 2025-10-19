@@ -83,10 +83,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
             
             if (count >= fahrtBis) {
                 // nach 90 Sekunden Ersatzsignal abschalten
-                isFahrt = false;
-                conf.connector.setOut(signalLampe, isFahrt);
-                fahrtBis = 0;
-                conf.alert("Ersatzsignal " + this.toString());
+                hp0();
             }
         }
     }
@@ -110,5 +107,16 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
      */
     public boolean isFahrt() {
         return isFahrt;
+    }
+
+    /**
+     * Nachdem der Zug das Bahnhofsgleis verlassen hat, fällt
+     * das Ersatzsignal sofort auf hp0 zurück (§1, Abschnitt 8).
+     */
+    void hp0() {
+        isFahrt = false;
+        conf.connector.setOut(signalLampe, isFahrt);
+        fahrtBis = 0;
+        conf.alert("Ersatzsignal " + this.toString());
     }
 }

@@ -7,7 +7,7 @@ package de.mmth.drs2.parts;
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
-import static de.mmth.drs2.io.Connector.LOCAL_REL1;
+import static de.mmth.drs2.io.Connector.WEICHE_IV_OUT;
 
 /**
  * Diese Klasse bindet die Schlüsselfreigabe an das
@@ -29,29 +29,51 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
     private int weiss;
     private Doppeltaster tasteSlFT;
     private Doppeltaster tasteSlFLT;
+    private int wsRelais;
+    private int wsCheck;
+    private String name;
+    private boolean verriegelt;
     
     /**
      * Initialisiert das Objekt mit der Tastennummer und den
      * Lampennummern.
      * 
      * @param config
+     * @param name
      * @param tasteSlFT
-     * @param tasteSlFLT
      * @param rot
      * @param weiss 
+     * @param wsRelais 
+     * @param wsCheck 
      */
-    public void init(Config config, int tasteSlFT, int tasteSlFLT, int rot, int weiss) {
+    public void init(Config config, String name, int tasteSlFT, int rot, int weiss, int wsRelais, int wsCheck) {
         this.config = config;
+        this.name = name;
         this.tasteSlFT = new Doppeltaster();
         this.tasteSlFT.init(config, this, Const.WGT, tasteSlFT);
         this.tasteSlFLT = new Doppeltaster();
-        this.tasteSlFLT.init(config, this, tasteSlFLT, tasteSlFT);
+        this.tasteSlFLT.init(config, this, Const.SlFLT, tasteSlFT);
         this.rot = rot;
         this.weiss = weiss;
+        this.wsRelais = wsRelais;
+        this.wsCheck = wsCheck;
         
         config.connector.setOut(rot, false);
         config.connector.setOut(weiss, true);
         config.ticker.add(this);
+    }
+    
+    /**
+     * Liefert den Namen der Schlüsselweiche zurück
+     * 
+     * @return 
+     */
+    public String getName() {
+        return name;
+    }
+    
+    public void fsVerriegelt(boolean aktiv) {
+        this.verriegelt = aktiv;
     }
     
     /**
@@ -60,7 +82,11 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
     @Override
     public void whenPressed(int taste1, int taste2) {
         if (taste1 == Const.WGT) {
-            state = 1;
+            if (verriegelt) {
+                config.alert("Weiche ist durch eine Fahrstraße verriegelt.");
+            } else {
+                state = 1;
+            }
         } else {
             // Löschtaste wurde betätigt
             switch (state) {
@@ -72,7 +98,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 case 2:
                     state = 0;
                     config.alert("Schlüsselfreigabe zurückgenommen.");
-                    config.connector.setOut(LOCAL_REL1, false);
+                    config.connector.setOut(wsRelais, false);
                     break;
                     
                 case 3:
@@ -98,7 +124,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
             case 1:
                 // Schlüsselfreigabe vom DRS2 Stellpult.
                 state = 2;
-                config.connector.setOut(LOCAL_REL1, true);
+                config.connector.setOut(wsRelais, true);
                 config.alert("Schlüssel freigegeben.");
                 break;
                 
@@ -106,16 +132,17 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 // Waretet bis der Schlüssel entnommen wird, blinkt solange rot.
                 config.connector.setOut(rot, (count & 8) != 0);
                 config.connector.setOut(weiss, false);
-                if (!config.connector.isInSet(Const.WSCHLUESSEL)) {
+                if (!config.connector.isInSet(wsCheck)) {
                     // Schlüssel entnommen.
                     state = 3;
                     config.alert("Schlüssel entnommen.");
+                    config.connector.setOut(wsRelais, false);
                 }
                 break;
                 
             case 3:
                 // wartet bis die Schlüsselentnahme beendet ist.
-                if (!config.connector.isInSet(Const.WSCHLUESSEL)) {
+                if (!config.connector.isInSet(wsCheck)) {
                     state = 4;
                 }
                 break;
@@ -124,8 +151,8 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 // Warte auf die Schlüsselrückgabe, statisches rotes Licht.
                 config.connector.setOut(rot, true);
                 config.connector.setOut(weiss, false);
-                config.connector.setOut(LOCAL_REL1, false);
-                if (config.connector.isInSet(Const.WSCHLUESSEL)) {
+                config.connector.setOut(WEICHE_IV_OUT, false);
+                if (config.connector.isInSet(wsCheck)) {
                     // Schlüsselrückgabe.
                     state = 0;
                     config.alert("Schlüssel zurückgegeben.");

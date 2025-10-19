@@ -19,12 +19,14 @@ public class Gleismarker implements ColorMarker {
     private int markerRed;
     private boolean isInUse = false;
     private String name;
+    private int gleisNummer;
 
-    public void init(Config config, String name, int markerWhite, int markerRed) {
+    public void init(Config config, String name, int markerWhite, int markerRed, int gleisNummer) {
         this.config = config;
         this.name = name;
         this.markerWhite = markerWhite;
         this.markerRed = markerRed;
+        this.gleisNummer = gleisNummer;
     }
     
     /**
@@ -35,8 +37,13 @@ public class Gleismarker implements ColorMarker {
         return isInUse;
     }
     
+    public int getGleisNummer() {
+        return gleisNummer;
+    }
+    
     @Override
     public void white() {
+        config.alert("Gleismarker " + name + " weiss.");
         config.connector.setOut(markerRed, false);
         config.connector.setOut(markerWhite, true);
         isInUse = false;
@@ -44,6 +51,7 @@ public class Gleismarker implements ColorMarker {
 
     @Override
     public void red() {
+        config.alert("Gleismarker " + name + " rot.");
         config.connector.setOut(markerRed, true);
         config.connector.setOut(markerWhite, false);
         isInUse = true;
@@ -51,6 +59,7 @@ public class Gleismarker implements ColorMarker {
     
     @Override
     public void clear() {
+        config.alert("Gleismarker " + name + " gelöscht.");
         config.connector.setOut(markerRed, false);
         config.connector.setOut(markerWhite, false);
         isInUse = false;

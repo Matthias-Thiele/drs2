@@ -21,7 +21,7 @@ import de.mmth.drs2.io.Connector;
  * @author pi
  */
 public class Doppeltaster implements TickerEvent {
-    private static final int ACTIVATION_COUNT = 10;
+    private static final int ACTIVATION_COUNT = 2;
     private static final int ALERT_COUNT = 80;
     
     private Connector drs2;
@@ -30,7 +30,9 @@ public class Doppeltaster implements TickerEvent {
     private int taste2;
     private int taste1Count;
     private int taste2Count;
+    private boolean triggerActivation = false;
     private Config config;
+    private boolean actionOnRelease;
     
     /**
      * Mit jedem TickerEvent wird der Zustand der
@@ -59,8 +61,11 @@ public class Doppeltaster implements TickerEvent {
         
         if (((taste1Count == ACTIVATION_COUNT) && (taste2Count >= ACTIVATION_COUNT))
          || ((taste2Count == ACTIVATION_COUNT) && (taste1Count >= ACTIVATION_COUNT))) {
-            activateWhenPressed.whenPressed(taste1, taste2);
-            config.connector.resetInactivityCounter();
+            if (actionOnRelease) {
+              triggerActivation = true;
+            } else {
+              activateWhenPressed.whenPressed(taste1, taste2);  
+            }
         }
         
         if (taste1Count == ALERT_COUNT) {
@@ -74,22 +79,27 @@ public class Doppeltaster implements TickerEvent {
         if ((taste1Count >= ALERT_COUNT) || (taste2Count >= ALERT_COUNT)) {
             config.stoerungsmelder.stoerungT();
         }
+        
+        if (triggerActivation && (taste1Count == 0) && (taste2Count == 0)) {
+            triggerActivation = false;
+            activateWhenPressed.whenPressed(taste1, taste2);
+        }
     }
     
     /**
      * Mit dieser Funktion initialisiert das Objekt, welches
-     * diese Tastenkombination verwendet, den Doppeltaster.
+     * diese Tastenkombination verwendet, den Doppeltaster.Das Zielobjekt gibt sich selber als Empfänger des
+ TastenEvents an sowie die Pin Nummern der beiden
+ Tasten.
      * 
-     * Das Zielobjekt gibt sich selber als Empfänger des
-     * TastenEvents an sowie die Pin Nummern der beiden
-     * Tasten.
      * 
      * @param config
      * @param activateWhenPressed
      * @param taste1
      * @param taste2 
+     * @param actionOnRelease 
      */
-    public void init(Config config, TastenEvent activateWhenPressed, int taste1, int taste2) {
+    public void init(Config config, TastenEvent activateWhenPressed, int taste1, int taste2, boolean actionOnRelease) {
         this.config = config;
         config.ticker.add(this);
         this.drs2 = config.connector;
@@ -98,5 +108,11 @@ public class Doppeltaster implements TickerEvent {
         taste1Count = 0;
         this.taste2 = taste2;
         taste2Count = 0;
+        this.actionOnRelease = actionOnRelease;
     }
+    
+    public void init(Config config, TastenEvent activateWhenPressed, int taste1, int taste2) {
+        init(config, activateWhenPressed, taste1, taste2, false);
+    }
+
 }

@@ -6,6 +6,7 @@ package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
+import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.io.Connector;
 
 /**
@@ -13,7 +14,7 @@ import de.mmth.drs2.io.Connector;
  * Verwendung eines Signals.
  * @author pi
  */
-public class Signal implements ColorMarker, TastenEvent {
+public class Signal implements ColorMarker, TastenEvent, TickerEvent {
 
     private Connector conn;
     private String name;
@@ -39,6 +40,9 @@ public class Signal implements ColorMarker, TastenEvent {
     private int fahrstrasse2;
     private int fahrstrasse3;
     private int fahrstrasse4;
+    
+    private int changeState = 0;
+    private int nextAction = Integer.MAX_VALUE;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -89,7 +93,27 @@ public class Signal implements ColorMarker, TastenEvent {
             sh1Taste = new Doppeltaster();
             sh1Taste.init(config, this, Const.SGT, sigTaste);
         }
-        halt();
+        config.ticker.add(this);
+        isFahrt = false;
+        changeState = 1;
+        nextAction = 0;
+        updateView();
+    }
+    
+    /**
+     * Stellt das Signal und Vorsignal auf Halt.
+     */
+    public void halt() {
+        if (isSh1) {
+            isSh1 = false;
+            config.alert("Signal " + name + " auf SH0 gestellt.");
+        } else if (isFahrt) {
+            isFahrt = false;
+            changeState = 1;
+            nextAction = 0;
+        }
+        
+        updateView();
     }
     
     /**
@@ -98,17 +122,11 @@ public class Signal implements ColorMarker, TastenEvent {
      * Signale handelt, gibt es keine Zeitverzögerung
      * bei der Anzeige.
      */
-    public void halt() {
-        isFahrt = false;
-        updateView();
-    }
-    
-    /**
-     * Stellt das Signal und Vorsignal auf Halt.
-     */
     public void fahrt() {
         if (!isGestoert) {
             isFahrt = true;
+            changeState = 1;
+            nextAction = 0;
             updateView();
         }
     }
@@ -119,6 +137,14 @@ public class Signal implements ColorMarker, TastenEvent {
      */
     public boolean isFahrt() {
         return isFahrt;
+    }
+    
+    /**
+     * Gibt an, ob das Rangiersignal auf Fahrt steht.
+     * @return 
+     */
+    public boolean isSh1() {
+        return isSh1;
     }
     
     /**
@@ -161,6 +187,7 @@ public class Signal implements ColorMarker, TastenEvent {
      * Liefert den Namen des Signals zurück.
      * @return 
      */
+    @Override
     public String getName() {
         return name;
     }
@@ -178,24 +205,30 @@ public class Signal implements ColorMarker, TastenEvent {
             conn.setOut(sh1Lampe, false);            
         } else {
             conn.setOut(sh1Lampe, isSh1);
-            conn.setOut(sigFahrt, isFahrt);
-            conn.setOut(sigHalt, !isFahrt);
-            conn.setOut(vorsigHalt, !isFahrt);
-            if (vorsigFahrt == Const.WVp1) {
-                // Sonderbehandlung für P1 mit zwei Vorsignalen
-                boolean vsigFahrt = isFahrt;
-                if ((einfahrtSignal != -1) && !config.signale[einfahrtSignal].isFahrt) {
-                    vsigFahrt = false;
-                }
-                conn.setOut(vorsigFahrt, isFahrt);
-                conn.setOut(Const.Vp13, vsigFahrt);
-            } else {
-                boolean vsigFahrt = isFahrt;
-                if ((einfahrtSignal != -1) && !config.signale[einfahrtSignal].isFahrt) {
-                    vsigFahrt = false;
-                }
-                conn.setOut(vorsigFahrt, vsigFahrt);
+            
+            switch (changeState) {
+                case 0: // Normale Anzeige
+                    conn.setOut(sigFahrt, isFahrt);
+                    conn.setOut(sigHalt, !isFahrt);
+                    conn.setOut(vorsigHalt, !isFahrt);
+                    conn.setOut(vorsigFahrt, isFahrt);
+                    break;
+                    
+                case 1: // Signal wird umgeschaltet
+                    conn.setOut(sigFahrt, false);
+                    conn.setOut(sigHalt, false);
+                    conn.setOut(vorsigHalt, false);
+                    conn.setOut(vorsigFahrt, false);
+                    break;
+                    
+                case 2: // neues Signalbild aktiv, Vorsignal noch dunkel
+                    conn.setOut(sigFahrt, isFahrt);
+                    conn.setOut(sigHalt, !isFahrt);
+                    conn.setOut(vorsigHalt, false);
+                    conn.setOut(vorsigFahrt, false);
+                    break;
             }
+            
         }
         
         conn.setOut(fahrwegWhite, false);
@@ -311,5 +344,24 @@ public class Signal implements ColorMarker, TastenEvent {
         }
         
         updateView();
+    }
+
+    @Override
+    public void tick(int count) {
+        if (count > nextAction) {
+            if (nextAction == 0) {
+                nextAction = count + 10;
+            } else {
+                changeState++;
+                if (changeState == 3) {
+                    changeState = 0;
+                    nextAction = Integer.MAX_VALUE;
+                } else {
+                    nextAction = count + 10;
+                }
+            }
+            
+            updateView();
+        }
     }
 }

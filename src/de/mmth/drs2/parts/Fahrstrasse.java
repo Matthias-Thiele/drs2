@@ -6,6 +6,7 @@ package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
+import de.mmth.drs2.parts.Schluesselweiche;
 import de.mmth.drs2.TickerEvent;
 
 /**
@@ -20,6 +21,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int SIGNAL_FIRST_OUTBOUND = 2;
     private final static int STEP_SHORT_WAIT = 20;
     private final static int STEP_LONG_WAIT = 3 * STEP_SHORT_WAIT;
+    private final static int STEP_VERY_LONG_WAIT = 3 * STEP_LONG_WAIT;
     private final static int DORMANT = -1;
     private final static int INBOUND_RED = -2;
     private final static int INIT = -3;
@@ -54,10 +56,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private int state = DORMANT;
     private int nextStep = -1;
     private Gleismarker ausfahrtsGleis;
-    private Streckenblock strecke;
+    private Strecke strecke;
     private int ersatzSignalNummer;
-    private int festlegemelder;
-    private int sperrRaeumungsmelder;
     private Doppeltaster tasteAsT;
     private Doppeltaster tasteAsLT;
     
@@ -66,9 +66,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private long nextWhiteTStamp = Integer.MAX_VALUE;
     
     private int verbundeneEinfahrt = -1;
-    private String streckeName;
     private boolean ersatzSignalFahrt;
-    private int schluesselweiche;
+    private int schluesselweiche1;
+    private int schluesselweiche2;
+    private Weiche pruefung;
+    private Weiche pruefungPlus;
+    private Weiche pruefungMinus;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -84,30 +87,41 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * @param signalNummer Ein- oder Ausfahrtsignal zu dieser Fahrstraße.
      * @param ersatzSignalNummer
      * @param ausfahrtsGleis
-     * @param streckeName
-     * @param streckeWeiss
-     * @param streckeRot
+     * @param strecke
      * @param streckeTaster
-     * @param festlegemelder
-     * @param sperrRaeumungsmelder
-     * @param schluesselweiche
+     * @param schluesselweiche1
+     * @param schluesselweiche2
+     * @param pruefungPlus
+     * @param pruefungMinus
      */
     public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, 
             int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, int ersatzSignalNummer,
-            Gleismarker ausfahrtsGleis, String streckeName, int streckeWeiss, int streckeRot, int streckeTaster,
-            int festlegemelder, int sperrRaeumungsmelder, int schluesselweiche) {
+            Gleismarker ausfahrtsGleis, Strecke strecke, int streckeTaster, int schluesselweiche1, int schluesselweiche2,
+            int pruefungPlus, int pruefungMinus) {
         this.config = config;
         this.name = name;
-        this.streckeName = streckeName;
+        this.strecke = strecke;
         
         this.plusWeichen = new Weiche[plusWeichen.length];
         for (int i = 0; i < plusWeichen.length; i++) {
             this.plusWeichen[i] = config.weichen[plusWeichen[i]];    
         }
         
+        if (pruefungPlus != -1) {
+            this.pruefungPlus = config.weichen[pruefungPlus];
+        } else {
+            this.pruefungPlus = null;
+        }
+        
         this.minusWeichen = new Weiche[minusWeichen.length];
         for (int i = 0; i < minusWeichen.length; i++) {
             this.minusWeichen[i] = config.weichen[minusWeichen[i]];
+        }
+        
+       if (pruefungMinus != -1) {
+            this.pruefungMinus = config.weichen[pruefungMinus];
+        } else {
+            this.pruefungMinus = null;
         }
         
         this.fahrwegWeichen = new Weiche[fahrwegWeichen.length];
@@ -117,7 +131,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         
         fahrstrassenAktivierung = new Doppeltaster();
         if (signalTaste >= 0) {
-            fahrstrassenAktivierung.init(config, this, gleisTaste, signalTaste);
+            fahrstrassenAktivierung.init(config, this, gleisTaste, signalTaste, true);
         }
         
         hilfsaufloesung = new Doppeltaster();
@@ -127,26 +141,9 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.ausfahrtsGleis = ausfahrtsGleis;
         this.signal = config.signale[signalNummer];
         this.ersatzSignalNummer = ersatzSignalNummer;
-        this.schluesselweiche = schluesselweiche;
+        this.schluesselweiche1 = schluesselweiche1;
+        this.schluesselweiche2 = schluesselweiche2;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
-        
-        int vbHT = streckeName.equals("H") ? Const.VbHT_H : Const.VbHT_M;
-        strecke = new Streckenblock();
-        strecke.init(config, streckeName, isInbound, streckeTaster, streckeWeiss, streckeRot,
-                sperrRaeumungsmelder, vbHT, ersatzSignalNummer);
-        
-        this.festlegemelder = festlegemelder;
-        this.sperrRaeumungsmelder = sperrRaeumungsmelder;
-        
-        if (streckeTaster >= 0) {
-            tasteAsT = new Doppeltaster();
-            tasteAsT.init(config, this, Const.AsT, streckeTaster);
-            config.ticker.add(tasteAsT);
-            
-            tasteAsLT = new Doppeltaster();
-            tasteAsLT.init(config, this, Const.AsLT, streckeTaster);
-            config.ticker.add(tasteAsLT);
-        }
         
         config.ticker.add(this);
     }
@@ -175,14 +172,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 fahrstrassenaufloesung();
                 break;
                 
-            case Const.AsT:
-                config.connector.setOut(festlegemelder, true);
-                break;
-                
-            case Const.AsLT:
-                config.connector.setOut(festlegemelder, false);
-                break;
-                
             default:
                 fahrstrassenfestlegung();
         }
@@ -200,7 +189,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         signal.halt();
         signal.clear();
         unlock();
-        strecke.cancel();
+        if (ausfahrtsGleis != null) {
+            ausfahrtsGleis.clear();
+        }
+        bahnhofsGleis.clear();
+        
+        strecke.fahrstrasseFHT();
         state = DORMANT;
     }
     
@@ -217,8 +211,13 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             return;
         }
         
-        if (!strecke.isFree()) {
+        if (!isInbound && !strecke.isFree()) {
             config.alert("Der Streckenblock ist noch belegt.");
+            return;
+        }
+        
+        if (!isInbound && strecke.isLocked()) {
+            config.alert("Der Ausfahrtsperrmelder ist noch aktiv.");
             return;
         }
         
@@ -240,6 +239,11 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             }
         }
         
+        if ((pruefungPlus != null) && !pruefungPlus.isPlus()) {
+            config.alert("Die Weiche " + pruefungPlus.getName() + " ist nicht in Plus Stellung.");
+            return;
+        }
+        
         for (Weiche minusWeiche : minusWeichen) {
             if (minusWeiche.isPlus()) {
                 config.alert("Die Weiche " + minusWeiche.getName() + " ist nicht in Minus Stellung.");
@@ -251,12 +255,27 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             }
         }
         
-        if (schluesselweiche != -1) {
-            if (config.schluesselweichen[schluesselweiche].isLocked()) {
-                config.alert("Die Schlüsselweiche III:10, IV ist nicht verschlossen.");
+        if ((pruefungMinus != null) && pruefungMinus.isPlus()) {
+            config.alert("Die Weiche " + pruefungMinus.getName() + " ist nicht in Minus Stellung.");
+            return;
+        }
+        
+        if (schluesselweiche1 != -1) {
+            Schluesselweiche sw = config.schluesselweichen[schluesselweiche1];
+            if (sw.isLocked()) {
+                config.alert("Die Schlüsselweiche " + sw.getName() + " ist nicht verschlossen.");
                 return;
             }
         }
+        
+        if (schluesselweiche2 != -1) {
+            Schluesselweiche sw = config.schluesselweichen[schluesselweiche2];
+            if (sw.isLocked()) {
+                config.alert("Die Schlüsselweiche " + sw.getName() + " ist nicht verschlossen.");
+                return;
+            }
+        }
+        
         // Weichen verrigeln
         for (Weiche plusWeiche : plusWeichen) {
             plusWeiche.lock();
@@ -267,6 +286,18 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         }
         
         isLocked = true;
+        strecke.setFahrstrassenfestlegung();
+        
+        // Schluesselweichen verrigeln
+        if (schluesselweiche1 != -1) {
+            Schluesselweiche sw = config.schluesselweichen[schluesselweiche1];
+            sw.fsVerriegelt(true);
+        }
+        if (schluesselweiche2 != -1) {
+            Schluesselweiche sw = config.schluesselweichen[schluesselweiche2];
+            sw.fsVerriegelt(true);
+        }
+        
         if (!bahnhofsGleis.isInUse() && this.isInbound) {
             bahnhofsGleis.white();
         }
@@ -311,12 +342,23 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         }
         
         isLocked = false;
+        
+        // Schluesselweichen entrigeln
+        if (schluesselweiche1 != -1) {
+            Schluesselweiche sw = config.schluesselweichen[schluesselweiche1];
+            sw.fsVerriegelt(false);
+        }
+        if (schluesselweiche2 != -1) {
+            Schluesselweiche sw = config.schluesselweichen[schluesselweiche2];
+            sw.fsVerriegelt(false);
+        }
+        
         if (!bahnhofsGleis.isInUse()) {
             bahnhofsGleis.clear();
         }
         
         signal.clear();
-        config.connector.setOut(festlegemelder, false);
+        strecke.fahrstrassenauflösung();
         config.alert("Die Fahrstraße " + name + " wurde aufgelöst.");
     }
     
@@ -337,17 +379,83 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         return isLocked;
     }
 
+    /**
+     * Prüft ob die Weichen für diesen Fahrweg gestellt sind.
+     * Bei Einfahrten mit Ersatzsignal gibt es keine Fahrstraße,
+     * es muss also manuell sicher gestellt werden, dass die
+     * Weichen korrekt gestellt sind. Diese Funktion macht das
+     * Gegenteil dazu: sie prüft, wie die Weichen stehen und
+     * entscheidet dann, welcher Fahrweg aktiv wird.
+     * 
+     * @return 
+     */
+    private boolean checkFahrweg() {
+        switch ( ersatzSignalNummer) {
+            case 0:
+                switch (bahnhofsGleis.getGleisNummer()) {
+                    case 2:
+                        return config.weichen[2].isPlus();
+
+                    case 3:
+                        return !config.weichen[2].isPlus();
+
+                    default: 
+                        return false;
+                }
+                
+            case 1:
+                switch (bahnhofsGleis.getGleisNummer()) {
+                    case 1:
+                        return config.weichen[5].isPlus();
+
+                    case 3:
+                        return !config.weichen[5].isPlus() && !config.weichen[3].isPlus();
+
+                    default: 
+                        return false;
+                }
+            
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+                // Bei den Ausfahrten ist die Zuordnung Gleis zu
+                // Ersatzsignal eindeutig, die Weichenstellung
+                // muss nicht überprüft werden.
+                return true;
+        }
+        
+        return false;
+    }
+    
     @Override
     public void tick(int count) {
         if (count > nextWhiteTStamp) {
             System.out.println("set white: " + nextWhite.getName() + " at " + count);
-            nextWhite.white();
+            if (ersatzSignalFahrt && (nextWhite instanceof Signal)) {
+              nextWhite.clear();
+            } else {
+                nextWhite.white();
+            }
+            
             nextWhiteTStamp = Integer.MAX_VALUE;
         }
         
-        if (!ersatzSignalFahrt && (ersatzSignalNummer >= 0) && config.ersatzsignale[ersatzSignalNummer].isFahrt() && bahnhofsGleis.isInUse()) {
-            ersatzSignalFahrt = true;
-            state = INIT;
+        if (isInbound) {
+            if (!ersatzSignalFahrt && (ersatzSignalNummer >= 0) 
+                    && config.ersatzsignale[ersatzSignalNummer].isFahrt()
+                    && checkFahrweg()) {
+                ersatzSignalFahrt = true;
+                state = INIT;
+            }
+        } else {
+            if (!ersatzSignalFahrt && (ersatzSignalNummer >= 0) 
+                    && config.ersatzsignale[ersatzSignalNummer].isFahrt() 
+                    && bahnhofsGleis.isInUse()
+                    && checkFahrweg()) {
+                ersatzSignalFahrt = true;
+                state = INIT;
+            }
         }
         
         if (ersatzSignalFahrt) {
@@ -380,11 +488,16 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case INIT:
                 config.alert("Fahrt mit Ersatzsignal gestartet.");
-                state = 0; // Erste Weiche.
+                state = SIGNAL_HP0;
                 setRed(count, bahnhofsGleis); // damit setWhite funktioniert
                 nextStep = count + STEP_LONG_WAIT;
                 break;
                 
+            case SIGNAL_HP0:
+                config.ersatzsignale[ersatzSignalNummer].hp0();
+                state = 0; // Erste Weiche.
+                break;
+
             case AUSFAHRT1:
                 setRed(count, ausfahrtsGleis);
                 nextStep = count + STEP_LONG_WAIT;
@@ -394,24 +507,24 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             case AUSFAHRT2:
                 config.alert("Bahnhof verlassen.");
                 fahrwegWeichen[fahrwegWeichen.length - 1].white();
-                ausfahrtsGleis.white();
+                ausfahrtsGleis.clear();
                 nextStep = count + STEP_LONG_WAIT;
                 state = OUTGOING_TRAIN;
                 break;
                 
             case OUTGOING_TRAIN:
                 nextStep = count + STEP_LONG_WAIT;
-                if (strecke.isFree()) {
-                    config.alert("Anfangsfeld muss manuell vorgeblockt werden (VbHT + BlGT)");
-                } else {
-                    strecke.unblock();
-                    ausfahrtsGleis.clear();
-                    state = DONE;
-                }
+                //strecke.unblock();
+                ausfahrtsGleis.clear();
+                state = DONE;
                 break;
                 
             case DONE:
                 config.alert("Zugfahrt beendet.");
+                bahnhofsGleis.clear();
+                lastRed = null;
+                strecke.activateGleiskontakt(true);
+                ersatzSignalFahrt = false;
                 state = DORMANT;
                 break;
                 
@@ -450,21 +563,21 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case INIT:
                 signal.white();
-                config.connector.setOut(festlegemelder, true);
+                strecke.setFahrstrassenfestlegung();
                 nextStep = count + STEP_SHORT_WAIT;
                 state = SET_HP1; // Fahrstraße wurde ausgewählt.
                 break;
                 
             case SET_HP1:
                 signal.fahrt();
-                strecke.activateSR();
+                strecke.setWiederholsperre();
                 nextStep = count + STEP_SHORT_WAIT;
                 state = WAIT_FOR_TRAIN;
                 break;
                 
             case WAIT_FOR_TRAIN:
                 if (bahnhofsGleis.isInUse()) {
-                    config.alert("Fahrt gestartet.");
+                    config.alert("Fahrt gestartet in Richtung " + strecke.getName());
                     state = WAIT_FOR_HP1; // Fahrstraße wurde ausgewählt.
                     setRed(count, bahnhofsGleis); // damit setWhite funktioniert
                     reportWait = true;
@@ -485,7 +598,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 }
                 
                 if (isFahrt) {
-                    //strecke.activateSR();
                     nextStep = count + STEP_LONG_WAIT;
                     state = INBOUND_RED;
                 } else {
@@ -511,7 +623,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
               
             case AUSFAHRT1:
-                strecke.markUsed(false);
                 setRed(count, ausfahrtsGleis);
                 nextStep = count + STEP_LONG_WAIT;
                 state = AUSFAHRT2;
@@ -529,15 +640,17 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 // Ausfahrtsgleis erreicht
                 config.alert("Bahnhof verlassen.");
                 unlock();
+                strecke.activateGleiskontakt(false);
+                strecke.fahrstrassenauflösung();
                 if (verbundeneEinfahrt >= 0) {
                     // bei Durchfahrten wird die Einfahrt automatisch aufgelöst.
-                    config.fahrstrassen[verbundeneEinfahrt].unlock();
+                    if (config.fahrstrassen[verbundeneEinfahrt].isLocked) {
+                        config.fahrstrassen[verbundeneEinfahrt].unlock();
+                    }
                 }
                 state = DONE;
                 
             case DONE:
-                strecke.unblock();
-                config.connector.setOut(festlegemelder, false);
                 ausfahrtsGleis.clear();
         
                 lastRed = null;
@@ -581,28 +694,34 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             return;
         }
         
-        if (state != -1) {
-            System.out.println("State: " + state + " at " + count);
-        }
-        
         switch (state) {
             case  DORMANT:
                 return; // do nothing
                 
             case INIT:
                 signal.white();
-                config.connector.setOut(festlegemelder, true);
+                if (!ersatzSignalFahrt) {
+                    strecke.setFahrstrassenfestlegung();
+                }
+                
                 nextStep = count + STEP_LONG_WAIT;
                 state = WAIT_FOR_TRAIN; // Fahrstraße wurde ausgewählt.
                 reportWait = true;
-                config.alert("Warte auf Zugfahrt von " + streckeName);
+                config.alert("Warte auf Zugfahrt " + name);
                 break;
                 
             case WAIT_FOR_TRAIN:
-                var trainStarted = (streckeName.equals("H")) ? config.pendingTrainH > 0 : config.pendingTrainM > 0;
+                boolean vonH = name.startsWith("Von H");
+                var trainStarted = (vonH) ? config.pendingTrainH > 0 : config.pendingTrainM > 0;
                 
                 if (trainStarted) {
                     state = INCOMMING_TRAIN; // Zug wurde gestartet
+                    if (vonH) {
+                        config.pendingTrainH = 0;
+                    } else {
+                        config.pendingTrainM = 0;
+                    }
+                    //config.stoerungsmelder.meldung();
                     config.alert("Fahrt gestartet.");
                     nextStep = count + STEP_LONG_WAIT;
                 } else {
@@ -611,8 +730,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             case INCOMMING_TRAIN:
-                strecke.markUsed(false);
-                config.stoerungsmelder.meldung();
                 state = WAIT_FOR_HP1;
                 nextStep = count + STEP_LONG_WAIT;
                 break;
@@ -642,16 +759,20 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
             
             case SIGNAL_HP0:
-                //signal.halt();
+                if (ersatzSignalFahrt) {
+                    config.ersatzsignale[ersatzSignalNummer].hp0();
+                }
                 nextStep = count + STEP_SHORT_WAIT;
                 state = 0; // erste Weiche
                 break;
                 
             case EINFAHRT1:
                 // Zielgleis erreicht
-                config.alert("Fahrt beendet.");
-                strecke.markUsed(true);
+                config.alert("Zielgleis erreicht.");
+                setRed(count, bahnhofsGleis);
+                strecke.trainArrived();
                 lastRed = null;
+                ersatzSignalFahrt = false;
                 state = DORMANT;
                 break;
             
@@ -664,7 +785,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                     // erste Weiche, es gibt keinen Vorgänger, sondern nur
                     // den Streckenabschnitt zum Einfahrtssignal.
                     config.alert("Zug verlässt Signalblock.");
-                    strecke.activateSR();
+                    strecke.activateGleiskontakt(ersatzSignalFahrt);
                     
                     // signal geht erst beim Befahren der ersten Weiche auf HP0
                     signal.halt();
@@ -676,8 +797,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                     setRed(count, fahrwegWeichen[weiche]);
                 } else {
                     // Zielgleis wird angefahren
-                    config.alert("Zielgleis erreicht.");
-                    setRed(count, bahnhofsGleis);
                     nextStep = count + STEP_LONG_WAIT;
                     state = EINFAHRT1;
                     return;
