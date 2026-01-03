@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Const;
+import de.mmth.drs2.io.UartCommand;
 import de.mmth.drs2.parts.state.StreckenState;
 
 /**
@@ -45,7 +46,9 @@ public class StreckeEinfahrt extends Strecke {
     @Override
     public void activateGleiskontakt(boolean mitErsatzsignal) {
         if (streckenState == StreckenState.WAIT_FOR_TRAIN) {
-            sperrRaeummelder = true;
+            if (!mitErsatzsignal) {
+                sperrRaeummelder = true;
+            }
             config.alert("Gleiskontakt " + name + " wurde befahren.");
         } else {
             config.alert("Gleiskontakt auf nicht vorgeblockter Strecke wurde befahren.");
@@ -70,16 +73,22 @@ public class StreckeEinfahrt extends Strecke {
     public void whenPressed(int taste1, int taste2) {
         if (taste1 == Const.BlGT) {
             // Zug ist eingefahren, Strecke wird zurückgeblockt.
-            if (streckenState == StreckenState.TRAIN_ARRIVED) {
+            if ((streckenState == StreckenState.TRAIN_ARRIVED) || raeumungsmelderAktiv) {
                 config.uart1.sendCommand(blockCommand);
                 rueckblockenUntil = 0;
+                raeumungsmelderAktiv = false;
             } else {
                 config.alert("Zug ist noch nicht eingefahren.");
             }
         } else if (taste1 == Const.RbHGT) {
             if (streckenState != StreckenState.FREE) {
-                config.uart1.sendCommand(blockCommand);
-                rueckblockenUntil = 0;
+                int signalNr = blockCommand.equals(UartCommand.BLOCK1) ? 0 : 1;
+                if (config.ersatzsignale[signalNr].isFahrt() || config.signale[signalNr].isFahrt() || config.signale[signalNr].isSh1()) {
+                    config.alert("Signal oder Ersatzsignal noch auf Fahrt.");
+                } else {
+                    config.uart1.sendCommand(blockCommand);
+                    rueckblockenUntil = 0;
+                }
             }
         } else if (taste1 == Const.AsT) {
             //if (streckenState != StreckenState.FREE) {

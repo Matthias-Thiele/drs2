@@ -132,7 +132,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 // Waretet bis der Schlüssel entnommen wird, blinkt solange rot.
                 config.connector.setOut(rot, (count & 8) != 0);
                 config.connector.setOut(weiss, false);
-                if (!config.connector.isInSet(wsCheck)) {
+                if (config.connector.isInSet(wsCheck)) {
                     // Schlüssel entnommen.
                     state = 3;
                     config.alert("Schlüssel entnommen.");
@@ -142,7 +142,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 
             case 3:
                 // wartet bis die Schlüsselentnahme beendet ist.
-                if (!config.connector.isInSet(wsCheck)) {
+                if (config.connector.isInSet(wsCheck)) {
                     state = 4;
                 }
                 break;
@@ -152,7 +152,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 config.connector.setOut(rot, true);
                 config.connector.setOut(weiss, false);
                 config.connector.setOut(WEICHE_IV_OUT, false);
-                if (config.connector.isInSet(wsCheck)) {
+                if (!config.connector.isInSet(wsCheck)) {
                     // Schlüsselrückgabe.
                     state = 0;
                     config.alert("Schlüssel zurückgegeben.");

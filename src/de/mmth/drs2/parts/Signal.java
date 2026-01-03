@@ -100,16 +100,28 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         updateView();
     }
     
+    public void halt() {
+        halt(false);
+    }
+    
     /**
      * Stellt das Signal und Vorsignal auf Halt.
+     * 
+     * Wenn der Parameter delayedAction true ist, 
+     * wird die Aktion erst nach einer kurzen
+     * Verzögerung ausgeführt um die Relaislaufzeiten
+     * zu simulieren.
+     * 
+     * @param delayedAction
      */
-    public void halt() {
+    public void halt(boolean delayedAction) {
         if (isSh1) {
             isSh1 = false;
             config.alert("Signal " + name + " auf SH0 gestellt.");
         } else if (isFahrt) {
             isFahrt = false;
-            changeState = 1;
+            
+            changeState = (delayedAction) ? 4 : 1;
             nextAction = 0;
         }
         
@@ -227,6 +239,8 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
                     conn.setOut(vorsigHalt, false);
                     conn.setOut(vorsigFahrt, false);
                     break;
+                case 3: // warten
+                    break;
             }
             
         }
@@ -325,7 +339,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         if (taste1 == Const.HaGT) {
             if (isSh1) {
                 isSh1 = false;
-                config.alert("Signal " + name + " auf SH0 gesellt.");
+                config.alert("Signal " + name + " auf SH0 gestellt.");
             } else {
                 halt();
                 config.alert("Signal über HaGT auf HP0 gestellt.");
@@ -334,7 +348,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             if (checkSh1Weiche()) {
                 if (!isSh1Locked()) {
                     isSh1 = true;
-                    config.alert("Signal " + name + " auf SH1 gesellt.");
+                    config.alert("Signal " + name + " auf SH1 gestellt.");
                 } else {
                     config.alert("Gleis ist durch Fahrstraße belegt.");
                 }
@@ -352,12 +366,17 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             if (nextAction == 0) {
                 nextAction = count + 10;
             } else {
-                changeState++;
-                if (changeState == 3) {
-                    changeState = 0;
-                    nextAction = Integer.MAX_VALUE;
-                } else {
+                if (changeState == 4) {
+                    changeState = 1;
                     nextAction = count + 10;
+                } else {
+                    changeState++;
+                    if (changeState == 3) {
+                        changeState = 0;
+                        nextAction = Integer.MAX_VALUE;
+                    } else {
+                        nextAction = count + 10;
+                    }
                 }
             }
             

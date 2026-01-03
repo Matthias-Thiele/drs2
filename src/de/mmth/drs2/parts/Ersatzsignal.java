@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 
 /**
@@ -16,7 +17,7 @@ import de.mmth.drs2.TickerEvent;
  * @author Matthias Thiele
  */
 public class Ersatzsignal implements TastenEvent, TickerEvent {
-    private final int FAHRT_DURATION = 400;
+    private final int FAHRT_DURATION = 600;
     
     private String name;
     private Doppeltaster taste;
@@ -26,19 +27,19 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
     private int fahrtBis = 0;
     private Ersatzsignal lock1;
     private Ersatzsignal lock2;
+    private Doppeltaster loeschtaste;
     
     /**
      * Initialisiert das Ersatzsignal.
      * 
      * @param conf
      * @param name
-     * @param ersGT
      * @param signalT
      * @param signalLampe 
      * @param lock1 
      * @param lock2 
      */
-    public void init(Config conf, String name, int ersGT, int signalT, int signalLampe, Ersatzsignal lock1, Ersatzsignal lock2) {
+    public void init(Config conf, String name, int signalT, int signalLampe, Ersatzsignal lock1, Ersatzsignal lock2) {
         this.conf = conf;
         this.name = name;
         this.signalLampe = signalLampe;
@@ -46,8 +47,10 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
         this.lock2 = lock2;
         
         taste = new Doppeltaster();
-        taste.init(conf, this, ersGT, signalT);
+        taste.init(conf, this, Const.ErsGT, signalT);
         
+        loeschtaste = new Doppeltaster();
+        loeschtaste.init(conf, this, Const.HaGT, signalT);
         conf.ticker.add(this);
     }
 
@@ -56,11 +59,20 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
      */
     @Override
     public void whenPressed(int taste1, int taste2) {
-        if (lock1.isFahrt() || lock2.isFahrt()) {
-            String otherName = (lock1.isFahrt() ? lock1.name : lock2.name);
-            conf.alert(name + ": Es ist bereits eine Fahrt freigegeben - " + otherName);
-        } else {
-            isFahrt = true;
+        switch (taste1) {
+            case Const.ErsGT:
+                if (lock1.isFahrt() || lock2.isFahrt()) {
+                    String otherName = (lock1.isFahrt() ? lock1.name : lock2.name);
+                    conf.alert(name + ": Es ist bereits eine Fahrt freigegeben - " + otherName);
+                } else {
+                    isFahrt = true;
+                }
+                break;
+                
+            case Const.HaGT:
+                isFahrt = false;
+                hp0();
+                break;
         }
     }
 

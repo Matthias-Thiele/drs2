@@ -5,7 +5,6 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
-import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +25,8 @@ public class Rangierfahrt implements TickerEvent {
     private int nextAction = 0;
     private Step pendingClear = null;
     private int rangierSignal;
+    private boolean addPendingClear;
+    private int waitCounter = 0;
     
     
     private enum ActionType {
@@ -34,7 +35,9 @@ public class Rangierfahrt implements TickerEvent {
         SetGleis,
         WaitSh1,
         HaltSh1,
+        WaitSW,
         CheckWeiche,
+        CheckWeicheMitStoerung,
         ClearWeiche,
         SetWeiche,
         Message,
@@ -74,6 +77,12 @@ public class Rangierfahrt implements TickerEvent {
             this.param2= param2;
             this.delay = delay;
             this.message = message;
+        }
+        
+        @Override
+        public String toString() {
+            var msg = "Action: " + action.name() + ", param: " + param + ", param2: " + param2;
+            return msg;
         }
     }
     /**
@@ -132,6 +141,7 @@ public class Rangierfahrt implements TickerEvent {
     
     private void advance(int count) {
         Step step = fahrweg.get(position);
+        System.out.println(step.toString());
         nextAction = count + step.delay;
         if (!step.message.isEmpty()) {
             config.alert(step.message);
@@ -145,7 +155,15 @@ public class Rangierfahrt implements TickerEvent {
                     config.alert("Warte auf Sh1");
                 }
                 break;
-            
+                
+            case WaitSW:
+                if (config.schluesselweichen[step.param].isLocked()) {
+                    position++;
+                } else {
+                    config.alert("Warte auf Schlüsselweiche");
+                }
+                break;
+                
             case HaltSh1:
                 config.signale[step.param].halt();
                 position++;
@@ -180,11 +198,51 @@ public class Rangierfahrt implements TickerEvent {
                 System.out.println("Wert " + step.param2);
                 System.out.println("Position " + position);
                 System.out.println("Compare " + (config.weichen[step.param].isPlus() == step.param2));
+                
+                if (config.weichen[step.param].isGestoert()) {
+                    config.alert("Weiche gestört und kann nicht befahren werden.");
+                    return;
+                }
+                
+                if (config.weichen[step.param].isRunning()) {
+                    config.alert("Weiche läuft noch um.");
+                    return;
+                }
+                
                 if (config.weichen[step.param].isPlus() == step.param2) {
-                    config.alert("Weiche " + config.weichen[step.param].getName() + " in der falschen Position.");
+                    if (waitCounter == 0) {
+                        config.alert("Weiche " + config.weichen[step.param].getName() + " in der falschen Position.");
+                    }
+                    
+                    waitCounter++;
+                    if (waitCounter > 10) {
+                        config.stoerungsmelder.rangierMeldung();
+                        waitCounter = 0;
+                    }
                 } else {
+                    waitCounter = 0;
                     position++;
                 }
+                
+                break;
+                
+            case CheckWeicheMitStoerung:
+                System.out.println("Weiche " + config.weichen[step.param].isPlus());
+                System.out.println("Wert " + step.param2);
+                System.out.println("Position " + position);
+                System.out.println("Compare " + (config.weichen[step.param].isPlus() == step.param2));
+                if (config.weichen[step.param].isRunning()) {
+                    config.alert("Weiche läuft noch um.");
+                    return;
+                }
+                
+                if (config.weichen[step.param].isPlus() == step.param2) {
+                    config.alert("Weiche " + config.weichen[step.param].getName() + " in der falschen Position.");
+                    config.weichen[step.param].setStoerung();
+                }
+                
+                position++;
+                
                 break;
                 
             case Message:
@@ -192,6 +250,7 @@ public class Rangierfahrt implements TickerEvent {
                 break;
                 
             case Wait:
+                position++;
                 break;
                 
             case Stop:
@@ -219,6 +278,7 @@ public class Rangierfahrt implements TickerEvent {
         }
     }
     
+    
     private void addStep(char action) {
         if (action >= '1' && action <= '4') {
             // Startgleis
@@ -227,6 +287,12 @@ public class Rangierfahrt implements TickerEvent {
             pendingClear = new Step(ActionType.ClearGleis, action - '1', SHORT_DELAY);
         } else if (action == '.') {
             // Ende
+            if (addPendingClear) {
+                // Ausfahrt auf Industriegleis, Gleis 3 Besetztmelder löschen.
+                addPendingClear = false;
+                pendingClear = new Step(ActionType.ClearGleis, 2, SHORT_DELAY);
+                checkPendingClear();
+            }
             fahrweg.add(new Step(ActionType.Stop, 0, 0, "Rangierziel erreicht."));
         } else if (action >= 'A' && action <= 'F') {
             // Weiche befahren
@@ -235,11 +301,17 @@ public class Rangierfahrt implements TickerEvent {
             
             pendingClear = new Step(ActionType.ClearWeiche, action - 'A', SHORT_DELAY);
         } else if (action >= 'H' && action <= 'S') {
-            // Weichenstellung prüfen
+            // Weichenstellung prüfen, warten im Fehlerfall
             boolean param2 = (action & 1) == 1;
             int weicheNr = (action - 'H') >> 1;
             System.out.println("Weiche " + weicheNr + " Stellung " + param2);
             fahrweg.add(new Step(ActionType.CheckWeiche, weicheNr, LONG_DELAY, "", param2));
+        } else if (action >= 'n' && action <= 'y') {
+            // Weichenstellung prüfen, Störung im Fehlerfall
+            boolean param2 = (action & 1) == 1;
+            int weicheNr = (action - 'n') >> 1;
+            System.out.println("Weiche " + weicheNr + " Stellung " + param2);
+            fahrweg.add(new Step(ActionType.CheckWeicheMitStoerung, weicheNr, LONG_DELAY, "", param2));
         } else if (action == 'W') {
             // Warte auf Weichenwärter
             fahrweg.add(new Step(ActionType.Message, 0, 0, "Zwischenziel erreicht, WW Aktion erwartet."));
@@ -252,6 +324,10 @@ public class Rangierfahrt implements TickerEvent {
             // Warte auf Rangiersignal
             rangierSignal = action - 'a';
             fahrweg.add(new Step(ActionType.WaitSh1, rangierSignal, SHORT_DELAY));
+        } else if (action >= 'k' && action <= 'm') {
+            int schluesselweiche = action - 'k';
+            fahrweg.add(new Step(ActionType.WaitSW, schluesselweiche, LONG_DELAY));
+            addPendingClear = true;
         } else if (action == '9') {
             // Lokführer meldet sich beim Weichenwärter
             fahrweg.add(new Step(ActionType.Meldung, 0, SHORT_DELAY));

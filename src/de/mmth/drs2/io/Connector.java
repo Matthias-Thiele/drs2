@@ -17,13 +17,13 @@ public class Connector implements TickerEvent {
     /**
      * Anzahl der Eingänge von der DRS2, muss ein vielfaches von 16 sein.
      */
-    public final static int INPUT_COUNT = 48;
+    public final static int INPUT_COUNT = 64;
     private final static int LOCAL_INPUT_COUNT = 8;
     
     /**
      * Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein.
      */
-    public final static int OUTPUT_COUNT = 120;
+    public final static int OUTPUT_COUNT = 136;
     public final static int LOCAL_OUTPUT_COUNT = 2;
     public final static int WEICHE_IV_OUT = OUTPUT_COUNT - 8;
     public final static int WECKER = OUTPUT_COUNT - 7;
@@ -75,6 +75,8 @@ public class Connector implements TickerEvent {
         for (int i = 0; i < drs2In.length; i++) {
             drs2In[i] = false;
         }
+        
+        blockChanged = true;
     }
     
     /**
@@ -123,7 +125,7 @@ public class Connector implements TickerEvent {
      */
     public void setOut(int portNo, boolean value) {
         if (portNo >= 0 && portNo < drs2Out.length) {
-            if (portNo >= 96 && portNo <= 103) {
+            if ((portNo >= 96 && portNo <= 103) || (portNo >= 120)) {
                 blockChanged |= drs2Out[portNo] != value;
             } else {
                 if (drs2Out[portNo] != value) {
@@ -143,7 +145,7 @@ public class Connector implements TickerEvent {
      */
     public void toggleOut(int portNo) {
         if (portNo >= 0 && portNo < drs2Out.length) {
-            if (portNo >= 96 && portNo <= 103) {
+            if ((portNo >= 96 && portNo <= 103) || (portNo >= 120)) {
                 blockChanged = true;
             } else {
                 outputChanged = true; 

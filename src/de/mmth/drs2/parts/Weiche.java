@@ -25,6 +25,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     private String name;
     private boolean isActive;
     private boolean isGestoert = false;
+    private boolean pendingClearGestoert;
     
     /**
      * Übergibt die zugeordnete Tastereingänge und
@@ -74,7 +75,19 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         
         if (isGestoert) {
             config.stoerungsmelder.stoerungW();
+        } else {
+            blink = 0;
+            updateOutput(0);
         }
+    }
+    
+    /**
+     * Stelle die Weiche direkt auf Störung da sie aufgefahren wurde.
+     */
+    public void setStoerung() {
+        isGestoert = true;
+        config.stoerungsmelder.stoerungW();
+        blink = Integer.MAX_VALUE - 10 * BLINK_DURATION;
     }
     
     /**
@@ -97,7 +110,13 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         }
         
         inPlusStellung = !inPlusStellung;
-        blink = isGestoert ? Integer.MAX_VALUE : BLINK_DURATION;
+        if (blink > BLINK_DURATION) {
+            pendingClearGestoert = true;
+            blink = BLINK_DURATION;
+        } else {
+            blink = isGestoert ? Integer.MAX_VALUE : BLINK_DURATION;
+        }
+        
         updateOutput(0);
         config.alert("Weiche " + name + " umgeschaltet nach " + (inPlusStellung ? "Plus" : "Minus"));
     }
@@ -188,6 +207,27 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      * Anzeigelampen
      */
     private void updateOutput(int count) {
+        if (isGestoert) {
+            updateOutputGestoert(count);
+        } else {
+            updateOutputNormal(count);
+        }
+    }
+    
+    private void updateOutputGestoert(int count) {
+        boolean l1 = true;
+        
+        if ((count & 0x8) == 0x8) {
+            l1 = false;
+        }
+        
+        config.connector.setOut(firstRed, l1);
+        config.connector.setOut(sndRed, l1);
+        config.connector.setOut(firstWhite, false);
+        config.connector.setOut(sndWhite, false);
+    }
+    
+    private void updateOutputNormal(int count) {
         if (firstWhite < 0) {
             return; // nicht angeschlossen.
         }
@@ -229,6 +269,10 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
             updateOutput(count);
             blink--;
             if (blink == 0) {
+                if (pendingClearGestoert) {
+                    isGestoert = false;
+                    pendingClearGestoert = false;
+                }
                 updateOutput(0);
             }
         }

@@ -81,7 +81,7 @@ public class MainPane extends HBox implements TickerEvent {
         Text hdr = new Text("Strecke");
         box.getChildren().add(hdr);
         
-        pendingHButton = createSizedButton("Zug von H", STD_BUTTON_SIZE);
+        pendingHButton = createSizedButton("Zug von WB", STD_BUTTON_SIZE);
         pendingHButton.setOnAction(ev -> {
             config.pendingTrainH = PENDING_TRAIN_DURATION;
         });
@@ -94,7 +94,7 @@ public class MainPane extends HBox implements TickerEvent {
         });
         box.getChildren().add(schlF);
         
-        pendingMButton = createSizedButton("Zug von M", STD_BUTTON_SIZE);
+        pendingMButton = createSizedButton("Zug von Alth", STD_BUTTON_SIZE);
         pendingMButton.setOnAction(ev -> {
             if (config.pendingTrainM != 0) {
                 config.pendingTrainM = 0;
@@ -111,22 +111,22 @@ public class MainPane extends HBox implements TickerEvent {
         });
         box.getChildren().add(schlA);
         
-        var block1 = createSizedButton("Von M", STD_BUTTON_SIZE);
+        var block1 = createSizedButton("Von Alth", STD_BUTTON_SIZE);
         block1.setOnAction(ev -> {
             config.uart1.sendCommand(UartCommand.FLIP1);
         });
         
-        var block2 = createSizedButton("Nach M", STD_BUTTON_SIZE);
+        var block2 = createSizedButton("Nach Alth", STD_BUTTON_SIZE);
         block2.setOnAction(ev -> {
             config.uart1.sendCommand(UartCommand.FLIP2);
         });
         
-        var block3 = createSizedButton("Von H", STD_BUTTON_SIZE);
+        var block3 = createSizedButton("Von WB", STD_BUTTON_SIZE);
         block3.setOnAction(ev -> {
             config.uart1.sendCommand(UartCommand.FLIP3);
         });
         
-        var block4 = createSizedButton("Nach H", STD_BUTTON_SIZE);
+        var block4 = createSizedButton("Nach WB", STD_BUTTON_SIZE);
         block4.setOnAction(ev -> {
             config.uart1.sendCommand(UartCommand.FLIP4);
         });

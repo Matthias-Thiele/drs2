@@ -33,7 +33,11 @@ public final class Uart implements TickerEvent {
     private final byte STATUS_END = (byte)'X';
     private byte RECEIVE_MARKER = (byte) 'B';
     private byte RECEIVE_END = (byte) 'X';
+    private byte RECEIVE_END2 = (byte) 'Z';
     private int STATUS_LEN = 4;
+    
+    private final int IoInputStart = 56; // Input start der IO Platine(n)
+    private final int IoOutputStart = 120; // Output start der IO Platine(n)
     
     /**
      * Erzeugt ein neues Uart Objekt und meldet es
@@ -72,7 +76,7 @@ public final class Uart implements TickerEvent {
             STATUS_LEN = 6;
         } else {
             STATUS_MARKER = 'U';
-            STATUS_LEN = 2;
+            STATUS_LEN = 3;
             RECEIVE_MARKER = 0x7;
             RECEIVE_END = 'A';
         }
@@ -80,6 +84,34 @@ public final class Uart implements TickerEvent {
         comPort.openPort();
         
         sendCommand(UartCommand.GET_STATUS);
+    }
+    
+    private int fromHex(byte val) {
+        if (val >= '0' && val <= '9') {
+            return val - '0';
+        } else if (val >= 'A' && val <= 'F') {
+            return val - 'A';
+        } else if (val >= 'a' && val <= 'f') {
+            return val - 'a';
+        } else return -1;
+    }
+    
+    private void processIoBytes(byte[] status) {
+        boolean changed = false;
+        int inputVals = fromHex(status[1]) * 16 + fromHex(status[2]);
+        //System.err.println("Inputs: " + inputVals);
+        for (var i = IoInputStart; i < IoInputStart + 8; i++) {
+            var newState  = (inputVals & 1) == 1;
+            if (config.connector.drs2In[i] != newState) {
+                changed = true;
+                System.out.print(i + " " + newState + ", ");
+            }
+            config.connector.drs2In[i] = newState;
+            inputVals >>= 1;
+        }
+        if (changed) {
+            System.out.println("changed IO.");
+        }
     }
     
     private void processStatusByte(byte[] status) {
@@ -209,12 +241,37 @@ public final class Uart implements TickerEvent {
     }
     
     /**
+     * Füllt die Ausgabe-Bits in den Buffer für die serielle
+     * Schnittstelle. Die zusätzlichen neuen Outputs liegen
+     * im Bereich von 120 bis 128 (1 Platine) bzw. bis 136
+     * (2 Platinen).
+     * 
+     * @param buffer 
+     */
+    private void fillupIOBuffer(byte[] buffer) {
+        var outputs = config.connector.drs2Out;
+        var pos = IoOutputStart;
+        var ix = 0;
+        
+        buffer[ix++] = 'X';
+        for (var i = 0; i < 8; i++) {
+            buffer[ix++] = (byte) (outputs[pos ++] ? ('a' + i) : ('A' + i));
+        }
+        buffer[ix] = 'y';
+        System.out.println(new String(buffer));
+    }
+    
+    /**
      * Liest Rückmeldungen vom Block ein.
      * 
      * @param count 
      */
     @Override
     public void tick(int count) {
+        if (!isDRS2 && (statusPtr < 0) && ((count & 0x7) == 0x7)) {
+            sendCommand(UartCommand.GET_STATUS);
+        }
+        
         while (comPort.bytesAvailable() > 0) {
             comPort.readBytes(byteBuffer, 1);
             //System.out.println("Read: " + Integer.toHexString(byteBuffer[0] & 0xff) + ", ptr: " + statusPtr);
@@ -222,24 +279,34 @@ public final class Uart implements TickerEvent {
                 statusPtr = 0;
             } else {
                 if (statusPtr < 0) {
-                    System.out.write(byteBuffer[0]);
+                    //System.out.write(byteBuffer[0]);
                 } else if (statusPtr >= STATUS_LEN) {
-                    if (byteBuffer[0] == RECEIVE_END) {
+                    if (isDRS2) {
+                        if (byteBuffer[0] == RECEIVE_END) {
                         // process status
-                        if (isDRS2) {
                             processInputBytes(statusMsg);
+                            statusPtr = -1;
                         } else {
-                            processStatusByte(statusMsg);
+                            // invalid status message
+                            System.out.println("Invalid DRS2 status package dropped.");
+                            statusPtr = -1;
                         }
-                        statusPtr = -1;
                     } else {
-                        // invalid status message
-                        System.out.println("Invalid status package dropped.");
-                        statusPtr = -1;
                     }
                 } else {
                     statusMsg[statusPtr] = byteBuffer[0];
                     statusPtr++;
+                    //if (!isDRS2) System.out.println("cnt: " + statusPtr + ", read: " + byteBuffer[0] + ", exp: " + STATUS_LEN);
+                    if (!isDRS2 && (statusPtr >= STATUS_LEN)) {
+                        if (statusMsg[0] == RECEIVE_END2) {
+                            processIoBytes(statusMsg);
+                            statusPtr = -1;
+                        } else {
+                            // invalid status message
+                            System.out.println("Invalid IO status package dropped.");
+                            statusPtr = -1;
+                        }
+                    }
                 }
             }
             
@@ -260,7 +327,14 @@ public final class Uart implements TickerEvent {
                     comPort.readBytes(buffer, 1);
                 }
                 
-                buffer[0] = 'Q';
+                if (isDRS2) {
+                    buffer[0] = 'Q';
+                } else {
+                    buffer[0] = 'X';
+                    buffer[1] = 'z';
+                    bytesToSend = 2;
+                    statusPtr = 0;
+                }
                 break;
                 
             case UPDATE_OUTPUTS:
@@ -271,11 +345,9 @@ public final class Uart implements TickerEvent {
 
                     bytesToSend = 16;
                 } else {
-                    buffer[0] = STATUS_MARKER;
-                    buffer[2] = STATUS_END;
-                    fillupStatusBuffer(buffer);
+                    fillupIOBuffer(buffer);
 
-                    bytesToSend = 3;
+                    bytesToSend = 10;
                 }
                 break;
                 

@@ -6,7 +6,6 @@ package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
-import de.mmth.drs2.parts.Schluesselweiche;
 import de.mmth.drs2.TickerEvent;
 
 /**
@@ -21,7 +20,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int SIGNAL_FIRST_OUTBOUND = 2;
     private final static int STEP_SHORT_WAIT = 20;
     private final static int STEP_LONG_WAIT = 3 * STEP_SHORT_WAIT;
-    private final static int STEP_VERY_LONG_WAIT = 3 * STEP_LONG_WAIT;
     private final static int DORMANT = -1;
     private final static int INBOUND_RED = -2;
     private final static int INIT = -3;
@@ -35,6 +33,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int EINFAHRT1 = -11;
     private final static int SET_HP1 = -12;
     private final static int WAIT_FOR_TRAIN = -13;
+    private final static int WAITERSATZ = -14;
     
     private final static int RED_DELTA_TICKS = STEP_SHORT_WAIT / 2;
     
@@ -58,8 +57,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private Gleismarker ausfahrtsGleis;
     private Strecke strecke;
     private int ersatzSignalNummer;
-    private Doppeltaster tasteAsT;
-    private Doppeltaster tasteAsLT;
     
     private ColorMarker lastRed;
     private ColorMarker nextWhite;
@@ -69,9 +66,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private boolean ersatzSignalFahrt;
     private int schluesselweiche1;
     private int schluesselweiche2;
-    private Weiche pruefung;
     private Weiche pruefungPlus;
     private Weiche pruefungMinus;
+    
+    private boolean pendingHalt = false;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -93,11 +91,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * @param schluesselweiche2
      * @param pruefungPlus
      * @param pruefungMinus
+     * @param aufloesungsTaste
      */
     public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, 
             int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, int ersatzSignalNummer,
             Gleismarker ausfahrtsGleis, Strecke strecke, int streckeTaster, int schluesselweiche1, int schluesselweiche2,
-            int pruefungPlus, int pruefungMinus) {
+            int pruefungPlus, int pruefungMinus, int aufloesungsTaste) {
         this.config = config;
         this.name = name;
         this.strecke = strecke;
@@ -135,7 +134,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         }
         
         hilfsaufloesung = new Doppeltaster();
-        hilfsaufloesung.init(config, this, Const.FHT, signalTaste);
+        hilfsaufloesung.init(config, this, Const.FHT, aufloesungsTaste);
         
         this.bahnhofsGleis = bahnhofsGleis;
         this.ausfahrtsGleis = ausfahrtsGleis;
@@ -494,8 +493,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             case SIGNAL_HP0:
-                config.ersatzsignale[ersatzSignalNummer].hp0();
+                // Ersatzsignal erlischt nicht automatisch, sondern erst nach 90 Sek
+                //config.ersatzsignale[ersatzSignalNummer].hp0();
                 state = 0; // Erste Weiche.
+                //bahnhofsGleis.clear();
+                //lastRed = null;
+                nextStep = count + STEP_LONG_WAIT;
                 break;
 
             case AUSFAHRT1:
@@ -529,6 +532,11 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             default:
+                if (this.state == 0) {
+                    bahnhofsGleis.clear();
+                    lastRed = null;
+                }
+                
                 // Weiche 0 bis n
                 int weiche = state;
                 
@@ -616,8 +624,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
             
             case SIGNAL_HP0:
-                config.alert("Signal auf Halt.");
-                signal.halt();
+                pendingHalt = true;
                 nextStep = count + STEP_SHORT_WAIT;
                 state = 0; // erste Weiche
                 break;
@@ -658,6 +665,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             default:
+                checkPendingHalt();
+                
                 // Weiche 0 bis n
                 int weiche = state;
                 
@@ -674,6 +683,14 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
                 state++;
                 break;
+        }
+    }
+    
+    private void checkPendingHalt() {
+        if (pendingHalt) {
+            config.alert("Signal auf Halt.");
+            signal.halt(true);
+            pendingHalt = false;
         }
     }
     
@@ -699,8 +716,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 return; // do nothing
                 
             case INIT:
-                signal.white();
                 if (!ersatzSignalFahrt) {
+                    signal.white();
                     strecke.setFahrstrassenfestlegung();
                 }
                 
@@ -760,7 +777,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             
             case SIGNAL_HP0:
                 if (ersatzSignalFahrt) {
-                    config.ersatzsignale[ersatzSignalNummer].hp0();
+                    // Signal erlischt nicht automatisch, sondern nach 90 Sekunden
+                    //config.ersatzsignale[ersatzSignalNummer].hp0();
                 }
                 nextStep = count + STEP_SHORT_WAIT;
                 state = 0; // erste Weiche
@@ -770,12 +788,29 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 // Zielgleis erreicht
                 config.alert("Zielgleis erreicht.");
                 setRed(count, bahnhofsGleis);
-                strecke.trainArrived();
+                if (!ersatzSignalFahrt) {
+                    strecke.trainArrived();
+                }
+                
                 lastRed = null;
+                if (ersatzSignalFahrt) {
+                    state = WAITERSATZ;
+                } else {
+                    state = DORMANT;
+                }
+                break;
+            
+            case WAITERSATZ:
+                if (config.ersatzsignale[this.ersatzSignalNummer].isFahrt()) {
+                    nextStep = count + STEP_SHORT_WAIT;
+                    break;
+                }
+                
+                config.alert("Ersatzsignalfahrt beendet.");
                 ersatzSignalFahrt = false;
                 state = DORMANT;
                 break;
-            
+                
             default:
                 // Weiche 0 bis n
                 
@@ -808,18 +843,18 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     }
     
     private void setRed(int actTick, ColorMarker nextRed) {
-        if (!nextRed.hasMarker()) {
-            return;
-        }
-        
-        nextWhite = lastRed;
-        if (nextWhite != null) {
-            nextWhiteTStamp = actTick + RED_DELTA_TICKS;
-            System.out.println("set white timer to " + nextWhiteTStamp);
-        }
-        
-        lastRed = nextRed;
         if (nextRed != null) {
+            if (!nextRed.hasMarker() && !ersatzSignalFahrt) {
+                return;
+            }
+
+            nextWhite = lastRed;
+            if (nextWhite != null) {
+                nextWhiteTStamp = actTick + RED_DELTA_TICKS;
+                System.out.println("set white timer to " + nextWhiteTStamp);
+            }
+
+            lastRed = nextRed;
             nextRed.red();
             System.out.println("set red: " + nextRed.getName());
         }

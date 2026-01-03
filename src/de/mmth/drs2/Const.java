@@ -55,13 +55,13 @@ public class Const {
     public static final int GLEIS3 = 9;
     
     // Schlüsselschalter
-    public static final int SCHLUESSEL_A = 33;
-    public static final int SCHLUESSEL_F = 32;
+    public static final int SCHLUESSEL_A = 56;
+    public static final int SCHLUESSEL_F = 57;
     
     // Schlüsselweiche
     public static final int WSCHLUESSEL3 = 34;
-    public static final int WSCHLUESSEL1 = 35;
-    public static final int WSCHLUESSEL4 = 37;
+    public static final int WSCHLUESSEL1 = 58;
+    public static final int WSCHLUESSEL4 = 59;
     
     // Signaltasten
     public static final int SIGNAL_A = 10;
@@ -115,7 +115,7 @@ public class Const {
     public static final int SlFT4Rot = 111;
     public static final int SlFT4Weiss = 110;
     public static final int SlFT3Relais = 96;
-    public static final int SlFT1Relais = 98;
-    public static final int SlFT4Relais = 99;
-    public static final int Wecker = 97;
+    public static final int SlFT1Relais = 121;
+    public static final int SlFT4Relais = 122;
+    public static final int Wecker = 120;
 }
