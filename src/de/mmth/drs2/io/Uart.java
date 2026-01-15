@@ -33,8 +33,7 @@ public final class Uart implements TickerEvent {
     private final byte STATUS_END = (byte)'X';
     private byte RECEIVE_MARKER = (byte) 'B';
     private byte RECEIVE_END = (byte) 'X';
-    private byte RECEIVE_END2 = (byte) 'Z';
-    private int STATUS_LEN = 4;
+    private int STATUS_LEN = 7;
     
     private final int IoInputStart = 56; // Input start der IO Platine(n)
     private final int IoOutputStart = 120; // Output start der IO Platine(n)
@@ -58,7 +57,7 @@ public final class Uart implements TickerEvent {
     private final int[] inputPolarity;
     private int statusPtr = -1;
     private final byte[] byteBuffer = new byte[1];
-    private final byte[] statusMsg = new byte[6];
+    private final byte[] statusMsg = new byte[32];
     private final boolean isDRS2;
     /**
      * Öffnet den Port zum Wechselstrom Block
@@ -76,13 +75,18 @@ public final class Uart implements TickerEvent {
             STATUS_LEN = 6;
         } else {
             STATUS_MARKER = 'U';
-            STATUS_LEN = 3;
-            RECEIVE_MARKER = 0x7;
-            RECEIVE_END = 'A';
+            STATUS_LEN = 6;
+            RECEIVE_MARKER = 'Z';
+            RECEIVE_END = 'T';
         }
+        
         comPort = SerialPort.getCommPort(portName);
+        System.out.println("Open Port " + portName);
         comPort.openPort();
         
+        System.out.println("ClearUART");
+        clearUART();
+        System.out.println("Get status.");
         sendCommand(UartCommand.GET_STATUS);
     }
     
@@ -90,17 +94,18 @@ public final class Uart implements TickerEvent {
         if (val >= '0' && val <= '9') {
             return val - '0';
         } else if (val >= 'A' && val <= 'F') {
-            return val - 'A';
+            return val - 'A' + 10;
         } else if (val >= 'a' && val <= 'f') {
-            return val - 'a';
+            return val - 'a' + 10;
         } else return -1;
     }
     
     private void processIoBytes(byte[] status) {
         boolean changed = false;
-        int inputVals = fromHex(status[1]) * 16 + fromHex(status[2]);
-        //System.err.println("Inputs: " + inputVals);
-        for (var i = IoInputStart; i < IoInputStart + 8; i++) {
+        //int inputVals = fromHex(status[1]) * 16 + fromHex(status[2]);
+        int inputVals = (fromHex(status[2]) << 12) + (fromHex(status[3]) << 8) + (fromHex(status[4]) << 4) + fromHex(status[5]);
+        System.out.println("Inputs: " + Integer.toHexString(inputVals));
+        for (var i = IoInputStart; i < IoInputStart + 16; i++) {
             var newState  = (inputVals & 1) == 1;
             if (config.connector.drs2In[i] != newState) {
                 changed = true;
@@ -254,7 +259,7 @@ public final class Uart implements TickerEvent {
         var ix = 0;
         
         buffer[ix++] = 'X';
-        for (var i = 0; i < 8; i++) {
+        for (var i = 0; i < 16; i++) {
             buffer[ix++] = (byte) (outputs[pos ++] ? ('a' + i) : ('A' + i));
         }
         buffer[ix] = 'y';
@@ -268,10 +273,6 @@ public final class Uart implements TickerEvent {
      */
     @Override
     public void tick(int count) {
-        if (!isDRS2 && (statusPtr < 0) && ((count & 0x7) == 0x7)) {
-            sendCommand(UartCommand.GET_STATUS);
-        }
-        
         while (comPort.bytesAvailable() > 0) {
             comPort.readBytes(byteBuffer, 1);
             //System.out.println("Read: " + Integer.toHexString(byteBuffer[0] & 0xff) + ", ptr: " + statusPtr);
@@ -292,25 +293,35 @@ public final class Uart implements TickerEvent {
                             statusPtr = -1;
                         }
                     } else {
+                      if (byteBuffer[0] == RECEIVE_END) {
+                          processIoBytes(statusMsg);
+                          statusPtr = -1;
+                      } else {
+                          // invalid status message
+                          System.out.println("Invalid IO status package dropped: " + (new String(statusMsg)));
+                          statusPtr = -1;
+                          
+                          if (new String(statusMsg).startsWith("No ")) {
+                            sendCommand(UartCommand.GET_STATUS);
+                          }
+                      }
                     }
                 } else {
                     statusMsg[statusPtr] = byteBuffer[0];
                     statusPtr++;
-                    //if (!isDRS2) System.out.println("cnt: " + statusPtr + ", read: " + byteBuffer[0] + ", exp: " + STATUS_LEN);
-                    if (!isDRS2 && (statusPtr >= STATUS_LEN)) {
-                        if (statusMsg[0] == RECEIVE_END2) {
-                            processIoBytes(statusMsg);
-                            statusPtr = -1;
-                        } else {
-                            // invalid status message
-                            System.out.println("Invalid IO status package dropped.");
-                            statusPtr = -1;
-                        }
-                    }
+                    //System.out.println("cnt: " + statusPtr + ", read: " + byteBuffer[0] + ", exp: " + STATUS_LEN + ", msg: " + (new String(statusMsg)));
                 }
             }
             
         }
+    }
+    
+    private void clearUART() {
+      byte[] buffer = new byte[2];
+      while (comPort.bytesAvailable() > 0) {
+          comPort.readBytes(buffer, 1);
+          System.out.println(buffer[0]);
+      }
     }
     
     public void sendCommand(UartCommand cmdNo) {
@@ -323,9 +334,7 @@ public final class Uart implements TickerEvent {
                 break;
                 
             case GET_STATUS:
-                while (comPort.bytesAvailable() > 0) {
-                    comPort.readBytes(buffer, 1);
-                }
+                clearUART();
                 
                 if (isDRS2) {
                     buffer[0] = 'Q';
@@ -333,7 +342,7 @@ public final class Uart implements TickerEvent {
                     buffer[0] = 'X';
                     buffer[1] = 'z';
                     bytesToSend = 2;
-                    statusPtr = 0;
+                    statusPtr = -1;
                 }
                 break;
                 
@@ -347,7 +356,7 @@ public final class Uart implements TickerEvent {
                 } else {
                     fillupIOBuffer(buffer);
 
-                    bytesToSend = 10;
+                    bytesToSend = 18;
                 }
                 break;
                 
@@ -385,11 +394,12 @@ public final class Uart implements TickerEvent {
         }
         
         comPort.writeBytes(buffer, bytesToSend);
-        /*System.out.print("Sent: ");
+        if (!isDRS2) {
+        System.out.print("Sent: ");
         for (var i = 0; i < bytesToSend; i++) {
             System.out.print(Integer.toHexString(buffer[i] & 0xff) + " ");
         }
-        System.out.println();*/
+        System.out.println();}
     }
     
 }

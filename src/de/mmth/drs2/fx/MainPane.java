@@ -6,8 +6,8 @@
 package de.mmth.drs2.fx;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
-import de.mmth.drs2.io.UartCommand;
 import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Signal;
@@ -28,7 +28,6 @@ import javafx.scene.text.Text;
  * @author pi
  */
 public class MainPane extends HBox implements TickerEvent {
-    private final static int PENDING_TRAIN_DURATION = 600;
     private final static int STD_BUTTON_SIZE = 140;
     private final static int TEST_STOPPED = -1;
     private final static int TEST_RANGE = 96;
@@ -41,6 +40,7 @@ public class MainPane extends HBox implements TickerEvent {
     private Button pendingHButton;
     private Button pendingMButton;
     private int lampentest = TEST_STOPPED;
+    private boolean simulateAH = false;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -83,7 +83,7 @@ public class MainPane extends HBox implements TickerEvent {
         
         pendingHButton = createSizedButton("Zug von WB", STD_BUTTON_SIZE);
         pendingHButton.setOnAction(ev -> {
-            config.pendingTrainH = PENDING_TRAIN_DURATION;
+            config.pendingTrainH = Const.PENDING_TRAIN_DURATION;
         });
         box.getChildren().add(pendingHButton);
         
@@ -99,7 +99,7 @@ public class MainPane extends HBox implements TickerEvent {
             if (config.pendingTrainM != 0) {
                 config.pendingTrainM = 0;
             } else {
-                config.pendingTrainM = PENDING_TRAIN_DURATION;
+                config.pendingTrainM = Const.PENDING_TRAIN_DURATION;
             }
         });
         box.getChildren().add(pendingMButton);
@@ -113,30 +113,33 @@ public class MainPane extends HBox implements TickerEvent {
         
         var block1 = createSizedButton("Von Alth", STD_BUTTON_SIZE);
         block1.setOnAction(ev -> {
-            config.uart1.sendCommand(UartCommand.FLIP1);
+            config.strecken[Config.FROM_M].updateStreckenblock(true);
         });
         
         var block2 = createSizedButton("Nach Alth", STD_BUTTON_SIZE);
         block2.setOnAction(ev -> {
-            config.uart1.sendCommand(UartCommand.FLIP2);
+            config.strecken[Config.TO_M].updateStreckenblock(false);
         });
         
         var block3 = createSizedButton("Von WB", STD_BUTTON_SIZE);
         block3.setOnAction(ev -> {
-            config.uart1.sendCommand(UartCommand.FLIP3);
+            config.strecken[Config.FROM_H].updateStreckenblock(true);
         });
         
         var block4 = createSizedButton("Nach WB", STD_BUTTON_SIZE);
         block4.setOnAction(ev -> {
-            config.uart1.sendCommand(UartCommand.FLIP4);
+            config.strecken[Config.TO_H].updateStreckenblock(false);
         });
         
-        var block5 = createSizedButton("Block", STD_BUTTON_SIZE);
-        block5.setOnAction(ev -> {
-            config.uart1.sendCommand(UartCommand.BLOCK2);
+        var simu = createSizedButton("Relaisblock", STD_BUTTON_SIZE);
+        simu.setOnAction(ev -> {
+            simulateAH = !simulateAH;
+            config.strecken[Config.FROM_M].setSimulationMode(simulateAH);
+            config.strecken[Config.TO_M].setSimulationMode(simulateAH);
+            simu.setText(simulateAH ? "Simulation" : "Relaisblock");
         });
         
-        box.getChildren().addAll(block1,block2, block3, block4, block5);
+        box.getChildren().addAll(block1,block2, block3, block4, simu);
         
         var gleis1 = createSizedButton("Zug G1", STD_BUTTON_SIZE);
         gleis1.setOnAction(ev -> {

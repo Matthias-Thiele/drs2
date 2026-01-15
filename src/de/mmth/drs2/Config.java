@@ -202,7 +202,8 @@ public class Config implements TickerEvent {
         df.init(this);
         
         stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66, 65, Const.Wecker);
-        Uart.createUarts(this, "/dev/ttyAMA2", "/dev/ttyAMA1", connector.polarity);        
+        //Uart.createUarts(this, "/dev/ttyAMA2", "/dev/ttyAMA1", connector.polarity);        
+        Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", connector.polarity);        
         ticker.add(this);
     }
     
@@ -220,25 +221,27 @@ public class Config implements TickerEvent {
         Strecke fromH = new StreckeEinfahrt();
         fromH.init(this, "Von H", Const.BlockHIn, Const.StreckeVonHWeiss, 
                 Const.StreckeVonHRot, Const.EinfRaeumungsmelderH, Const.VbHT_H, 
-                Const.EinfFestlegemelderH, UartCommand.BLOCK3);
+                Const.EinfFestlegemelderH, -1);
         strecken[FROM_H] = fromH;
+        fromH.setSimulationMode(true);
         
         Strecke fromM = new StreckeEinfahrt();
         fromM.init(this, "Von M", Const.BlockMIn, Const.StreckeVonMWeiss, 
                 Const.StreckeVonMRot, Const.EinfRaeumungsmelderM, Const.VbHT_M, 
-                Const.EinfFestlegemelderM, UartCommand.BLOCK1);
+                Const.EinfFestlegemelderM, Const.StreckeVonAH);
         strecken[FROM_M] = fromM;
         
         Strecke toH = new StreckeAusfahrt();
         toH.init(this, "Nach H", Const.BlockHOut, Const.StreckeNachHWeiss,
                 Const.StreckeNachHRot, Const.AusfSperrmelderH, Const.VbHT_H,
-                Const.AusfFestlegemelderH, UartCommand.BLOCK4);
+                Const.AusfFestlegemelderH, -1);
         strecken[TO_H] = toH;
+        toH.setSimulationMode(true);
         
         Strecke toM = new StreckeAusfahrt();
         toM.init(this, "Nach M", Const.BlockMOut, Const.StreckeNachMWeiss,
                 Const.StreckeNachMRot, Const.AusfSperrmelderM, Const.VbHT_M,
-                Const.AusfFestlegemelderM, UartCommand.BLOCK2);
+                Const.AusfFestlegemelderM, Const.StreckeNachAH);
         strecken[TO_M] = toM;
     }
     

@@ -7,7 +7,6 @@ package de.mmth.drs2.parts;
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
-import de.mmth.drs2.io.UartCommand;
 import de.mmth.drs2.parts.state.StreckenState;
 
 /**
@@ -28,13 +27,16 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
     protected Doppeltaster vbHT;
     protected int streckenTaste;
     protected int vorblockHilfsTaste;
-    protected UartCommand blockCommand;
     protected int festlegemelderId;
+    protected boolean simulationMode = false;
     
     protected boolean sperrRaeummelder = false;
     private Doppeltaster ast;
     private Doppeltaster aslt;
     private Doppeltaster RbHG;
+    
+    protected int blockPort;
+    protected int releaseBlockPort = Integer.MAX_VALUE;
     
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -48,12 +50,12 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
      * @param sperrRaeumungsmelder 
      * @param vorblockHilfsTaste 
      * @param festlegemelder 
-     * @param blockCommand 
+     * @param blockPort 
      */
     public void init(Config config, String name, 
             int streckenTaste, int streckeWeiss, int streckeRot, 
             int sperrRaeumungsmelder, int vorblockHilfsTaste,
-            int festlegemelder, UartCommand blockCommand) {
+            int festlegemelder, int blockPort) {
         this.config = config;
         this.name = name;
         this.streckeWeiss = streckeWeiss;
@@ -62,7 +64,7 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
         this.streckenTaste = streckenTaste;
         this.vorblockHilfsTaste = vorblockHilfsTaste;
         this.festlegemelderId = festlegemelder;
-        this.blockCommand = blockCommand;
+        this.blockPort = blockPort;
         
         this.streckeTaster = new Doppeltaster();
         this.streckeTaster.init(config, this, Const.BlGT, streckenTaste);
@@ -99,6 +101,31 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
      */
     public boolean isFree() {
         return streckenState == StreckenState.FREE;
+    }
+    
+    /**
+     * Gibt an, ob ein Streckenblock vorhanden ist oder ob er nur simuliert wird.
+     * @param mode 
+     */
+    public void setSimulationMode(boolean mode) {
+      simulationMode = mode;
+    }
+    
+    /**
+     * Setzt das Portbit zum Aktivieren des Relaisblock.
+     * Es wird nach einer Sekunde automatisch zurückgesetzt.
+     */
+    protected void triggerBlock() {
+        if (simulationMode) {
+          updateStreckenblock(true);
+        } else {
+          if (blockPort < 0) {
+            config.alert("Auf dieser Seite ist kein Relaisblock.");
+          } else {
+            config.connector.setOut(blockPort, true);
+            releaseBlockPort = 0;
+          }
+        }
     }
     
     /**
@@ -158,7 +185,15 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
         streckenState = StreckenState.TRAIN_ARRIVED;
     }
     
+    @Override
     public void tick(int count) {
+        if (releaseBlockPort == 0) {
+          releaseBlockPort = count + 10;
+        } else if (releaseBlockPort < count) {
+          config.connector.setOut(blockPort, false);
+          releaseBlockPort = Integer.MAX_VALUE;
+        }
+        
         if (rueckblockenUntil == 0) {
             rueckblockenUntil = count + Const.KURBELINDUKTOR_RUNDEN;
             useMJ1MJ2 = !useMJ1MJ2;

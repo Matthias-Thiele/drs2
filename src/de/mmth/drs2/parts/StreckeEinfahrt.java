@@ -5,7 +5,6 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Const;
-import de.mmth.drs2.io.UartCommand;
 import de.mmth.drs2.parts.state.StreckenState;
 
 /**
@@ -21,7 +20,7 @@ public class StreckeEinfahrt extends Strecke {
      * Wird vom Arduino im Streckenblock aufgerufen wenn sich der
      * Status der Strecke ändert. 
      * 
-     * Der Block selber wird vom Arduino verwaltet, die DRS2
+     * Der Block selber wird vom Relaisblock verwaltet, die DRS2
      * Steuerung kümmert sich nur um die Anzeige und das Anstoßen
      * von Änderungen (Vor-, Rückblocken).
      * 
@@ -31,6 +30,11 @@ public class StreckeEinfahrt extends Strecke {
     public void updateStreckenblock(boolean isInUse) {
         if (isInUse && streckenState == StreckenState.FREE) {
             streckenState = StreckenState.WAIT_FOR_TRAIN;
+            if (name.endsWith("H")) {
+              config.pendingTrainH = Const.PENDING_TRAIN_DURATION;
+            } else if (name.endsWith("M")) {
+              config.pendingTrainM = Const.PENDING_TRAIN_DURATION;
+            }
         } else if (!isInUse) {
             streckenState = StreckenState.FREE;
         }
@@ -74,7 +78,7 @@ public class StreckeEinfahrt extends Strecke {
         if (taste1 == Const.BlGT) {
             // Zug ist eingefahren, Strecke wird zurückgeblockt.
             if ((streckenState == StreckenState.TRAIN_ARRIVED) || raeumungsmelderAktiv) {
-                config.uart1.sendCommand(blockCommand);
+                triggerBlock();
                 rueckblockenUntil = 0;
                 raeumungsmelderAktiv = false;
             } else {
@@ -82,11 +86,11 @@ public class StreckeEinfahrt extends Strecke {
             }
         } else if (taste1 == Const.RbHGT) {
             if (streckenState != StreckenState.FREE) {
-                int signalNr = blockCommand.equals(UartCommand.BLOCK1) ? 0 : 1;
+                int signalNr = blockPort == (Const.StreckeVonAH) ? 0 : 1;
                 if (config.ersatzsignale[signalNr].isFahrt() || config.signale[signalNr].isFahrt() || config.signale[signalNr].isSh1()) {
                     config.alert("Signal oder Ersatzsignal noch auf Fahrt.");
                 } else {
-                    config.uart1.sendCommand(blockCommand);
+                    triggerBlock();
                     rueckblockenUntil = 0;
                 }
             }
@@ -111,30 +115,11 @@ public class StreckeEinfahrt extends Strecke {
     @Override
     public void tick(int count) {
         super.tick(count);
-        //raeumungsmelderAktiv |= (streckenState != StreckenState.FREE);
-        
         var meldung = raeumungsmelderAktiv;
         if (streckenState == StreckenState.TRAIN_ARRIVED) {
             meldung = (count & 0x8) == 0x8;
         }
         config.connector.setOut(sperrRaeumungsmelder, meldung);
-
-        /*
-        if (rueckblockenUntil == 0) {
-            rueckblockenUntil = count + Const.KURBELINDUKTOR_RUNDEN;
-            useMJ1MJ2 = !useMJ1MJ2;
-            config.connector.setOut(useMJ1MJ2 ? Const.MJ1 : Const.MJ2, true);
-            config.alert("Rückblocken " + name + " gestartet.");
-        } else if (rueckblockenUntil != Integer.MAX_VALUE) {
-            if (count > rueckblockenUntil) {
-                config.connector.setOut(Const.MJ1, false);
-                config.connector.setOut(Const.MJ2, false);
-                config.alert("Rückblocken " + name + " beendet.");
-                rueckblockenUntil = Integer.MAX_VALUE;
-                raeumungsmelderAktiv = false;
-            }
-        }
-        */
     }
 
     @Override

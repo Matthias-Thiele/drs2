@@ -9,6 +9,8 @@ package de.mmth.drs2;
  * @author pi
  */
 public class Const {
+    public final static int PENDING_TRAIN_DURATION = 600;
+
     // Eingänge
     
     // Tastenanschalter
@@ -118,4 +120,8 @@ public class Const {
     public static final int SlFT1Relais = 121;
     public static final int SlFT4Relais = 122;
     public static final int Wecker = 120;
+    
+    // Relaisblock
+    public static final int StreckeNachAH = 123;
+    public static final int StreckeVonAH = 124;
 }

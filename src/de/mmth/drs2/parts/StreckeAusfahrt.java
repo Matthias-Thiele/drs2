@@ -47,6 +47,7 @@ public class StreckeAusfahrt extends Strecke {
     @Override
     public void clearWiederholsperre() {
         pendingClear = true;
+        markStrecke();
     }
     
     /**
@@ -58,7 +59,6 @@ public class StreckeAusfahrt extends Strecke {
         markStrecke();
     }
     
-    
     /**
      * Der ausfahrende Zug blockt automatisch vor und löst die Wiederholsperre. 
      * 
@@ -67,7 +67,7 @@ public class StreckeAusfahrt extends Strecke {
     @Override
     public void activateGleiskontakt(boolean mitErsatzsignal) {
         if (!mitErsatzsignal) {
-            config.uart1.sendCommand(blockCommand);
+          triggerBlock();
         }
         
         clearWiederholsperre();
@@ -88,7 +88,7 @@ public class StreckeAusfahrt extends Strecke {
             case Const.BlGT:
                 if (taste2 == vorblockHilfsTaste) {
                     // Bei der Ausfahrt über Hilfssignal muss manuell vorgeblockt werden.
-                    config.uart1.sendCommand(blockCommand);
+                    triggerBlock();
                     clearWiederholsperre();
                     rueckblockenUntil = 0;
                 }
