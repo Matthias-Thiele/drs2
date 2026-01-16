@@ -207,7 +207,7 @@ public final class Uart implements TickerEvent {
     private void fillupOutputBuffer(byte[] buffer) {
         var outputs = config.connector.drs2Out;
         var pos = 0;
-        for (var i = 1; i < 15; i++) {
+        for (var i = 1; i < 16; i++) {
             if (i == 13) {
                 pos += 8; // Status vom Block
             }
@@ -349,10 +349,10 @@ public final class Uart implements TickerEvent {
             case UPDATE_OUTPUTS:
                 if (isDRS2) {
                     buffer[0] = OUTPUT_MARKER;
-                    buffer[15] = STATUS_END;
+                    buffer[16] = STATUS_END;
                     fillupOutputBuffer(buffer);
 
-                    bytesToSend = 16;
+                    bytesToSend = 17;
                 } else {
                     fillupIOBuffer(buffer);
 
@@ -394,12 +394,11 @@ public final class Uart implements TickerEvent {
         }
         
         comPort.writeBytes(buffer, bytesToSend);
-        if (!isDRS2) {
         System.out.print("Sent: ");
         for (var i = 0; i < bytesToSend; i++) {
             System.out.print(Integer.toHexString(buffer[i] & 0xff) + " ");
         }
-        System.out.println();}
+        System.out.println();
     }
     
 }

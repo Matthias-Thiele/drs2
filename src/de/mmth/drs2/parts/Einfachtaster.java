@@ -13,7 +13,7 @@ import de.mmth.drs2.io.Connector;
  * @author pi
  */
 public class Einfachtaster implements TickerEvent {
-    private static final int ACTIVATION_COUNT = 10;
+    private static final int ACTIVATION_COUNT = 2;
     private static final int ALERT_COUNT = 160;
     
     private Connector drs2;
