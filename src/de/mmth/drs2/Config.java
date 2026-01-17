@@ -221,27 +221,27 @@ public class Config implements TickerEvent {
         Strecke fromH = new StreckeEinfahrt();
         fromH.init(this, "Von H", Const.BlockHIn, Const.StreckeVonHWeiss, 
                 Const.StreckeVonHRot, Const.EinfRaeumungsmelderH, Const.VbHT_H, 
-                Const.EinfFestlegemelderH, -1);
+                Const.EinfFestlegemelderH, -1, 1);
         strecken[FROM_H] = fromH;
         fromH.setSimulationMode(true);
         
         Strecke fromM = new StreckeEinfahrt();
         fromM.init(this, "Von M", Const.BlockMIn, Const.StreckeVonMWeiss, 
                 Const.StreckeVonMRot, Const.EinfRaeumungsmelderM, Const.VbHT_M, 
-                Const.EinfFestlegemelderM, Const.StreckeVonAH);
+                Const.EinfFestlegemelderM, Const.StreckeVonAH, 0);
         strecken[FROM_M] = fromM;
         
         Strecke toH = new StreckeAusfahrt();
         toH.init(this, "Nach H", Const.BlockHOut, Const.StreckeNachHWeiss,
                 Const.StreckeNachHRot, Const.AusfSperrmelderH, Const.VbHT_H,
-                Const.AusfFestlegemelderH, -1);
+                Const.AusfFestlegemelderH, -1, -1);
         strecken[TO_H] = toH;
         toH.setSimulationMode(true);
         
         Strecke toM = new StreckeAusfahrt();
         toM.init(this, "Nach M", Const.BlockMOut, Const.StreckeNachMWeiss,
                 Const.StreckeNachMRot, Const.AusfSperrmelderM, Const.VbHT_M,
-                Const.AusfFestlegemelderM, Const.StreckeNachAH);
+                Const.AusfFestlegemelderM, Const.StreckeNachAH, -1);
         strecken[TO_M] = toM;
     }
     

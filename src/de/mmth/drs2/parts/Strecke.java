@@ -37,6 +37,7 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
     
     protected int blockPort;
     protected int releaseBlockPort = Integer.MAX_VALUE;
+    protected int signalId;
     
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -55,7 +56,7 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
     public void init(Config config, String name, 
             int streckenTaste, int streckeWeiss, int streckeRot, 
             int sperrRaeumungsmelder, int vorblockHilfsTaste,
-            int festlegemelder, int blockPort) {
+            int festlegemelder, int blockPort, int signalId) {
         this.config = config;
         this.name = name;
         this.streckeWeiss = streckeWeiss;
@@ -65,6 +66,7 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
         this.vorblockHilfsTaste = vorblockHilfsTaste;
         this.festlegemelderId = festlegemelder;
         this.blockPort = blockPort;
+        this.signalId = signalId;
         
         this.streckeTaster = new Doppeltaster();
         this.streckeTaster.init(config, this, Const.BlGT, streckenTaste);

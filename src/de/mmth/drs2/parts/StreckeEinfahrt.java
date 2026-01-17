@@ -37,7 +37,17 @@ public class StreckeEinfahrt extends Strecke {
             }
             
             if (simulationMode) {
-              config.stoerungsmelder.meldung();
+              boolean weckerEin = true;
+              if (signalId >= 0) {
+                if (config.signale[signalId].isFahrt()) {
+                  // kein Wecker, wenn das Einfahrtssignal bereits auf Fahrt steht.
+                  weckerEin = false;
+                }
+              }
+              
+              if (weckerEin) {
+                config.stoerungsmelder.meldung();
+              }
             }
         } else if (!isInUse) {
             streckenState = StreckenState.FREE;
