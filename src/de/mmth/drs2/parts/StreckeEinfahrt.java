@@ -35,6 +35,10 @@ public class StreckeEinfahrt extends Strecke {
             } else if (name.endsWith("M")) {
               config.pendingTrainM = Const.PENDING_TRAIN_DURATION;
             }
+            
+            if (simulationMode) {
+              config.stoerungsmelder.meldung();
+            }
         } else if (!isInUse) {
             streckenState = StreckenState.FREE;
         }

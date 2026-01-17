@@ -59,6 +59,8 @@ public class Const {
     // Schlüsselschalter
     public static final int SCHLUESSEL_A = 56;
     public static final int SCHLUESSEL_F = 57;
+    public static final int BLOCK_AH_OUT = 58;
+    public static final int BLOCK_AH_IN = 59;
     
     // Schlüsselweiche
     public static final int WSCHLUESSEL3 = 34;

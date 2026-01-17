@@ -6,6 +6,7 @@ package de.mmth.drs2.io;
 
 import com.fazecast.jSerialComm.SerialPort;
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 
 /**
@@ -116,6 +117,19 @@ public final class Uart implements TickerEvent {
         }
         if (changed) {
             System.out.println("changed IO.");
+            if (config.connector.drs2In[Const.BLOCK_AH_IN]) {
+              if (!actEinfahrt1) {
+                  // Streckenblock M, Einfahrt von Weiß nach Rot
+                  actEinfahrt1 = true;
+                  config.stoerungsmelder.meldung();
+                  config.pendingTrainM = PENDING_TRAIN_DURATION;
+              }
+            } else {
+              actEinfahrt1 = false;
+            }
+            
+            config.strecken[1].updateStreckenblock(config.connector.drs2In[Const.BLOCK_AH_IN]);
+            config.strecken[3].updateStreckenblock(config.connector.drs2In[Const.BLOCK_AH_OUT]);
         }
     }
     

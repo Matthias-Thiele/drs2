@@ -25,6 +25,8 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     private boolean strgS = false;
     private boolean strgW = false;
     private boolean strgT = false;
+    private boolean beepS = false;
+    private boolean beepW = false;
     
     private int klingel;
     private int tu;
@@ -125,7 +127,13 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
             config.connector.setOut(lampeW, false);
         }
         
-        boolean beep = strgS || strgT || strgW;
+        if (!strgS) {
+          beepS = false;
+        }
+        
+        if (!strgW) {
+          beepW = false;
+        }
         
         if (melder > 0) {
             melder--;
@@ -133,7 +141,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
             config.connector.setOut(wecker, false);
         }
         
-        config.connector.setOut(klingel, beep);
+        config.connector.setOut(klingel, beepS | beepW | strgT);
         config.connector.setOut(tu, strgT);
     }
 
@@ -146,6 +154,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
             if (signal.isGestoert()) {
                 if (!signal.getName().equals(lastSignalStoerung)) {
                     strgS = true;
+                    beepS = true;
                     lastSignalStoerung = signal.getName();
                     config.alert("Signalstörung: " + lastSignalStoerung);
                 }
@@ -167,6 +176,7 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
             if (weiche.isGestoert()) {
                 if (!weiche.getName().equals(lastWeichenStoerung)) {
                     strgW = true;
+                    beepW = true;
                     lastWeichenStoerung = weiche.getName();
                     config.alert("Weichenstörung: " + lastWeichenStoerung);
                 }
@@ -186,11 +196,9 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     @Override
     public void whenPressed(int taste1, int taste2) {
         if (taste1 == tasteSint) {
-            strgS = false;
-            config.connector.setOut(lampeS, false);
+            beepS = false;
         } else {
-            strgW = false;
-            config.connector.setOut(lampeW, false);
+            beepW = false;
         }
     }
     

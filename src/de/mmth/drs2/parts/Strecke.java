@@ -90,6 +90,8 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
         
         aslt = new Doppeltaster();
         aslt.init(config, this, Const.AsLT, streckenTaste, true);
+        
+        useMJ1MJ2 = (streckenTaste == Const.BlockHIn) || (streckenTaste == Const.BlockHOut);
         config.ticker.add(aslt);
         
         config.ticker.add(this);
@@ -117,7 +119,7 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
      */
     protected void triggerBlock() {
         if (simulationMode) {
-          updateStreckenblock(true);
+          updateStreckenblock(false);
         } else {
           if (blockPort < 0) {
             config.alert("Auf dieser Seite ist kein Relaisblock.");
@@ -196,7 +198,6 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
         
         if (rueckblockenUntil == 0) {
             rueckblockenUntil = count + Const.KURBELINDUKTOR_RUNDEN;
-            useMJ1MJ2 = !useMJ1MJ2;
             config.connector.setOut(useMJ1MJ2 ? Const.MJ1 : Const.MJ2, true);
             config.alert("Rückblocken " + name + " gestartet.");
         } else if (rueckblockenUntil != Integer.MAX_VALUE) {
