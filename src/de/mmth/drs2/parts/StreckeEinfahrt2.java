@@ -1,0 +1,266 @@
+/*
+ * DRS2 Stellpultsteuerung für Raspberry Pi
+ * (c) 2022 Matthias Thiele
+ */
+package de.mmth.drs2.parts;
+
+import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
+import de.mmth.drs2.TickerEvent;
+import de.mmth.drs2.parts.state.StreckenState;
+
+/**
+ *
+ * @author matthias
+ */
+public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
+  private static final int RUECKBLOCK_RELAIS_COUNT = -20;
+  private static final int RUECKBLOCK_SIMULATION_COUNT = -60;
+  
+  private Config config;
+  private int blockMelderWeiss;
+  private int blockMelderRot;
+  private Doppeltaster rueckblockTaster;
+  private StreckenState streckenState;
+  private String name;
+  private int raeumungsmelderId;
+  private boolean raeummelderState;
+  private boolean räummelderDauerlicht;
+  private int rueckblockenUntil;
+  private int rueckblockTaste;
+  private boolean simulationMode = false;
+  private Doppeltaster ast;
+  private Doppeltaster aslt;
+  private Doppeltaster RbHG;
+
+  private int signalId;
+  private int blockStatePort;
+  private int rueckblockPort;
+  private int rueckblockCount = Integer.MAX_VALUE;
+  private boolean simulatedBlockState;
+  private int festlegemelderId;
+  private boolean festlegemelderState = false;
+    
+  /**
+   * Die Initialisierung übergibt die Nummer der Streckenblock
+   * Taste und die Nummern der weißen- und roten Pfeil-Lampe.
+   * 
+   * @param config
+   * @param name
+   * @param rueckblockTaste
+   * @param blockMelderWeiss
+   * @param blockMelderRot 
+   * @param raeumungsmelderId 
+   * @param rueckblockPort 
+   * @param blockStatePort 
+   * @param signalId 
+   */
+  public void init(Config config, String name, 
+        int rueckblockTaste, int blockMelderWeiss, int blockMelderRot, 
+        int raeumungsmelderId, int festlegemelderId, 
+        int rueckblockPort, int blockStatePort, int signalId) {
+      this.config = config;
+      this.name = name;
+      this.blockMelderWeiss = blockMelderWeiss;
+      this.blockMelderRot = blockMelderRot;
+      this.raeumungsmelderId = raeumungsmelderId;
+      this.festlegemelderId = festlegemelderId;
+      this.rueckblockTaste = rueckblockTaste;
+      this.rueckblockPort = rueckblockPort;
+      this.blockStatePort = blockStatePort;
+      this.signalId = signalId;
+
+      this.rueckblockTaster = new Doppeltaster();
+      this.rueckblockTaster.init(config, this, Const.BlGT, rueckblockTaste);
+      config.ticker.add(rueckblockTaster);
+
+      this.RbHG = new Doppeltaster();
+      this.RbHG.init(config, this, Const.RbHGT, rueckblockTaste);
+      config.ticker.add(RbHG);
+
+      streckenState = StreckenState.FREE;
+      updateView();
+      rueckblockenUntil = Integer.MAX_VALUE;
+
+      ast = new Doppeltaster();
+      ast.init(config, this, Const.AsT, rueckblockTaste, true);
+      config.ticker.add(ast);
+
+      aslt = new Doppeltaster();
+      aslt.init(config, this, Const.AsLT, rueckblockTaste, true);
+      config.ticker.add(aslt);
+
+
+      config.ticker.add(this);
+  }
+
+  /**
+   * Stellt ein, ob sich der Block im Simulationsmodus befindet
+   * oder mit dem Relaisblock verbunden ist.
+   * 
+   * @param simulation 
+   */
+  public void setSimulationMode(boolean simulation) {
+    simulationMode = simulation;
+  }
+  
+  public boolean tryVorblock() {
+    if (simulationMode && !raeummelderState) {
+      simulatedBlockState = true;
+      return true;
+    }
+    
+    return false;
+  }
+  
+  public void doFHT() {
+    
+  }
+  
+  /**
+   * Meldet zurück ob die Strecke frei ist.
+   * @return 
+   */
+  public boolean isFree() {
+    return streckenState == StreckenState.FREE;
+  }
+  
+  /**
+   * Mit der Fahrstraßenfestlegung wird der Festlegemelder aktiviert.
+   */
+  public void setFahrstrassenfestlegung() {
+      festlegemelderState = true;
+      räummelderDauerlicht = true;
+      updateView();
+  }
+  
+  /**
+   * Mit der Fahrstraßenauflösung wird der Melder zurückgesetzt.
+   */
+  public void fahrstrassenauflösung() {
+    festlegemelderState = false;
+    updateView();
+  }
+
+  public void trainArrived() {
+    //???
+  }
+  
+  /**
+   * Der einfahrende Zug macht was?. 
+   * 
+   * @param mitErsatzsignal
+   */
+  public void activateGleiskontakt(boolean mitErsatzsignal) {
+      räummelderDauerlicht = false;
+      raeummelderState = true;
+  }
+  
+  /**
+   * Zug hat den Räumungsabschnitt verlassen
+   */
+  public void streckeGeraeumt() {
+    raeummelderState = false;
+  }
+  
+  /**
+   * Aktualisiert die Lampeneinstellung gemäß des aktuellen Zustands
+   */
+  private void updateView() {
+    boolean besetzt = streckenState != StreckenState.FREE;
+    config.connector.setOut(blockMelderRot, besetzt);
+    config.connector.setOut(blockMelderWeiss, !besetzt);
+    config.connector.setOut(raeumungsmelderId, raeummelderState & (räummelderDauerlicht || config.blinklicht.getBlink()));
+    config.connector.setOut(festlegemelderId, festlegemelderState);
+  }
+  
+  private boolean isFahrt() {
+    return config.signale[signalId].isFahrt();
+  }
+  
+  private boolean getBlockState() {
+    if (simulationMode) {
+      return simulatedBlockState;
+    } else {
+      return config.connector.isInSet(blockStatePort);
+    }
+  }
+  
+  @Override
+  public void whenPressed(int taste1, int taste2) {
+    if (taste1 == Const.BlGT) {
+      // Zug ist eingefahren, Strecke wird zurückgeblockt.
+      if (isFahrt()) {
+        config.alert("Zug noch nicht eingefahren, Signal noch auf Fahrt.");
+      } else {
+        startRueckblock();
+      }
+    } else if (taste1 == Const.AsT) {
+      
+    }
+  }
+
+  /**
+   * Veranlasst ein Rückblocken.
+   */
+  private void startRueckblock() {
+    rueckblockCount = simulationMode ? RUECKBLOCK_SIMULATION_COUNT : RUECKBLOCK_RELAIS_COUNT;
+  }
+  
+  /**
+   * Prüft nach, ob es einen aktiven Rückblockvorgang gibt und führt ihn aus.
+   * @param count 
+   */
+  private void tickRueckblock(int count) {
+    if (rueckblockCount < 0) {
+      // Rückblocken starten
+      if (!simulationMode) {
+        // Relaisblock anweisen das Rückblocken zu starten
+        config.connector.setOut(rueckblockPort, true);
+      }
+      
+      rueckblockCount = count - rueckblockCount;
+    } else if (rueckblockCount < count) {
+      // Ende der Rückblock-Zeit erreicht.
+      raeummelderState = false;
+      if (simulationMode) {
+        simulatedBlockState = false;
+      } else {
+        // Rückblocken beendet
+        config.connector.setOut(rueckblockPort, false);
+      }
+      
+      rueckblockCount = Integer.MAX_VALUE;
+      updateView();
+    }
+  }
+  
+  /**
+   * Prüft nach, ob sich der Zustand des Streckenblocks verändert hat.
+   * @param count 
+   */
+  private void checkStreckenState() {
+    var newStreckenState = getBlockState() ? StreckenState.WAIT_FOR_TRAIN : StreckenState.FREE;
+    if (!newStreckenState.equals(streckenState)) {
+      if (newStreckenState.equals(StreckenState.WAIT_FOR_TRAIN)) {
+        // Block hat von Frei nach Besetzt gewechselt
+        if (!isFahrt()) {
+          config.stoerungsmelder.meldung();
+        }
+      }
+      streckenState = newStreckenState;
+      updateView();
+    }
+  }
+  
+  @Override
+  public void tick(int count) {
+    tickRueckblock(count);
+    checkStreckenState();
+    if (raeummelderState) {
+      updateView();
+    }
+  }
+
+  
+}

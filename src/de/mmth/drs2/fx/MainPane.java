@@ -113,29 +113,19 @@ public class MainPane extends HBox implements TickerEvent {
         
         var block1 = createSizedButton("Von Alth", STD_BUTTON_SIZE);
         block1.setOnAction(ev -> {
-            config.strecken[Config.FROM_M].updateStreckenblock(true);
-        });
-        
-        var block2 = createSizedButton("Nach Alth", STD_BUTTON_SIZE);
-        block2.setOnAction(ev -> {
-            config.strecken[Config.TO_M].updateStreckenblock(false);
+            config.streckenEin[Config.FROM_M].tryVorblock();
         });
         
         var block3 = createSizedButton("Von WB", STD_BUTTON_SIZE);
         block3.setOnAction(ev -> {
-            config.strecken[Config.FROM_H].updateStreckenblock(true);
-        });
-        
-        var block4 = createSizedButton("Nach WB", STD_BUTTON_SIZE);
-        block4.setOnAction(ev -> {
-            config.strecken[Config.TO_H].updateStreckenblock(false);
+            config.streckenEin[Config.FROM_H].tryVorblock();
         });
         
         var simu = createSizedButton("Relaisblock", STD_BUTTON_SIZE);
         simu.setOnAction(ev -> {
             simulateAH = !simulateAH;
-            config.strecken[Config.FROM_M].setSimulationMode(simulateAH);
-            config.strecken[Config.TO_M].setSimulationMode(simulateAH);
+            config.streckenEin[Config.FROM_M].setSimulationMode(simulateAH);
+            config.streckenAus[Config.TO_M].setSimulationMode(simulateAH);
             simu.setText(simulateAH ? "Simulation" : "Relaisblock");
         });
         
@@ -144,7 +134,14 @@ public class MainPane extends HBox implements TickerEvent {
             config.blinklicht.setStoerung(!config.blinklicht.getStoerung());
         });
         
-        box.getChildren().addAll(block1,block2, block3, block4, simu, blink);
+        var zsm = createSizedButton("ZSM", STD_BUTTON_SIZE);
+        zsm.setOnAction(ev -> {
+          if (!config.streckenEin[Config.FROM_M].isFree()) {
+            config.connector.setOut(Const.ZSM, true);
+          }
+        });
+        
+        box.getChildren().addAll(block1,block3, simu, blink, zsm);
         
         var gleis1 = createSizedButton("Zug G1", STD_BUTTON_SIZE);
         gleis1.setOnAction(ev -> {

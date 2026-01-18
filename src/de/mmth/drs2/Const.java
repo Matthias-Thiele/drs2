@@ -94,6 +94,7 @@ public class Const {
     
     // Meldelampen
     public static final int BLINK_STOERUNG = 107;
+    public static final int ZSM = 106;
     
     // Streckenblock
     public static final int StreckeVonHWeiss = 62;

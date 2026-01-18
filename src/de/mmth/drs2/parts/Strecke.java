@@ -32,7 +32,7 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
     protected int vorblockHilfsTaste;
     protected int festlegemelderId;
     protected boolean simulationMode = false;
-    
+    protected boolean isInbound;
     protected boolean sperrRaeummelder = false;
     private Doppeltaster ast;
     private Doppeltaster aslt;
@@ -205,32 +205,34 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
           releaseBlockPort = Integer.MAX_VALUE;
         }
         
-        if (rueckblockenUntil == 0) {
-            rueckblockenUntil = count + Const.KURBELINDUKTOR_RUNDEN;
-            config.connector.setOut(useMJ1MJ2 ? Const.MJ1 : Const.MJ2, true);
-            config.alert("Rückblocken " + name + " gestartet.");
-        } else if (rueckblockenUntil != Integer.MAX_VALUE) {
-            if (count > rueckblockenUntil) {
-                config.connector.setOut(Const.MJ1, false);
-                config.connector.setOut(Const.MJ2, false);
-                config.alert("Rückblocken " + name + " beendet.");
-                rueckblockenUntil = Integer.MAX_VALUE;
-            }
-        }
-        
-        if (endBlinkWHSperre == 0) {
-          endBlinkWHSperre = count + BLINK_WH_DURATION;
-        } else if (endBlinkWHSperre < count) {
-          sperrRaeummelder = false;
-          endBlinkWHSperre = Integer.MAX_VALUE;
-        }
-        
-        config.connector.setOut(sperrRaeumungsmelder, (endBlinkWHSperre == Integer.MAX_VALUE) ? sperrRaeummelder : (sperrRaeummelder & config.blinklicht.getBlink()));
-        
-        if (this.startAutoRueckblock == 0) {
-          startAutoRueckblock = count + AUTO_RB_DELAY; 
-        } else if (startAutoRueckblock < count) {
-          updateStreckenblock(false);
+        if (!isInbound) {
+          if (rueckblockenUntil == 0) {
+              rueckblockenUntil = count + Const.KURBELINDUKTOR_RUNDEN;
+              config.connector.setOut(useMJ1MJ2 ? Const.MJ1 : Const.MJ2, true);
+              config.alert("Rückblocken " + name + " gestartet.");
+          } else if (rueckblockenUntil != Integer.MAX_VALUE) {
+              if (count > rueckblockenUntil) {
+                  config.connector.setOut(Const.MJ1, false);
+                  config.connector.setOut(Const.MJ2, false);
+                  config.alert("Rückblocken " + name + " beendet.");
+                  rueckblockenUntil = Integer.MAX_VALUE;
+              }
+          }
+
+          if (endBlinkWHSperre == 0) {
+            endBlinkWHSperre = count + BLINK_WH_DURATION;
+          } else if (endBlinkWHSperre < count) {
+            sperrRaeummelder = false;
+            endBlinkWHSperre = Integer.MAX_VALUE;
+          }
+
+          config.connector.setOut(sperrRaeumungsmelder, (endBlinkWHSperre == Integer.MAX_VALUE) ? sperrRaeummelder : (sperrRaeummelder & config.blinklicht.getBlink()));
+
+          if (this.startAutoRueckblock == 0) {
+            startAutoRueckblock = count + AUTO_RB_DELAY; 
+          } else if (startAutoRueckblock < count) {
+            updateStreckenblock(false);
+          }
         }
     }
 

@@ -20,7 +20,9 @@ import de.mmth.drs2.parts.Schluesselweiche;
 import de.mmth.drs2.parts.Stoerungsmelder;
 import de.mmth.drs2.parts.Strecke;
 import de.mmth.drs2.parts.StreckeAusfahrt;
+import de.mmth.drs2.parts.StreckeAusfahrt2;
 import de.mmth.drs2.parts.StreckeEinfahrt;
+import de.mmth.drs2.parts.StreckeEinfahrt2;
 import de.mmth.drs2.parts.Weiche;
 import javafx.stage.Stage;
 
@@ -77,15 +79,16 @@ public class Config implements TickerEvent {
     /**
      * Anzahl der Ein- und Ausfahrt Strecken.
      */
-    public final static int ANZAHL_STRECKEN = 4;
+    public final static int ANZAHL_STRECKEN_EIN = 2;
+    public final static int ANZAHL_STRECKEN_AUS = 2;
 
     /**
      * Index der Strecken im Strecken-Array
      */
     public static final int FROM_H = 0;
     public static final int FROM_M = 1;
-    public static final int TO_H = 2;
-    public static final int TO_M = 3;
+    public static final int TO_H = 0;
+    public static final int TO_M = 1;
     
     
     /**
@@ -149,7 +152,8 @@ public class Config implements TickerEvent {
     /**
      * Streckenblöcke in Richtung H und M für Ein- und Ausfahrt.
      */
-    public final Strecke[] strecken = new Strecke[ANZAHL_STRECKEN];
+    public final StreckeEinfahrt2[] streckenEin = new StreckeEinfahrt2[ANZAHL_STRECKEN_EIN];
+    public final StreckeAusfahrt2[] streckenAus = new StreckeAusfahrt2[ANZAHL_STRECKEN_AUS];
     
     /**
      * Verbindung zum externen Streckenblock-Adapter und DRS2
@@ -225,31 +229,30 @@ public class Config implements TickerEvent {
      * Initialisiert die vier Streckenblöcke.
      */
     private void initStrecken() {
-        Strecke fromH = new StreckeEinfahrt();
+        StreckeEinfahrt2 fromH = new StreckeEinfahrt2();
         fromH.init(this, "Von H", Const.BlockHIn, Const.StreckeVonHWeiss, 
-                Const.StreckeVonHRot, Const.EinfRaeumungsmelderH, Const.VbHT_H, 
-                Const.EinfFestlegemelderH, -1, 1);
-        strecken[FROM_H] = fromH;
+                Const.StreckeVonHRot, Const.EinfRaeumungsmelderH, Const.EinfFestlegemelderH, -1, -1, 1);
+        streckenEin[FROM_H] = fromH;
         fromH.setSimulationMode(true);
         
-        Strecke fromM = new StreckeEinfahrt();
+        StreckeEinfahrt2 fromM = new StreckeEinfahrt2();
         fromM.init(this, "Von M", Const.BlockMIn, Const.StreckeVonMWeiss, 
-                Const.StreckeVonMRot, Const.EinfRaeumungsmelderM, Const.VbHT_M, 
-                Const.EinfFestlegemelderM, Const.StreckeVonAH, 0);
-        strecken[FROM_M] = fromM;
-        
-        Strecke toH = new StreckeAusfahrt();
+                Const.StreckeVonMRot, Const.EinfRaeumungsmelderM, Const.EinfFestlegemelderM, 
+                Const.StreckeVonAH, Const.BLOCK_AH_IN, 0);
+        streckenEin[FROM_M] = fromM;
+  
+        StreckeAusfahrt2 toH = new StreckeAusfahrt2();
         toH.init(this, "Nach H", Const.BlockHOut, Const.StreckeNachHWeiss,
                 Const.StreckeNachHRot, Const.AusfSperrmelderH, Const.VbHT_H,
                 Const.AusfFestlegemelderH, -1, -1);
-        strecken[TO_H] = toH;
+        streckenAus[TO_H] = toH;
         toH.setSimulationMode(true);
         
-        Strecke toM = new StreckeAusfahrt();
+        StreckeAusfahrt2 toM = new StreckeAusfahrt2();
         toM.init(this, "Nach M", Const.BlockMOut, Const.StreckeNachMWeiss,
                 Const.StreckeNachMRot, Const.AusfSperrmelderM, Const.VbHT_M,
-                Const.AusfFestlegemelderM, Const.StreckeNachAH, -1);
-        strecken[TO_M] = toM;
+                Const.AusfFestlegemelderM, Const.StreckeNachAH, Const.BLOCK_AH_OUT);
+        streckenAus[TO_M] = toM;
     }
     
     /**
@@ -402,7 +405,7 @@ public class Config implements TickerEvent {
             int schluesselweiche1 = -1, schluesselweiche2 = -1;
             int pruefungPlus = -1, pruefungMinus = -1;
             int aufloesungsTaste = -1;
-            Strecke strecke;
+            StreckeEinfahrt2 streckeEin = null; StreckeAusfahrt2 streckeAus = null;
             
             switch(i) {
                 case 0:
@@ -420,7 +423,7 @@ public class Config implements TickerEvent {
                     signalNummer = 0;
                     streckenTaster = 17;
                     ersatz = 0;
-                    strecke = strecken[FROM_M];
+                    streckeEin = streckenEin[FROM_M];
                     pruefungPlus = 3;
                     break;
                     
@@ -439,7 +442,7 @@ public class Config implements TickerEvent {
                     signalNummer = 0;
                     streckenTaster = 17;
                     ersatz = 0;
-                    strecke = strecken[FROM_M];
+                    streckeEin = streckenEin[FROM_M];
                     schluesselweiche1 = 0;
                     pruefungMinus = 3;
                     break;
@@ -459,7 +462,7 @@ public class Config implements TickerEvent {
                     signalNummer = 1;
                     streckenTaster = 18;
                     ersatz = 1;
-                    strecke = strecken[FROM_H];
+                    streckeEin = streckenEin[FROM_H];
                     schluesselweiche1 = 2;
                     pruefungPlus = 0;
                     break;
@@ -479,7 +482,7 @@ public class Config implements TickerEvent {
                     signalNummer = 1;
                     streckenTaster = 18;
                     ersatz = 1;
-                    strecke = strecken[FROM_H];
+                    streckeEin = streckenEin[FROM_H];
                     schluesselweiche1 = 0;
                     pruefungMinus = 2;
                     break;
@@ -498,7 +501,7 @@ public class Config implements TickerEvent {
                     int[] fahrwegWeichen4 = {0};
                     fahrwegWeichen = fahrwegWeichen4;
                     signalNummer = 2;
-                    strecke = strecken[TO_M];
+                    streckeAus = streckenAus[TO_M];
                     ersatz = 4;
                     schluesselweiche1 = 1;
                     schluesselweiche2 = 2;
@@ -518,7 +521,7 @@ public class Config implements TickerEvent {
                     int[] fahrwegWeichen5 = {2, 1, 0};
                     fahrwegWeichen = fahrwegWeichen5;
                     signalNummer = 3;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-                    strecke = strecken[TO_M];
+                    streckeAus = streckenAus[TO_M];
                     ersatz = 5;
                     schluesselweiche1 = 0;
                     schluesselweiche2 = 1;
@@ -538,7 +541,7 @@ public class Config implements TickerEvent {
                     int[] fahrwegWeichen6 = {3, 4};
                     fahrwegWeichen = fahrwegWeichen6;
                     signalNummer = 4;
-                    strecke = strecken[TO_H];
+                    streckeAus = streckenAus[TO_H];
                     ersatz = 2;
                     break;
                     
@@ -556,7 +559,7 @@ public class Config implements TickerEvent {
                     int[] fahrwegWeichen7 = {3, 4};
                     fahrwegWeichen = fahrwegWeichen7;
                     signalNummer = 5;
-                    strecke = strecken[TO_H];
+                    streckeAus = streckenAus[TO_H];
                     ersatz = 3;
                     schluesselweiche1 = 0;
                     break;
@@ -566,13 +569,12 @@ public class Config implements TickerEvent {
                     taste1 = taste2 = gleis = 2; signalNummer = 0;
                     plusWeichen = new int[0];
                     minusWeichen = new int[0];
-                    strecke = strecken[0];
             }
             
             Gleismarker ausfahrtsGleis = (ausfahrt == -1) ? null : gleise[ausfahrt];
             fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, 
                     taste1, taste2, gleise[gleis], signalNummer, ersatz, ausfahrtsGleis,
-                    strecke, streckenTaster, schluesselweiche1, schluesselweiche2,
+                    streckeEin, streckeAus, streckenTaster, schluesselweiche1, schluesselweiche2,
                     pruefungPlus, pruefungMinus, aufloesungsTaste);
             
             fahrstrassen[i] = fahrstrasse;

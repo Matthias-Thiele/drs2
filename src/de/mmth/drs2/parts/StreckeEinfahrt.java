@@ -16,6 +16,10 @@ public class StreckeEinfahrt extends Strecke {
     private boolean allowAsLT;
     private boolean raeumungsmelderAktiv = false;
 
+    public StreckeEinfahrt() {
+      isInbound = true;
+    }
+    
     /**
      * Wird vom Arduino im Streckenblock aufgerufen wenn sich der
      * Status der Strecke ändert. 
@@ -50,6 +54,10 @@ public class StreckeEinfahrt extends Strecke {
               }
             }
         } else if (!isInUse) {
+            if (!streckenState.equals(StreckenState.FREE) && name.endsWith("M")) {
+              config.connector.setOut(Const.ZSM, false);
+            }
+            
             streckenState = StreckenState.FREE;
         }
         
@@ -131,7 +139,7 @@ public class StreckeEinfahrt extends Strecke {
         super.tick(count);
         var meldung = raeumungsmelderAktiv;
         if (streckenState == StreckenState.TRAIN_ARRIVED) {
-            meldung = (count & 0x8) == 0x8;
+            meldung &= config.blinklicht.getBlink();
         }
         config.connector.setOut(sperrRaeumungsmelder, meldung);
     }

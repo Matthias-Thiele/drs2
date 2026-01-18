@@ -127,13 +127,10 @@ public final class Uart implements TickerEvent {
             } else {
               actEinfahrt1 = false;
             }
-            
-            config.strecken[1].updateStreckenblock(config.connector.drs2In[Const.BLOCK_AH_IN]);
-            config.strecken[3].updateStreckenblock(config.connector.drs2In[Const.BLOCK_AH_OUT]);
         }
     }
     
-    private void processStatusByte(byte[] status) {
+/*    private void processStatusByte(byte[] status) {
         byte b = status[0];
         if (b < 0) {
             //System.out.print(b & 0xf);
@@ -182,7 +179,7 @@ public final class Uart implements TickerEvent {
         if (changed) {
             System.out.println("changed.");
         }
-    }
+    } */
     
     private void processInputBytes(byte[] buffer) {
         var pos = 0;

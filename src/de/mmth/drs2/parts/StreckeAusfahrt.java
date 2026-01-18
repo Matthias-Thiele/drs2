@@ -26,6 +26,11 @@ public class StreckeAusfahrt extends Strecke {
      */
     @Override
     public void updateStreckenblock(boolean isInUse) {
+        if (!isInUse && !streckenState.equals(StreckenState.FREE)) {
+            // Rückblock vom benachbarten FDL
+            config.stoerungsmelder.meldung();
+        }
+        
         streckenState = isInUse ? StreckenState.WAIT_FOR_TRAIN : StreckenState.FREE;
         if (pendingClear && isInUse) {
             sperrRaeummelder = false;
@@ -89,6 +94,10 @@ public class StreckeAusfahrt extends Strecke {
             
             case Const.BlGT:
                 if (taste2 == vorblockHilfsTaste) {
+                    if (sperrRaeummelder) {
+                      config.alert("Wiederholsperre aktiv, manuelles Vorblocken nicht möglich.");
+                      return;
+                    }
                     // Bei der Ausfahrt über Hilfssignal muss manuell vorgeblockt werden.
                     triggerBlock();
                     clearWiederholsperre();
