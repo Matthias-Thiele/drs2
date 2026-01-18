@@ -7,7 +7,7 @@ package de.mmth.drs2;
 import de.mmth.drs2.fx.MainPane;
 import de.mmth.drs2.io.Connector;
 import de.mmth.drs2.io.Uart;
-import de.mmth.drs2.io.UartCommand;
+import de.mmth.drs2.parts.Blinklicht;
 import de.mmth.drs2.parts.Counter;
 import de.mmth.drs2.parts.Durchfahrt;
 import de.mmth.drs2.parts.Ersatzsignal;
@@ -142,6 +142,11 @@ public class Config implements TickerEvent {
     public final Rangierfahrt[] rangierfahrten = new Rangierfahrt[ANZAHL_RANGIERFAHRTEN];
     
     /**
+     * Blinklichtgenerator für alle blinkenden Anzeigen
+     */
+    public final Blinklicht blinklicht = new Blinklicht();
+    
+    /**
      * Streckenblöcke in Richtung H und M für Ein- und Ausfahrt.
      */
     public final Strecke[] strecken = new Strecke[ANZAHL_STRECKEN];
@@ -202,6 +207,8 @@ public class Config implements TickerEvent {
         df.init(this);
         
         stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66, 65, Const.Wecker);
+        blinklicht.init(this);
+        
         //Uart.createUarts(this, "/dev/ttyAMA2", "/dev/ttyAMA1", connector.polarity);        
         Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", connector.polarity);        
         ticker.add(this);

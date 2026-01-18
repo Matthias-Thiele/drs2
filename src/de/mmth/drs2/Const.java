@@ -92,6 +92,9 @@ public class Const {
     public static final int MJ2 = 91;
     public static final int KURBELINDUKTOR_RUNDEN = 120;
     
+    // Meldelampen
+    public static final int BLINK_STOERUNG = 107;
+    
     // Streckenblock
     public static final int StreckeVonHWeiss = 62;
     public static final int StreckeVonHRot = 61;

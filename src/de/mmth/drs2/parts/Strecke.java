@@ -225,7 +225,7 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
           endBlinkWHSperre = Integer.MAX_VALUE;
         }
         
-        config.connector.setOut(sperrRaeumungsmelder, (endBlinkWHSperre == Integer.MAX_VALUE) ? sperrRaeummelder : (sperrRaeummelder & ((count & 7) == 7)));
+        config.connector.setOut(sperrRaeumungsmelder, (endBlinkWHSperre == Integer.MAX_VALUE) ? sperrRaeummelder : (sperrRaeummelder & config.blinklicht.getBlink()));
         
         if (this.startAutoRueckblock == 0) {
           startAutoRueckblock = count + AUTO_RB_DELAY; 

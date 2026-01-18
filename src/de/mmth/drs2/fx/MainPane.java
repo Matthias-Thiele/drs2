@@ -139,7 +139,12 @@ public class MainPane extends HBox implements TickerEvent {
             simu.setText(simulateAH ? "Simulation" : "Relaisblock");
         });
         
-        box.getChildren().addAll(block1,block2, block3, block4, simu);
+        var blink = createSizedButton("Blink Störung", STD_BUTTON_SIZE);
+        blink.setOnAction(ev -> {
+            config.blinklicht.setStoerung(!config.blinklicht.getStoerung());
+        });
+        
+        box.getChildren().addAll(block1,block2, block3, block4, simu, blink);
         
         var gleis1 = createSizedButton("Zug G1", STD_BUTTON_SIZE);
         gleis1.setOnAction(ev -> {

@@ -115,14 +115,14 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     public void tick(int count) {
         checkSignalstoerung();
         if (strgS) {
-            config.connector.setOut(lampeS, (count & 0x10) != 0);
+            config.connector.setOut(lampeS, config.blinklicht.getBlink());
         } else {
             config.connector.setOut(lampeS, false);
         }
         
         checkWeichenstoerung();
         if (strgW) {
-            config.connector.setOut(lampeW, (count & 0x10) == 0);
+            config.connector.setOut(lampeW, config.blinklicht.getBlink());
         } else {
             config.connector.setOut(lampeW, false);
         }

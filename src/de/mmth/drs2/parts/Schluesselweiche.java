@@ -130,7 +130,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 
             case 2:
                 // Waretet bis der Schlüssel entnommen wird, blinkt solange rot.
-                config.connector.setOut(rot, (count & 8) != 0);
+                config.connector.setOut(rot, config.blinklicht.getBlink());
                 config.connector.setOut(weiss, false);
                 if (config.connector.isInSet(wsCheck)) {
                     // Schlüssel entnommen.

@@ -235,7 +235,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         boolean l1 = inPlusStellung;
         boolean l2 = !l1;
         
-        if ((blink > 0) && (count & 0x8) == 0x8) {
+        if ((blink > 0) && !config.blinklicht.getBlink()) {
             l1 = false;
             l2 = false;
         }
