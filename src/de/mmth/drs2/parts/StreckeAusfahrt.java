@@ -40,12 +40,14 @@ public class StreckeAusfahrt extends Strecke {
      */
     @Override
     public void setWiederholsperre() {
+        System.out.println("Wiederholsperre setzen.");
         sperrRaeummelder = true;
         markStrecke();
     }
     
     @Override
     public void clearWiederholsperre() {
+        System.out.println("Wiederholsperre löschen.");
         pendingClear = true;
         markStrecke();
     }

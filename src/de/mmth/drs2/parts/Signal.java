@@ -368,14 +368,14 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             } else {
                 if (changeState == 4) {
                     changeState = 1;
-                    nextAction = count + 10;
+                    nextAction = count + 5;
                 } else {
                     changeState++;
                     if (changeState == 3) {
                         changeState = 0;
                         nextAction = Integer.MAX_VALUE;
                     } else {
-                        nextAction = count + 10;
+                        nextAction = count + 5;
                     }
                 }
             }

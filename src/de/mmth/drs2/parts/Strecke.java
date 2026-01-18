@@ -14,6 +14,9 @@ import de.mmth.drs2.parts.state.StreckenState;
  * @author root
  */
 public abstract class Strecke implements TastenEvent, TickerEvent {
+    private static final int BLINK_WH_DURATION = 50;
+    private static final int AUTO_RB_DELAY = 200;
+    
     protected Config config;
     protected int streckeWeiss;
     protected int streckeRot;
@@ -38,6 +41,9 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
     protected int blockPort;
     protected int releaseBlockPort = Integer.MAX_VALUE;
     protected int signalId;
+    
+    private int endBlinkWHSperre = Integer.MAX_VALUE;
+    private int startAutoRueckblock = Integer.MAX_VALUE;
     
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -121,7 +127,9 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
      */
     protected void triggerBlock() {
         if (simulationMode) {
-          updateStreckenblock(false);
+          updateStreckenblock(true);
+          startAutoRueckblock = 0;
+          endBlinkWHSperre = 0;
         } else {
           if (blockPort < 0) {
             config.alert("Auf dieser Seite ist kein Relaisblock.");
@@ -165,7 +173,6 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
         boolean besetzt = streckenState != StreckenState.FREE;
         config.connector.setOut(streckeRot, besetzt);
         config.connector.setOut(streckeWeiss, !besetzt);
-        config.connector.setOut(sperrRaeumungsmelder, sperrRaeummelder);
         config.connector.setOut(festlegemelderId, festlegemelder);
     }
     
@@ -209,6 +216,21 @@ public abstract class Strecke implements TastenEvent, TickerEvent {
                 config.alert("Rückblocken " + name + " beendet.");
                 rueckblockenUntil = Integer.MAX_VALUE;
             }
+        }
+        
+        if (endBlinkWHSperre == 0) {
+          endBlinkWHSperre = count + BLINK_WH_DURATION;
+        } else if (endBlinkWHSperre < count) {
+          sperrRaeummelder = false;
+          endBlinkWHSperre = Integer.MAX_VALUE;
+        }
+        
+        config.connector.setOut(sperrRaeumungsmelder, (endBlinkWHSperre == Integer.MAX_VALUE) ? sperrRaeummelder : (sperrRaeummelder & ((count & 7) == 7)));
+        
+        if (this.startAutoRueckblock == 0) {
+          startAutoRueckblock = count + AUTO_RB_DELAY; 
+        } else if (startAutoRueckblock < count) {
+          updateStreckenblock(false);
         }
     }
 

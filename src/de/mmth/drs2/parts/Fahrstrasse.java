@@ -669,6 +669,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
                 // Weiche 0 bis n
                 int weiche = state;
+                if (weiche == 0) {
+                  // bei der Ausfahrt ist es nicht Teil des Fahrwegs und
+                  // wird deshalb sofort dunkel wenn der Zug es verlassen hat.
+                  bahnhofsGleis.clear();
+                  lastRed = null;
+                }
                 
                 if (weiche < fahrwegWeichen.length) {
                     config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
