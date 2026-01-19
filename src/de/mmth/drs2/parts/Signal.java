@@ -35,7 +35,6 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     private int sh1Lampe;
     private int sh1WPlus;
     private int sh1WMinus;
-    private int einfahrtSignal;
     private int fahrstrasse1;
     private int fahrstrasse2;
     private int fahrstrasse3;
@@ -81,7 +80,6 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         this.vorsigHalt = vorsigHalt;
         this.fahrwegWhite = fahrwegWhite;
         this.fahrwegRed = fahrwegRed;
-        this.einfahrtSignal = einfahrtSignal;
         this.sh1Lampe = sh1Lampe;
         this.sh1WPlus = sh1WPlus;
         this.sh1WMinus = sh1WMinus;
@@ -364,18 +362,18 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     public void tick(int count) {
         if (count > nextAction) {
             if (nextAction == 0) {
-                nextAction = count + 10;
+                nextAction = count + 5;
             } else {
                 if (changeState == 4) {
                     changeState = 1;
-                    nextAction = count + 5;
+                    nextAction = count + 3;
                 } else {
                     changeState++;
                     if (changeState == 3) {
                         changeState = 0;
                         nextAction = Integer.MAX_VALUE;
                     } else {
-                        nextAction = count + 5;
+                        nextAction = count + 3;
                     }
                 }
             }

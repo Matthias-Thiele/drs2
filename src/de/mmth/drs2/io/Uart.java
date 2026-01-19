@@ -28,7 +28,6 @@ public final class Uart implements TickerEvent {
     private final SerialPort comPort;
     private final Config config;
     private boolean actEinfahrt1 = false;
-    private boolean actEinfahrt2 = false;
     private byte STATUS_MARKER = (byte) 'B';
     private final byte OUTPUT_MARKER = (byte) 'C';
     private final byte STATUS_END = (byte)'X';
@@ -121,7 +120,9 @@ public final class Uart implements TickerEvent {
               if (!actEinfahrt1) {
                   // Streckenblock M, Einfahrt von Weiß nach Rot
                   actEinfahrt1 = true;
-                  config.stoerungsmelder.meldung();
+                  if (!config.signale[0].isFahrt()) {
+                    config.stoerungsmelder.meldung();
+                  }
                   config.pendingTrainM = PENDING_TRAIN_DURATION;
               }
             } else {

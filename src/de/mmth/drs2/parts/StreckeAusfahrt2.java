@@ -18,8 +18,6 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
   private static final int VORBLOCK_SIMULATION_COUNT = -60;
   private static final int RÜCKBLOCK_SIMULATION_COUNT = -200;
   
-  private static final int BLINK_WH_DURATION = 50;
-  private static final int AUTO_RB_DELAY = 200;
 
   protected Config config;
   protected int blockMelderWeiss;
@@ -29,7 +27,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
   protected String name;
   protected int sperrmelderId;
   protected boolean useMJ1MJ2;
-  protected int rueckblockenUntil;
+  protected int rückblockenUntil;
   protected boolean festlegemelderState;
   protected Doppeltaster vbHT;
   protected int streckenTaste;
@@ -46,8 +44,6 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
   protected int releaseBlockPort = Integer.MAX_VALUE;
   protected int signalId;
 
-  private int endBlinkWHSperre = Integer.MAX_VALUE;
-  private int startAutoRueckblock = Integer.MAX_VALUE;
   private int vorblockCount = Integer.MAX_VALUE;
   private int rückblockCount = Integer.MAX_VALUE;
   private boolean simulatedBlockState;
@@ -93,7 +89,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
         
         streckenState = StreckenState.FREE;
         updateView();
-        rueckblockenUntil = Integer.MAX_VALUE;
+        rückblockenUntil = Integer.MAX_VALUE;
         
         if (vorblockHilfsTaste >= 0) {
             vbHT = new Doppeltaster();
@@ -308,7 +304,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
                     // Bei der Ausfahrt über Hilfssignal muss manuell vorgeblockt werden.
                     startVorblock();
                     clearWiederholsperre();
-                    rueckblockenUntil = 0;
+                    rückblockenUntil = 0;
                 }
                 break;
                 

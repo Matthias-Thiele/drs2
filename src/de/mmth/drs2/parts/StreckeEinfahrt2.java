@@ -14,20 +14,18 @@ import de.mmth.drs2.parts.state.StreckenState;
  * @author matthias
  */
 public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
-  private static final int RUECKBLOCK_RELAIS_COUNT = -20;
-  private static final int RUECKBLOCK_SIMULATION_COUNT = -60;
+  private static final int RÜCKBLOCK_RELAIS_COUNT = -20;
+  private static final int RÜCKBLOCK_SIMULATION_COUNT = -60;
   
   private Config config;
   private int blockMelderWeiss;
   private int blockMelderRot;
-  private Doppeltaster rueckblockTaster;
+  private Doppeltaster rückblockTaster;
   private StreckenState streckenState;
   private String name;
-  private int raeumungsmelderId;
-  private boolean raeummelderState;
+  private int räumungsmelderId;
+  private boolean räummelderState;
   private boolean räummelderDauerlicht;
-  private int rueckblockenUntil;
-  private int rueckblockTaste;
   private boolean simulationMode = false;
   private Doppeltaster ast;
   private Doppeltaster aslt;
@@ -35,8 +33,8 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
 
   private int signalId;
   private int blockStatePort;
-  private int rueckblockPort;
-  private int rueckblockCount = Integer.MAX_VALUE;
+  private int rückblockPort;
+  private int rückblockCount = Integer.MAX_VALUE;
   private boolean simulatedBlockState;
   private int festlegemelderId;
   private boolean festlegemelderState = false;
@@ -51,6 +49,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
    * @param blockMelderWeiss
    * @param blockMelderRot 
    * @param raeumungsmelderId 
+   * @param festlegemelderId 
    * @param rueckblockPort 
    * @param blockStatePort 
    * @param signalId 
@@ -63,16 +62,15 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       this.name = name;
       this.blockMelderWeiss = blockMelderWeiss;
       this.blockMelderRot = blockMelderRot;
-      this.raeumungsmelderId = raeumungsmelderId;
+      this.räumungsmelderId = raeumungsmelderId;
       this.festlegemelderId = festlegemelderId;
-      this.rueckblockTaste = rueckblockTaste;
-      this.rueckblockPort = rueckblockPort;
+      this.rückblockPort = rueckblockPort;
       this.blockStatePort = blockStatePort;
       this.signalId = signalId;
 
-      this.rueckblockTaster = new Doppeltaster();
-      this.rueckblockTaster.init(config, this, Const.BlGT, rueckblockTaste);
-      config.ticker.add(rueckblockTaster);
+      this.rückblockTaster = new Doppeltaster();
+      this.rückblockTaster.init(config, this, Const.BlGT, rueckblockTaste);
+      config.ticker.add(rückblockTaster);
 
       this.RbHG = new Doppeltaster();
       this.RbHG.init(config, this, Const.RbHGT, rueckblockTaste);
@@ -80,7 +78,6 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
 
       streckenState = StreckenState.FREE;
       updateView();
-      rueckblockenUntil = Integer.MAX_VALUE;
 
       ast = new Doppeltaster();
       ast.init(config, this, Const.AsT, rueckblockTaste, true);
@@ -94,6 +91,10 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       config.ticker.add(this);
   }
 
+  public String getName() {
+    return name;
+  }
+  
   /**
    * Stellt ein, ob sich der Block im Simulationsmodus befindet
    * oder mit dem Relaisblock verbunden ist.
@@ -105,7 +106,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   }
   
   public boolean tryVorblock() {
-    if (simulationMode && !raeummelderState) {
+    if (simulationMode && !räummelderState) {
       simulatedBlockState = true;
       return true;
     }
@@ -153,14 +154,14 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
    */
   public void activateGleiskontakt(boolean mitErsatzsignal) {
       räummelderDauerlicht = false;
-      raeummelderState = true;
+      räummelderState = true;
   }
   
   /**
    * Zug hat den Räumungsabschnitt verlassen
    */
   public void streckeGeraeumt() {
-    raeummelderState = false;
+    räummelderState = false;
   }
   
   /**
@@ -170,7 +171,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
     boolean besetzt = streckenState != StreckenState.FREE;
     config.connector.setOut(blockMelderRot, besetzt);
     config.connector.setOut(blockMelderWeiss, !besetzt);
-    config.connector.setOut(raeumungsmelderId, raeummelderState & (räummelderDauerlicht || config.blinklicht.getBlink()));
+    config.connector.setOut(räumungsmelderId, räummelderState & (räummelderDauerlicht || config.blinklicht.getBlink()));
     config.connector.setOut(festlegemelderId, festlegemelderState);
   }
   
@@ -204,7 +205,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
    * Veranlasst ein Rückblocken.
    */
   private void startRueckblock() {
-    rueckblockCount = simulationMode ? RUECKBLOCK_SIMULATION_COUNT : RUECKBLOCK_RELAIS_COUNT;
+    rückblockCount = simulationMode ? RÜCKBLOCK_SIMULATION_COUNT : RÜCKBLOCK_RELAIS_COUNT;
   }
   
   /**
@@ -212,25 +213,25 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
    * @param count 
    */
   private void tickRueckblock(int count) {
-    if (rueckblockCount < 0) {
+    if (rückblockCount < 0) {
       // Rückblocken starten
       if (!simulationMode) {
         // Relaisblock anweisen das Rückblocken zu starten
-        config.connector.setOut(rueckblockPort, true);
+        config.connector.setOut(rückblockPort, true);
       }
       
-      rueckblockCount = count - rueckblockCount;
-    } else if (rueckblockCount < count) {
+      rückblockCount = count - rückblockCount;
+    } else if (rückblockCount < count) {
       // Ende der Rückblock-Zeit erreicht.
-      raeummelderState = false;
+      räummelderState = false;
       if (simulationMode) {
         simulatedBlockState = false;
       } else {
         // Rückblocken beendet
-        config.connector.setOut(rueckblockPort, false);
+        config.connector.setOut(rückblockPort, false);
       }
       
-      rueckblockCount = Integer.MAX_VALUE;
+      rückblockCount = Integer.MAX_VALUE;
       updateView();
     }
   }
@@ -257,7 +258,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   public void tick(int count) {
     tickRueckblock(count);
     checkStreckenState();
-    if (raeummelderState) {
+    if (räummelderState) {
       updateView();
     }
   }

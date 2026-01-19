@@ -60,6 +60,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      * 
      * @return 
      */
+    @Override
     public String getName() {
         return name;
     }

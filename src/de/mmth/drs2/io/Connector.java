@@ -5,7 +5,6 @@
 package de.mmth.drs2.io;
 
 import de.mmth.drs2.Config;
-import de.mmth.drs2.Const;
 
 import de.mmth.drs2.TickerEvent;
 /**
@@ -34,11 +33,8 @@ public class Connector implements TickerEvent {
     private boolean outputChanged = false;
     private boolean blockChanged = false;
     
-    //private final int[] polarity = {0xff80, 0x647e, 0};
     public final int[] polarity = {0x80, 0xff, 0x7e, 0x64, 0xf, 0xff};
     
-    
-    private static final int SWITCH_OFF_COUNT = 10000000;
     private Config config;
 
     /**

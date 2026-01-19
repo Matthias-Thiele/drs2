@@ -6,7 +6,6 @@ package de.mmth.drs2.fx;
 
 import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.parts.Ersatzsignal;
-import de.mmth.drs2.parts.Signal;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.layout.Border;
