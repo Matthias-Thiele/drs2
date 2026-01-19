@@ -133,6 +133,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
    */
   public void startVorblock() {
     vorblockCount = simulationMode ? VORBLOCK_SIMULATION_COUNT : VORBLOCK_RELAIS_COUNT;
+    System.out.println("Starte Vorblocken.");
   }
   
   public boolean tryVorblock() {
@@ -220,6 +221,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
       vorblockCount = count - vorblockCount;
     } else if (vorblockCount < count) {
       // Ende der Vorblock-Zeit erreicht.
+      System.out.println("Beende Vorblocken.");
       if (simulationMode) {
         simulatedBlockState = true;
         rückblockCount = RÜCKBLOCK_SIMULATION_COUNT;
