@@ -264,14 +264,18 @@ public class Config implements TickerEvent {
      * Initialisiert die verfügbaren Rangierfahrten.
      */
     private void initRangierfahrten() {
+        var fahrt = "GS1 M1 R3 SP1 W1 B1 H M1 F0 CM1 W1 SM2 W2 CM3 W3 GZ3 Z";
         rangierfahrten[0] = new Rangierfahrt();
-        rangierfahrten[0].init(this, "Von Gleis 1 nach Gleis 3 über Alth", "19cnAXZ9WIAqBMC7.");
+        rangierfahrten[0].init(this, "Von Gleis 1 nach Gleis 3 über Alth", fahrt); // "19cnAXZ9WIAqBMC7.");
+        fahrt = "GS2 M1 R5 SP4 W4 CP5 W5 H SN6 W6 B2 M1 F0 CP6 W6 GZ1 Z";
         rangierfahrten[1] = new Rangierfahrt();
-        rangierfahrten[1].init(this, "Von Gleis 2 nach Gleis 1 über Wild", "29etDQEZyFY9WRF5.");
+        rangierfahrten[1].init(this, "Von Gleis 2 nach Gleis 1 über Wild", fahrt); // "29etDQEZyFY9WRF5.");
+        fahrt = "GS3 M1 R4 SN3 W3 CM2 W2 H SN1 W1 B1 M0 F0 CP1 W1 GZ1 Z";
         rangierfahrten[2] = new Rangierfahrt();
-        rangierfahrten[2].init(this, "Von Gleis 3 nach Gleis 1 über Alth", "39dsCKBZoAX9WHA5.");
+        rangierfahrten[2].init(this, "Von Gleis 3 nach Gleis 1 über Alth", fahrt); // "39dsCKBZoAX9WHA5.");
+        fahrt = "GS1 M1 R3 SP1 W1 B1 H M1 F0 CM1 W1 SM2 W2 CM3 W3 GZ3 M0 K3 Z";
         rangierfahrten[3] = new Rangierfahrt();
-        rangierfahrten[3].init(this, "Von Gleis 1 nach Gleis 5 über Alth", "19cnAXZ9WIAqBMC79k.");
+        rangierfahrten[3].init(this, "Von Gleis 1 nach Gleis 5 über Alth", fahrt); // "19cnAXZ9WIAqBMC79k.");
     }
     
     /**

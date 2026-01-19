@@ -99,8 +99,12 @@ public class Rangierfahrt implements TickerEvent {
         this.config = config;
         this.name = name;
         
-        for (var i = 0; i < fahrweg.length(); i++) {
+        /*for (var i = 0; i < fahrweg.length(); i++) {
             addStep(fahrweg.charAt(i));
+        }*/
+        String[] parts = fahrweg.split(" ");
+        for (var part: parts) {
+          addStep(part);
         }
         
         config.ticker.add(this);
@@ -279,70 +283,93 @@ public class Rangierfahrt implements TickerEvent {
     }
     
     
-    private void addStep(char action) {
-        if (action >= '1' && action <= '4') {
-            // Startgleis
-            var msg = "Rangierfahrt gestartet: " + name;
-            fahrweg.add(new Step(ActionType.CheckGleis, action - '1', SHORT_DELAY, msg));
-            pendingClear = new Step(ActionType.ClearGleis, action - '1', SHORT_DELAY);
-        } else if (action == '.') {
-            // Ende
-            if (addPendingClear) {
-                // Ausfahrt auf Industriegleis, Gleis 3 Besetztmelder löschen.
-                addPendingClear = false;
-                pendingClear = new Step(ActionType.ClearGleis, 2, SHORT_DELAY);
-                checkPendingClear();
-            }
-            fahrweg.add(new Step(ActionType.Stop, 0, 0, "Rangierziel erreicht."));
-        } else if (action >= 'A' && action <= 'F') {
-            // Weiche befahren
-            fahrweg.add(new Step(ActionType.SetWeiche, action - 'A', SHORT_DELAY));
+    private void addStep(String action) {
+      String msg;
+      int gleis, weiche, sound, marker;
+      boolean param2;
+      
+      switch (action.charAt(0)) {
+        case 'G': // Gleis (Start oder Ziel) GS1 GZ4
+          msg = "Rangierfahrt gestartet: " + name;
+          gleis = action.charAt(2) - '1'; // Gleis 1..3 oder 5 -> 1..4
+          var atype = (action.charAt(1) == 'S') ? ActionType.CheckGleis : ActionType.SetGleis;
+          fahrweg.add(new Step(atype, gleis, SHORT_DELAY, msg));
+          if (atype.equals(ActionType.CheckGleis)) {
+            pendingClear = new Step(ActionType.ClearGleis, gleis, SHORT_DELAY);
+          } else {
             checkPendingClear();
-            
-            pendingClear = new Step(ActionType.ClearWeiche, action - 'A', SHORT_DELAY);
-        } else if (action >= 'H' && action <= 'S') {
-            // Weichenstellung prüfen, warten im Fehlerfall
-            boolean param2 = (action & 1) == 1;
-            int weicheNr = (action - 'H') >> 1;
-            System.out.println("Weiche " + weicheNr + " Stellung " + param2);
-            fahrweg.add(new Step(ActionType.CheckWeiche, weicheNr, LONG_DELAY, "", param2));
-        } else if (action >= 'n' && action <= 'y') {
-            // Weichenstellung prüfen, Störung im Fehlerfall
-            boolean param2 = (action & 1) == 1;
-            int weicheNr = (action - 'n') >> 1;
-            System.out.println("Weiche " + weicheNr + " Stellung " + param2);
-            fahrweg.add(new Step(ActionType.CheckWeicheMitStoerung, weicheNr, LONG_DELAY, "", param2));
-        } else if (action == 'W') {
-            // Warte auf Weichenwärter
-            fahrweg.add(new Step(ActionType.Message, 0, 0, "Zwischenziel erreicht, WW Aktion erwartet."));
-            fahrweg.add(new Step(ActionType.Wait, 0, SHORT_DELAY));
-        } else if (action >= '5' && action <= '8') {
-            // Zielgleis erreicht
-            fahrweg.add(new Step(ActionType.SetGleis, action - '5', SHORT_DELAY));
+          }
+          break;
+          
+        case 'Z': // Ziel erreicht
+          if (addPendingClear) {
+            // Ausfahrt auf Industriegleis, Gleis 3 Besetztmelder löschen.
+            addPendingClear = false;
+            pendingClear = new Step(ActionType.ClearGleis, 2, SHORT_DELAY);
             checkPendingClear();
-        } else if (action >= 'a' && action <= 'h') {
-            // Warte auf Rangiersignal
-            rangierSignal = action - 'a';
-            fahrweg.add(new Step(ActionType.WaitSh1, rangierSignal, SHORT_DELAY));
-        } else if (action >= 'k' && action <= 'm') {
-            int schluesselweiche = action - 'k';
-            fahrweg.add(new Step(ActionType.WaitSW, schluesselweiche, LONG_DELAY));
-            addPendingClear = true;
-        } else if (action == '9') {
-            // Lokführer meldet sich beim Weichenwärter
-            fahrweg.add(new Step(ActionType.Meldung, 0, SHORT_DELAY));
-        } else if (action >= 'X' && action <= 'Y') {
-            // Streckenmarker auf belegt oder frei umstellen
-            int marker = action == 'X' ? 40 : 42;
-            fahrweg.add(new Step(ActionType.StreckeRot, marker, SHORT_DELAY));
-            checkPendingClear();
-            
-            pendingClear = new Step(ActionType.StreckeClear, marker, SHORT_DELAY);
-        } else if (action == 'Z') {
-            fahrweg.add(new Step(ActionType.HaltSh1, rangierSignal, 0));
-        } else {
-            config.alert("Fehler in der Konfiguration: " + action);
-        }
+          }
+          
+          fahrweg.add(new Step(ActionType.Stop, 0, 0, "Rangierziel erreicht."));
+          break;
+          
+        case 'W': // Weiche befahren W5
+          weiche = action.charAt(1) - '1'; // Weiche 3, 4, 5, 18, 19, 20 ->1...6
+          fahrweg.add(new Step(ActionType.SetWeiche, weiche, SHORT_DELAY));
+          checkPendingClear();
+          pendingClear = new Step(ActionType.ClearWeiche, weiche, SHORT_DELAY);
+          break;
+          
+        case 'C': // Weichenstellung prüfen und bei Bedarf warten CP3 CM1
+          param2 = action.charAt(1) != 'P'; // Plus oder Minusstellung
+          weiche = action.charAt(2) - '1'; // Weiche 3, 4, 5, 18, 19, 20 ->1...6
+          System.out.println("Weiche " + weiche + " Stellung " + param2);
+          fahrweg.add(new Step(ActionType.CheckWeiche, weiche, LONG_DELAY, "", param2));
+          break;
+        
+        case 'S': // Weichenstellung prüfen und Störung im Fehlerfall SP6
+          param2 = action.charAt(1) != 'P'; // Plus oder Minusstellung
+          weiche = action.charAt(2) - '1'; // Weiche 3, 4, 5, 18, 19, 20 ->1...6
+          System.out.println("Weiche " + weiche + " Stellung " + param2);
+          fahrweg.add(new Step(ActionType.CheckWeicheMitStoerung, weiche, LONG_DELAY, "", param2));
+          break;
+          
+        case 'F': // Warte auf FDL/ Weichenwärter
+          sound = action.charAt(1) - '1'; // Klangdatei 1..9 abspielen
+          fahrweg.add(new Step(ActionType.Message, 0, 0, "Zwischenziel erreicht, WW Aktion erwartet."));
+          fahrweg.add(new Step(ActionType.Wait, sound, SHORT_DELAY));
+          break;
+          
+        case 'R': // Warte auf Rangiersignal
+          rangierSignal = action.charAt(1) - '1';
+          fahrweg.add(new Step(ActionType.WaitSh1, rangierSignal, SHORT_DELAY));
+          break;
+          
+        case 'X': // Rangiersignal zurückstellen
+          fahrweg.add(new Step(ActionType.HaltSh1, rangierSignal, 0));
+          break;
+
+        case 'K': // Warte auf Schlüsselweiche 1,2
+          weiche = action.charAt(1) - '1';
+          fahrweg.add(new Step(ActionType.WaitSW, weiche, LONG_DELAY));
+          addPendingClear = true;
+          break;
+          
+        case 'M': // Lokführer meldet sich beim Weichenwärter
+          sound = action.charAt(1) - '1'; // Klangdatei 1..9 abspielen
+          fahrweg.add(new Step(ActionType.Meldung, sound, SHORT_DELAY));
+          break;
+          
+        case 'B': // Streckenmarker auf belegt oder frei umstellen
+          marker = action.charAt(1) == 'b' ? 40 : 42;
+          fahrweg.add(new Step(ActionType.StreckeRot, marker, SHORT_DELAY));
+          checkPendingClear();
+          pendingClear = new Step(ActionType.StreckeClear, marker, SHORT_DELAY);
+          break;
+          
+        case 'H':
+          fahrweg.add(new Step(ActionType.HaltSh1, rangierSignal, 0));
+          break;
+      }
     }
     
     private void checkPendingClear() {
