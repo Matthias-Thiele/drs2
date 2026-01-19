@@ -96,12 +96,14 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                     
                 case 1:
                 case 2:
+                case 5:
                     state = 0;
                     config.alert("Schlüsselfreigabe zurückgenommen.");
                     config.connector.setOut(wsRelais, false);
                     break;
                     
                 case 3:
+                case 4:
                     config.alert("Schlüssel wurde bereits entnommen.");
                     break;
             } 
@@ -131,11 +133,11 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
             case 2:
                 // Waretet bis der Schlüssel entnommen wird, blinkt solange rot.
                 config.connector.setOut(rot, config.blinklicht.getBlink());
-                config.connector.setOut(weiss, false);
                 if (config.connector.isInSet(wsCheck)) {
                     // Schlüssel entnommen.
                     state = 3;
                     config.alert("Schlüssel entnommen.");
+                    config.connector.setOut(weiss, false);
                     config.connector.setOut(wsRelais, false);
                 }
                 break;
@@ -154,9 +156,15 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 config.connector.setOut(WEICHE_IV_OUT, false);
                 if (!config.connector.isInSet(wsCheck)) {
                     // Schlüsselrückgabe.
-                    state = 0;
+                    state = 5;
+                    config.connector.setOut(weiss, true);
                     config.alert("Schlüssel zurückgegeben.");
                 }
+                break;
+            
+            case 5:
+                // Wartet auf SlFLT
+                config.connector.setOut(rot, config.blinklicht.getBlink());
                 break;
                 
             default:

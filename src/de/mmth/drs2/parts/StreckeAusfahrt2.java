@@ -289,7 +289,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
   
     @Override
     public void whenPressed(int taste1, int taste2) {
-        switch (taste1) {
+       switch (taste1) {
             case Const.AsT:
                 setWiederholsperre();
                 break;
