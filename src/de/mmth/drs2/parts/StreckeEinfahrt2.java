@@ -38,6 +38,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   private boolean simulatedBlockState;
   private int festlegemelderId;
   private boolean festlegemelderState = false;
+  private int zsmCount = Integer.MAX_VALUE;
     
   /**
    * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -155,6 +156,10 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   public void activateGleiskontakt(boolean mitErsatzsignal) {
       räummelderDauerlicht = false;
       räummelderState = true;
+      if (signalId == 0) {
+        // ZSM nur von der Signal A Seite aus aktivieren.
+        zsmCount = -30;
+      }
   }
   
   /**
@@ -231,8 +236,24 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
         config.connector.setOut(rückblockPort, false);
       }
       
+      config.connector.setOut(Const.ZSM, false);
       rückblockCount = Integer.MAX_VALUE;
       updateView();
+    }
+  }
+  
+  /**
+   * Prüft nach, ob es einen aktiven Rückblockvorgang gibt und führt ihn aus.
+   * @param count 
+   */
+  private void tickZSM(int count) {
+    if (zsmCount < 0) {
+      // Wartezeit bis ZSM aufleuchtet starten
+      zsmCount = count - zsmCount;
+    } else if (zsmCount < count) {
+      // Ende der Wartezeit erreicht.
+      config.connector.setOut(Const.ZSM, true);
+      zsmCount = Integer.MAX_VALUE;
     }
   }
   
@@ -257,6 +278,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   @Override
   public void tick(int count) {
     tickRueckblock(count);
+    tickZSM(count);
     checkStreckenState();
     if (räummelderState) {
       updateView();

@@ -95,7 +95,6 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     public void meldung() {
         melder = 100;
         config.connector.setOut(wecker, true);
-        System.out.println("Wecker ein.");
     }
     
     /**
@@ -104,7 +103,6 @@ public class Stoerungsmelder implements TickerEvent, TastenEvent {
     public void rangierMeldung() {
         melder = 15;
         config.connector.setOut(wecker, true);
-        System.out.println("Wecker ein.");
     }
     
     /**
