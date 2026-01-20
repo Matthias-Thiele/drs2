@@ -286,11 +286,11 @@ public class Config implements TickerEvent {
             Schluesselweiche weiche = new Schluesselweiche();
             switch (i) {
                 case 0:
-                    weiche.init(this, "SlFT III", Const.SlFT3, Const.SlFT3Rot, Const.SlFT3Weiss, Const.SlFT3Relais, Const.WSCHLUESSEL3);
+                    weiche.init(this, "SlFT I", Const.SlFT1,  Const.SlFT1Rot, Const.SlFT1Weiss, Const.SlFT1Relais, Const.WSCHLUESSEL1);
                     break;
                     
                 case 1:
-                    weiche.init(this, "SlFT I", Const.SlFT1,  Const.SlFT1Rot, Const.SlFT1Weiss, Const.SlFT1Relais, Const.WSCHLUESSEL1);
+                    weiche.init(this, "SlFT III", Const.SlFT3, Const.SlFT3Rot, Const.SlFT3Weiss, Const.SlFT3Relais, Const.WSCHLUESSEL3);
                     break;
                     
                 case 2:
@@ -444,7 +444,7 @@ public class Config implements TickerEvent {
                     streckenTaster = 17;
                     ersatz = 0;
                     streckeEin = streckenEin[FROM_M];
-                    schluesselweiche1 = 0;
+                    schluesselweiche1 = 2;
                     pruefungMinus = 3;
                     break;
                     
@@ -464,7 +464,7 @@ public class Config implements TickerEvent {
                     streckenTaster = 18;
                     ersatz = 1;
                     streckeEin = streckenEin[FROM_H];
-                    schluesselweiche1 = 2;
+                    schluesselweiche1 = 1;
                     pruefungPlus = 0;
                     break;
                     
@@ -484,7 +484,7 @@ public class Config implements TickerEvent {
                     streckenTaster = 18;
                     ersatz = 1;
                     streckeEin = streckenEin[FROM_H];
-                    schluesselweiche1 = 0;
+                    schluesselweiche1 = 2;
                     pruefungMinus = 2;
                     break;
                     
@@ -504,8 +504,8 @@ public class Config implements TickerEvent {
                     signalNummer = 2;
                     streckeAus = streckenAus[TO_M];
                     ersatz = 4;
-                    schluesselweiche1 = 1;
-                    schluesselweiche2 = 2;
+                    schluesselweiche1 = 0;
+                    schluesselweiche2 = 1;
                     break;
                     
                 case 5:
@@ -525,7 +525,7 @@ public class Config implements TickerEvent {
                     streckeAus = streckenAus[TO_M];
                     ersatz = 5;
                     schluesselweiche1 = 0;
-                    schluesselweiche2 = 1;
+                    schluesselweiche2 = 2;
                     break;
                     
                 case 6:

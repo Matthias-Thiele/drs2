@@ -186,19 +186,24 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * Fahrstraße manuell aufzulösen.
      */
     private void fahrstrassenaufloesung() {
-        config.alert("Fahrstraße manuell aufgelöst.");
-        pendingTrain = (state == INIT) || (state == WAIT_FOR_HP1);
-        signal.halt();
-        signal.clear();
-        unlock();
-        if (ausfahrtsGleis != null) {
-            ausfahrtsGleis.clear();
-        }
-        bahnhofsGleis.clear();
-        
-        if (streckeEin != null) streckeEin.doFHT();
-        if (streckeAus != null) streckeAus.doFHT();
-        state = DORMANT;
+      if (isLocked()) {
+        config.alert("Manuelle Auflösung der Fahrstraße gestartet.");
+      } else {
+        return;
+      }
+      
+      pendingTrain = (state == INIT) || (state == WAIT_FOR_HP1);
+      signal.halt();
+      signal.clear();
+      unlock();
+      if (ausfahrtsGleis != null) {
+          ausfahrtsGleis.clear();
+      }
+      bahnhofsGleis.clear();
+
+      if (streckeEin != null) streckeEin.doFHT();
+      if (streckeAus != null) streckeAus.doFHT();
+      state = DORMANT;
     }
     
     private boolean isFree() {
