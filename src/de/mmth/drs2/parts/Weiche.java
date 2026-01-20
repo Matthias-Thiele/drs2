@@ -110,6 +110,11 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
             return;
         }
         
+        if (isActive) {
+          config.alert("Aktuell befahrene Weichen können nicht umgestellt werden: " + name);
+          return;
+        }
+        
         inPlusStellung = !inPlusStellung;
         if (blink > BLINK_DURATION) {
             pendingClearGestoert = true;
