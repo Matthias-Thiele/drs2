@@ -53,7 +53,7 @@ public class FahrstrasseFx extends GridPane implements TickerEvent {
         this.add(labelVerschluss, 0, 2);
         labelVerschluss.setOnMouseClicked(ev -> {
             if (fahrstrasse.isLocked()) {
-                fahrstrasse.unlock();
+                fahrstrasse.unlock(true);
             } else {
                 fahrstrasse.whenPressed(0, 0);
             }

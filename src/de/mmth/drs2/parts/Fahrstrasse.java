@@ -195,7 +195,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
       pendingTrain = (state == INIT) || (state == WAIT_FOR_HP1);
       signal.halt();
       signal.clear();
-      unlock();
+      unlock(true);
       if (ausfahrtsGleis != null) {
           ausfahrtsGleis.clear();
       }
@@ -345,8 +345,9 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * 
      * Dabei werden alle Weichensperren zurückgenommen
      * und die Anzeige DRS 2 aktualisiert.
+   * @param ohneZugfahrt
      */
-    public void unlock() {
+    public void unlock(boolean ohneZugfahrt) {
         if (!isLocked) {
             config.alert("Die Fahrstraße ist nicht verschlossen.");
             return;
@@ -359,7 +360,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
           }
         }
         
-        if (!this.bahnhofsGleis.isInUse()) {
+        if (isInbound && !ohneZugfahrt && !this.bahnhofsGleis.isInUse()) {
           config.alert("Der Zug hat das Zielgleis noch nicht erreicht: " + bahnhofsGleis.getName());
           return;
         }
@@ -683,13 +684,13 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 nextStep = count + STEP_LONG_WAIT;
                 // Ausfahrtsgleis erreicht
                 config.alert("Bahnhof verlassen.");
-                unlock();
+                unlock(false);
                 streckeAus.activateGleiskontakt(false);
                 streckeAus.fahrstrassenauflösung();
                 if (verbundeneEinfahrt >= 0) {
                     // bei Durchfahrten wird die Einfahrt automatisch aufgelöst.
                     if (config.fahrstrassen[verbundeneEinfahrt].isLocked) {
-                        config.fahrstrassen[verbundeneEinfahrt].unlock();
+                        config.fahrstrassen[verbundeneEinfahrt].unlock(false);
                     }
                 }
                 state = DONE;

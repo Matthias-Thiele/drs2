@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 
 /**
@@ -17,7 +18,8 @@ public class Schluesselschalter implements TickerEvent {
     private final int schalter;
     private final int fahrstrasse1;
     private final int fahrstrasse2;
-
+    private boolean alertLock;
+    
     /**
      * Überwacht die Schlüsselschalter A und F.
      * Wenn der Schalter betätigt wird, wird die
@@ -57,8 +59,18 @@ public class Schluesselschalter implements TickerEvent {
      * @param fsNum 
      */
     private void condReleaseFahrstrasse(int fsNum) {
+        if (config.connector.isInSet(Const.TA)) {
+          if (!alertLock) {
+            config.alert("Der Stelltisch ist nicht verschlossen.");
+          }
+          
+          alertLock = true;
+          return;
+        }
+        
+        alertLock = false;
         if (config.fahrstrassen[fsNum].isLocked()) {
-            config.fahrstrassen[fsNum].unlock();
+            config.fahrstrassen[fsNum].unlock(false);
         }
     }
     

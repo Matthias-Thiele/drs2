@@ -325,7 +325,7 @@ public class MainPane extends HBox implements TickerEvent {
      */
     private void condReleaseFahrstrasse(Fahrstrasse fahrstrasse) {
         if (fahrstrasse.isLocked()) {
-            fahrstrasse.unlock();
+            fahrstrasse.unlock(true);
         }
     }
     /**
