@@ -156,6 +156,14 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     }
     
     /**
+     * Meldet zurück ob die Weiche gerade befahren wird.
+     * @return 
+     */
+    public boolean isRed() {
+      return isActive;
+    }
+    
+    /**
      * Weichenabschnitt wurde vom Zug befahren.
      */
     @Override

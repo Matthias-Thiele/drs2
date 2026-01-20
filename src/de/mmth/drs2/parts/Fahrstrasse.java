@@ -352,6 +352,18 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             return;
         }
         
+        for (var w: fahrwegWeichen) {
+          if (w.isRed()) {
+            config.alert("Die Weiche " + w.getName() + " wird noch befahren.");
+            return;
+          }
+        }
+        
+        if (!this.bahnhofsGleis.isInUse()) {
+          config.alert("Der Zug hat das Zielgleis noch nicht erreicht: " + bahnhofsGleis.getName());
+          return;
+        }
+        
         // Weichen entrigeln
         for (Weiche plusWeiche : plusWeichen) {
             plusWeiche.unlock();
