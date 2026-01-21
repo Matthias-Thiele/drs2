@@ -503,7 +503,7 @@ public class Config implements TickerEvent {
                     fahrwegWeichen = fahrwegWeichen4;
                     signalNummer = 2;
                     streckeAus = streckenAus[TO_M];
-                    ersatz = 4;
+                    ersatz = 2;
                     schluesselweiche1 = 0;
                     schluesselweiche2 = 1;
                     break;
@@ -523,7 +523,7 @@ public class Config implements TickerEvent {
                     fahrwegWeichen = fahrwegWeichen5;
                     signalNummer = 3;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
                     streckeAus = streckenAus[TO_M];
-                    ersatz = 5;
+                    ersatz = 3;
                     schluesselweiche1 = 0;
                     schluesselweiche2 = 2;
                     break;
@@ -543,7 +543,7 @@ public class Config implements TickerEvent {
                     fahrwegWeichen = fahrwegWeichen6;
                     signalNummer = 4;
                     streckeAus = streckenAus[TO_H];
-                    ersatz = 2;
+                    ersatz = 4;
                     break;
                     
                 case 7:
@@ -561,7 +561,7 @@ public class Config implements TickerEvent {
                     fahrwegWeichen = fahrwegWeichen7;
                     signalNummer = 5;
                     streckeAus = streckenAus[TO_H];
-                    ersatz = 3;
+                    ersatz = 5;
                     schluesselweiche1 = 0;
                     break;
                     
@@ -609,8 +609,8 @@ public class Config implements TickerEvent {
                     name = "Ers A";
                     taste = 10;
                     lampe = 53;
-                    interlock1 = 4;
-                    interlock2 = 5;
+                    interlock1 = 2;
+                    interlock2 = 3;
                     signalId = 0;
                     break;
                     
@@ -618,46 +618,47 @@ public class Config implements TickerEvent {
                     name = "Ers F";
                     taste = 11;
                     lampe = 50;
-                    interlock1 = 2;
-                    interlock2 = 3;
+                    interlock1 = 4;
+                    interlock2 = 5;
                     signalId =1;
                     break;
                     
                 case 2:
-                    name = "Ers N2";
-                    taste = 14;
-                    lampe = 52;
-                    interlock1 = 1;
-                    interlock2 = 3;
-                    signalId = 4;
-                    break;
-                    
-                case 3:
-                    name = "Ers N3";
-                    taste = 15;
-                    lampe = 51;
-                    interlock1 = 1;
-                    interlock2 = 2;
-                    signalId = 5;
-                    break;
-                    
-                case 4:
                     name = "Ers P1";
                     taste = 12;
                     lampe = 49;
                     interlock1 = 0;
-                    interlock2 = 5;
+                    interlock2 = 3;
                     signalId = 2;
                     break;
                     
-                case 5:
+                case 3:
                     name = "Ers P3";
                     taste = 13;
                     lampe = 48;
                     interlock1 = 0;
-                    interlock2 = 4;
+                    interlock2 = 2;
                     signalId = 3;
                     break;
+                    
+                case 4:
+                    name = "Ers N2";
+                    taste = 14;
+                    lampe = 52;
+                    interlock1 = 1;
+                    interlock2 = 5;
+                    signalId = 4;
+                    break;
+                    
+                case 5:
+                    name = "Ers N3";
+                    taste = 15;
+                    lampe = 51;
+                    interlock1 = 1;
+                    interlock2 = 4;
+                    signalId = 5;
+                    break;
+                    
             }
             
             signal.init(this, name, taste, lampe,
