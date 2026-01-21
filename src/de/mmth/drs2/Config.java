@@ -241,14 +241,15 @@ public class Config implements TickerEvent {
         StreckeAusfahrt2 toH = new StreckeAusfahrt2();
         toH.init(this, "Nach H", Const.BlockHOut, Const.StreckeNachHWeiss,
                 Const.StreckeNachHRot, Const.AusfSperrmelderH, Const.VbHT_H,
-                Const.AusfFestlegemelderH, -1, -1);
+                Const.AusfFestlegemelderH, -1, -1, -1, -1);
         streckenAus[TO_H] = toH;
         toH.setSimulationMode(true);
         
         StreckeAusfahrt2 toM = new StreckeAusfahrt2();
         toM.init(this, "Nach M", Const.BlockMOut, Const.StreckeNachMWeiss,
                 Const.StreckeNachMRot, Const.AusfSperrmelderM, Const.VbHT_M,
-                Const.AusfFestlegemelderM, Const.StreckeNachAH, Const.BLOCK_AH_OUT);
+                Const.AusfFestlegemelderM, Const.StreckeNachAH, Const.BLOCK_AH_OUT,
+                Const.StrWSP, Const.WHSPERRE_ZURÜCK);
         streckenAus[TO_M] = toM;
     }
     

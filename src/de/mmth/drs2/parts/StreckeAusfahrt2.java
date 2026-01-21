@@ -48,6 +48,8 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
   private int rückblockCount = Integer.MAX_VALUE;
   private boolean simulatedBlockState;
   private int blockStatePort;
+  private int blockSperrmelder;
+  private int blockResetWSP;
 
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -63,11 +65,13 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
      * @param festlegemelder 
      * @param vorblockPort 
      * @param blockStatePort 
+   * @param blockSperrmelder 
      */
     public void init(Config config, String name, 
             int streckenTaste, int blockMelderWeiss, int blockMelderRot, 
             int sperrmelderId, int vorblockHilfsTaste,
-            int festlegemelder, int vorblockPort, int blockStatePort) {
+            int festlegemelder, int vorblockPort, int blockStatePort,
+            int blockSperrmelder, int blockResetWSP) {
         this.config = config;
         this.name = name;
         this.blockMelderWeiss = blockMelderWeiss;
@@ -78,6 +82,8 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
         this.festlegemelderId = festlegemelder;
         this.vorblockPort = vorblockPort;
         this.blockStatePort = blockStatePort;
+        this.blockSperrmelder = blockSperrmelder;
+        this.blockResetWSP = blockResetWSP;
         
         this.streckeTaster = new Doppeltaster();
         this.streckeTaster.init(config, this, Const.BlGT, streckenTaste);
@@ -234,6 +240,10 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
       updateView();
     } else if (vorblockCount < Integer.MAX_VALUE) {
       config.connector.setOut(sperrmelderId, sperrmelderState & config.blinklicht.getBlink());
+      if (blockSperrmelder > 0) {
+        // Ausgang zum Relaisblock Wiederholsperre setzen
+        config.connector.setOut(blockSperrmelder, true);
+      }
     }
   }
   
@@ -258,7 +268,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     
     public void clearWiederholsperre() {
         System.out.println("Wiederholsperre löschen.");
-        // ???pendingClear = true;
+        sperrmelderState = false;
         updateView();
     }
     
@@ -323,6 +333,11 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
 
   @Override
   public void tick(int count) {
+    if (blockResetWSP >= 0) {
+      if (config.connector.isInSet(blockResetWSP)) {
+        clearWiederholsperre();
+      }
+    }
     tickVorblock(count);
     tickRückblock(count);
     checkStreckenState();

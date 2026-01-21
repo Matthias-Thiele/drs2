@@ -61,6 +61,8 @@ public class Const {
     public static final int SCHLUESSEL_F = 57;
     public static final int BLOCK_AH_OUT = 60;
     public static final int BLOCK_AH_IN = 61;
+    public static final int MOTORINDUKTOR = 62;
+    public static final int WHSPERRE_ZURÜCK = 63;
     
     // Schlüsselweiche
     public static final int WSCHLUESSEL3 = 34;
@@ -180,7 +182,9 @@ public class Const {
     
     // Relaisblock
     public static final int StreckeNachAH = 123;
-    public static final int StreckeVonAH = 124;
+    public static final int StreckeNachAH_VBHT = 124;
+    public static final int StrWSP = 125;
+    public static final int StreckeVonAH = 126;
     
     // Bahnhofsgleise
     public static final int Gleis1Weiss = 30;
