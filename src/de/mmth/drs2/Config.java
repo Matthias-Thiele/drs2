@@ -602,6 +602,7 @@ public class Config implements TickerEvent {
             int lampe = -1;
             int interlock1 = -1;
             int interlock2 = -1;
+            int signalId = -1;
             
             switch(i) {
                 case 0:
@@ -610,6 +611,7 @@ public class Config implements TickerEvent {
                     lampe = 53;
                     interlock1 = 4;
                     interlock2 = 5;
+                    signalId = 0;
                     break;
                     
                 case 1:
@@ -618,6 +620,7 @@ public class Config implements TickerEvent {
                     lampe = 50;
                     interlock1 = 2;
                     interlock2 = 3;
+                    signalId =1;
                     break;
                     
                 case 2:
@@ -626,6 +629,7 @@ public class Config implements TickerEvent {
                     lampe = 52;
                     interlock1 = 1;
                     interlock2 = 3;
+                    signalId = 4;
                     break;
                     
                 case 3:
@@ -634,6 +638,7 @@ public class Config implements TickerEvent {
                     lampe = 51;
                     interlock1 = 1;
                     interlock2 = 2;
+                    signalId = 5;
                     break;
                     
                 case 4:
@@ -642,6 +647,7 @@ public class Config implements TickerEvent {
                     lampe = 49;
                     interlock1 = 0;
                     interlock2 = 5;
+                    signalId = 2;
                     break;
                     
                 case 5:
@@ -650,11 +656,12 @@ public class Config implements TickerEvent {
                     lampe = 48;
                     interlock1 = 0;
                     interlock2 = 4;
+                    signalId = 3;
                     break;
             }
             
             signal.init(this, name, taste, lampe,
-                    ersatzsignale[interlock1], ersatzsignale[interlock2]);
+                    ersatzsignale[interlock1], ersatzsignale[interlock2], signalId);
         }
     }
     

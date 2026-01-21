@@ -28,6 +28,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
     private Ersatzsignal lock1;
     private Ersatzsignal lock2;
     private Doppeltaster loeschtaste;
+  private Signal signal;
     
     /**
      * Initialisiert das Ersatzsignal.
@@ -38,13 +39,15 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
      * @param signalLampe 
      * @param lock1 
      * @param lock2 
+     * @param signalId 
      */
-    public void init(Config conf, String name, int signalT, int signalLampe, Ersatzsignal lock1, Ersatzsignal lock2) {
+    public void init(Config conf, String name, int signalT, int signalLampe, Ersatzsignal lock1, Ersatzsignal lock2, int signalId) {
         this.conf = conf;
         this.name = name;
         this.signalLampe = signalLampe;
         this.lock1 = lock1;
         this.lock2 = lock2;
+        this.signal = (signalId >= 0) ? conf.signale[signalId] : null;
         
         taste = new Doppeltaster();
         taste.init(conf, this, Const.ErsGT, signalT);
@@ -61,7 +64,9 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
     public void whenPressed(int taste1, int taste2) {
         switch (taste1) {
             case Const.ErsGT:
-                if (lock1.isFahrt() || lock2.isFahrt()) {
+                if (signal != null && signal.isFahrt()) {
+                  conf.alert(name + ": Das zugehörende Signal steht auf Fahrt.");
+                } else if (lock1.isFahrt() || lock2.isFahrt()) {
                     String otherName = (lock1.isFahrt() ? lock1.name : lock2.name);
                     conf.alert(name + ": Es ist bereits eine Fahrt freigegeben - " + otherName);
                 } else {
