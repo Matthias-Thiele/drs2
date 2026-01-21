@@ -39,6 +39,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   private int festlegemelderId;
   private boolean festlegemelderState = false;
   private int zsmCount = Integer.MAX_VALUE;
+  private boolean allowAsLT;
     
   /**
    * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -194,22 +195,43 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   
   @Override
   public void whenPressed(int taste1, int taste2) {
-    if (taste1 == Const.BlGT) {
-      // Zug ist eingefahren, Strecke wird zurückgeblockt.
-      if (isFahrt()) {
-        config.alert("Zug noch nicht eingefahren, Signal noch auf Fahrt.");
-      } else {
-        startRueckblock();
-      }
-    } else if (taste1 == Const.AsT) {
-      
+    switch (taste1) {
+      case Const.BlGT:
+        // Zug ist eingefahren, Strecke wird zurückgeblockt.
+        if (isFahrt()) {
+          config.alert("Zug noch nicht eingefahren, Signal noch auf Fahrt.");
+        } else {
+          startRückblock();
+        } break;
+      case Const.RbHGT:
+        if (streckenState != StreckenState.FREE) {
+          if (config.ersatzsignale[signalId].isFahrt() || config.signale[signalId].isFahrt() || config.signale[signalId].isSh1()) {
+            config.alert("Signal oder Ersatzsignal noch auf Fahrt.");
+          } else {
+            startRückblock();
+          }
+        }
+        break;
+      case Const.AsT:
+        räummelderDauerlicht = true;
+        räummelderState = true;
+        allowAsLT = true;
+        break;
+      case Const.AsLT:
+        if (allowAsLT) {
+          allowAsLT = false;
+          räummelderDauerlicht = false;
+          räummelderState = false;        }
+        break;
+      default:
+        break;
     }
   }
 
   /**
    * Veranlasst ein Rückblocken.
    */
-  private void startRueckblock() {
+  private void startRückblock() {
     rückblockCount = simulationMode ? RÜCKBLOCK_SIMULATION_COUNT : RÜCKBLOCK_RELAIS_COUNT;
   }
   
