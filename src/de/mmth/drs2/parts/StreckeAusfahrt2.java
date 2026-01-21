@@ -104,6 +104,9 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
         aslt = new Doppeltaster();
         aslt.init(config, this, Const.AsLT, streckenTaste, true);
         
+        var fht = new Doppeltaster();
+        fht.init(config, this, Const.FHT, streckenTaste);
+        
         useMJ1MJ2 = (streckenTaste == Const.BlockHIn) || (streckenTaste == Const.BlockHOut);
         config.ticker.add(aslt);
         
@@ -295,6 +298,11 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
                 updateView();
                 break;
             
+            case Const.FHT:
+                sperrmelderState = false;
+                updateView();
+                break;
+                
             case Const.BlGT:
                 if (taste2 == vorblockHilfsTaste) {
                     if (sperrmelderState) {
