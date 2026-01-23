@@ -29,6 +29,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
     private Ersatzsignal lock2;
     private Doppeltaster loeschtaste;
   private Signal signal;
+  private int[] weichen;
     
     /**
      * Initialisiert das Ersatzsignal.
@@ -40,14 +41,16 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
      * @param lock1 
      * @param lock2 
      * @param signalId 
+   * @param weichen 
      */
-    public void init(Config conf, String name, int signalT, int signalLampe, Ersatzsignal lock1, Ersatzsignal lock2, int signalId) {
+    public void init(Config conf, String name, int signalT, int signalLampe, Ersatzsignal lock1, Ersatzsignal lock2, int signalId, int[] weichen) {
         this.conf = conf;
         this.name = name;
         this.signalLampe = signalLampe;
         this.lock1 = lock1;
         this.lock2 = lock2;
         this.signal = (signalId >= 0) ? conf.signale[signalId] : null;
+        this.weichen = weichen;
         
         taste = new Doppeltaster();
         taste.init(conf, this, Const.ErsGT, signalT);
@@ -58,12 +61,31 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
     }
 
     /**
+     * Ein Ersatzsignal kann nicht auf Fahrt gestellt werden
+     * wenn eine der zugehörenden Weichen gestört ist.
+     * @return 
+     */
+    private boolean checkWeichen() {
+      if (weichen != null) {
+        for (var w: weichen) {
+          if (conf.weichen[w].isGestoert()) {
+            conf.alert("Weiche " + conf.weichen[w].getName() + " ist gestört, keine Fahrt mit Ersatzsignal möglich.");
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    }
+    
+    /**
      * Setzt das Ersatzsignal auf Fahrt.
      */
     @Override
     public void whenPressed(int taste1, int taste2) {
         switch (taste1) {
             case Const.ErsGT:
+              if (checkWeichen()) {
                 if (signal != null && signal.isFahrt()) {
                   conf.alert(name + ": Das zugehörende Signal steht auf Fahrt.");
                 } else if (lock1.isFahrt() || lock2.isFahrt()) {
@@ -72,7 +94,8 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
                 } else {
                     isFahrt = true;
                 }
-                break;
+              }
+              break;
                 
             case Const.HaGT:
                 isFahrt = false;

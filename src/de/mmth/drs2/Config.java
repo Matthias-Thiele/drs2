@@ -596,6 +596,13 @@ public class Config implements TickerEvent {
             ersatzsignale[i] = new Ersatzsignal();
         }
         
+        int[] weichenA = {1, 2, 3};
+        int[] weichenF = {5, 1};
+        int[] weichenN2 = {3, 4};
+        int[] weichenN3 = {3, 4};
+        int[] weichenP1 = {0};
+        int[] weichenP3 = {2, 1, 0};
+        
         for (int i = 0; i < ANZAHL_ERSATZSIGNALE; i++) {
             Ersatzsignal signal = ersatzsignale[i];
             String name = "";
@@ -604,6 +611,7 @@ public class Config implements TickerEvent {
             int interlock1 = -1;
             int interlock2 = -1;
             int signalId = -1;
+            int[] weichen = null;
             
             switch(i) {
                 case 0:
@@ -613,6 +621,7 @@ public class Config implements TickerEvent {
                     interlock1 = 2;
                     interlock2 = 3;
                     signalId = 0;
+                    weichen = weichenA;
                     break;
                     
                 case 1:
@@ -622,6 +631,7 @@ public class Config implements TickerEvent {
                     interlock1 = 4;
                     interlock2 = 5;
                     signalId =1;
+                    weichen = weichenF;
                     break;
                     
                 case 2:
@@ -631,6 +641,7 @@ public class Config implements TickerEvent {
                     interlock1 = 0;
                     interlock2 = 3;
                     signalId = 2;
+                    weichen = weichenP1;
                     break;
                     
                 case 3:
@@ -640,6 +651,7 @@ public class Config implements TickerEvent {
                     interlock1 = 0;
                     interlock2 = 2;
                     signalId = 3;
+                    weichen = weichenP3;
                     break;
                     
                 case 4:
@@ -649,6 +661,7 @@ public class Config implements TickerEvent {
                     interlock1 = 1;
                     interlock2 = 5;
                     signalId = 4;
+                    weichen = weichenN2;
                     break;
                     
                 case 5:
@@ -658,12 +671,13 @@ public class Config implements TickerEvent {
                     interlock1 = 1;
                     interlock2 = 4;
                     signalId = 5;
+                    weichen = weichenN3;
                     break;
                     
             }
             
             signal.init(this, name, taste, lampe,
-                    ersatzsignale[interlock1], ersatzsignale[interlock2], signalId);
+                    ersatzsignale[interlock1], ersatzsignale[interlock2], signalId, weichen);
         }
     }
     
