@@ -51,7 +51,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         if (taste1 >= 0) {
             taste.init(config, this, taste1, taste2);
         }
-        updateOutput(0);
+        updateOutput();
         config.ticker.add(this);
     }
 
@@ -78,7 +78,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
             config.stoerungsmelder.stoerungW();
         } else {
             blink = 0;
-            updateOutput(0);
+            updateOutput();
         }
     }
     
@@ -123,7 +123,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
             blink = isGestoert ? Integer.MAX_VALUE : BLINK_DURATION;
         }
         
-        updateOutput(0);
+        updateOutput();
         config.alert("Weiche " + name + " umgeschaltet nach " + (inPlusStellung ? "Plus" : "Minus"));
     }
 
@@ -168,8 +168,9 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      */
     @Override
     public void red() {
+      config.alert("Weiche " + name + " befahren.");
         isActive = true;
-        updateOutput(0);
+        updateOutput();
     }
     
     /**
@@ -178,7 +179,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     @Override
     public void white() {
         isActive = false;
-        updateOutput(0);
+        updateOutput();
     }
     
     @Override
@@ -220,28 +221,26 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      * Aktualisiert die Ausgabeports der
      * Anzeigelampen
      */
-    private void updateOutput(int count) {
+    private void updateOutput() {
         if (isGestoert) {
-            updateOutputGestoert(count);
+            updateOutputGestoert();
         } else {
-            updateOutputNormal(count);
+            updateOutputNormal();
         }
     }
     
-    private void updateOutputGestoert(int count) {
-        boolean l1 = true;
-        
-        if ((count & 0x8) == 0x8) {
-            l1 = false;
-        }
-        
+    private void updateOutputGestoert() {
+        boolean l1 = (isActive || inPlusStellung) ? config.blinklicht.getBlink(): false;
+        boolean l2 = (isActive || !inPlusStellung) ? config.blinklicht.getBlink(): false;
+        boolean l3 = (!isActive && inPlusStellung) ? false : config.blinklicht.getBlink();
+        boolean l4 = (!isActive && !inPlusStellung) ? false : config.blinklicht.getBlink();
         config.connector.setOut(firstRed, l1);
-        config.connector.setOut(sndRed, l1);
-        config.connector.setOut(firstWhite, false);
-        config.connector.setOut(sndWhite, false);
+        config.connector.setOut(sndRed, l2);
+        config.connector.setOut(firstWhite, l3);
+        config.connector.setOut(sndWhite, l4);
     }
     
-    private void updateOutputNormal(int count) {
+    private void updateOutputNormal() {
         if (firstWhite < 0) {
             return; // nicht angeschlossen.
         }
@@ -280,14 +279,14 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         }
         
         if (blink > 0) {
-            updateOutput(count);
+            updateOutput();
             blink--;
             if (blink == 0) {
                 if (pendingClearGestoert) {
                     isGestoert = false;
                     pendingClearGestoert = false;
                 }
-                updateOutput(0);
+                updateOutput();
             }
         }
     }

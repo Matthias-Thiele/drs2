@@ -243,6 +243,7 @@ public class Rangierfahrt implements TickerEvent {
                 if (config.weichen[step.param].isPlus() == step.param2) {
                     config.alert("Weiche " + config.weichen[step.param].getName() + " in der falschen Position.");
                     config.weichen[step.param].setStoerung();
+                    nextAction = count;
                 }
                 
                 position++;
