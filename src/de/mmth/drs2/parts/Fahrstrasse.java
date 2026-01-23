@@ -690,7 +690,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 if (verbundeneEinfahrt >= 0) {
                     // bei Durchfahrten wird die Einfahrt automatisch aufgelöst.
                     if (config.fahrstrassen[verbundeneEinfahrt].isLocked) {
-                        config.fahrstrassen[verbundeneEinfahrt].unlock(false);
+                        config.fahrstrassen[verbundeneEinfahrt].unlock(true);
+                        config.fahrstrassen[verbundeneEinfahrt].streckeEin.startRückblock();
                     }
                 }
                 state = DONE;

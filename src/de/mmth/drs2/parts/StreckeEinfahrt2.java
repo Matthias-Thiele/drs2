@@ -231,7 +231,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   /**
    * Veranlasst ein Rückblocken.
    */
-  private void startRückblock() {
+  public void startRückblock() {
     rückblockCount = simulationMode ? RÜCKBLOCK_SIMULATION_COUNT : RÜCKBLOCK_RELAIS_COUNT;
   }
   
