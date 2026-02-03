@@ -6,6 +6,7 @@ package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
 import de.mmth.drs2.TickerEvent;
+import de.mmth.drs2.parts.state.SwitchState;
 
 /**
  *
@@ -24,8 +25,8 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     private Config config;
     private String name;
     private boolean isActive;
-    private boolean isGestoert = false;
     private boolean pendingClearGestoert;
+    private SwitchState state = SwitchState.OK;
     
     /**
      * Übergibt die zugeordnete Tastereingänge und
@@ -66,29 +67,28 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     }
     
     /**
-     * Stellt ein, ob die Weiche bei der nächsten Bestätigung
-     * eine Störung anzeigt.
+     * Liefert den aktuellen Zustand der Weichenstörung zurück.
      * 
-     * @param stoerung 
+     * @return 
      */
-    public void setStoerung(boolean stoerung) {
-        isGestoert = stoerung;
-        
-        if (isGestoert) {
-            config.stoerungsmelder.stoerungW();
-        } else {
-            blink = 0;
-            updateOutput();
-        }
+    public SwitchState getState() {
+      return state;
+    }
+    
+    public void setState(SwitchState state) {
+      this.state = state;
+      
+      if (state == SwitchState.OK) {
+        updateOutput();
+        blink = 1;
+      }
     }
     
     /**
      * Stelle die Weiche direkt auf Störung da sie aufgefahren wurde.
      */
     public void setStoerung() {
-        isGestoert = true;
-        config.stoerungsmelder.stoerungW();
-        blink = Integer.MAX_VALUE - 10 * BLINK_DURATION;
+        setState(SwitchState.AUFGEFAHREN);
     }
     
     /**
@@ -96,7 +96,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      * @return 
      */
     public boolean isGestoert() {
-        return isGestoert;
+        return state == SwitchState.AUFGEFAHREN || ((blink > BLINK_DURATION) && (blink < Integer.MAX_VALUE - BLINK_DURATION));
     }
     
     /**
@@ -116,11 +116,28 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
         }
         
         inPlusStellung = !inPlusStellung;
-        if (blink > BLINK_DURATION) {
-            pendingClearGestoert = true;
+        switch (state) {
+          case OK:
             blink = BLINK_DURATION;
-        } else {
-            blink = isGestoert ? Integer.MAX_VALUE : BLINK_DURATION;
+            break;
+            
+          case AUFGEFAHREN:
+            blink = BLINK_DURATION;
+            pendingClearGestoert = true;
+            break;
+            
+          case EINFACHE_BLOCKIERUNG:
+            if (pendingClearGestoert) {
+              blink = BLINK_DURATION;
+            } else {
+              blink = Integer.MAX_VALUE;
+              pendingClearGestoert = true;
+            }
+            break;
+            
+          case DAUERHAFTE_BLOCKIERUNG:
+            blink = Integer.MAX_VALUE;
+            break;
         }
         
         updateOutput();
@@ -222,14 +239,14 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      * Anzeigelampen
      */
     private void updateOutput() {
-        if (isGestoert) {
-            updateOutputGestoert();
-        } else {
-            updateOutputNormal();
-        }
+      if (state == SwitchState.AUFGEFAHREN) {
+        updateOutputAufgefahren();
+      } else {
+          updateOutputNormal();
+      }
     }
     
-    private void updateOutputGestoert() {
+    private void updateOutputAufgefahren() {
         boolean l1 = (isActive || inPlusStellung) ? config.blinklicht.getBlink(): false;
         boolean l2 = (isActive || !inPlusStellung) ? config.blinklicht.getBlink(): false;
         boolean l3 = (!isActive && inPlusStellung) ? false : config.blinklicht.getBlink();
@@ -273,18 +290,13 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      */
     @Override
     public void tick(int count) {
-        if (blink == (Integer.MAX_VALUE - 2 * BLINK_DURATION)) {
-            config.stoerungsmelder.stoerungW();
-            config.alert("Weichenstörung " + name);
-        }
-        
+        updateOutput();
         if (blink > 0) {
-            updateOutput();
             blink--;
             if (blink == 0) {
                 if (pendingClearGestoert) {
-                    isGestoert = false;
                     pendingClearGestoert = false;
+                    state = SwitchState.OK;
                 }
                 updateOutput();
             }

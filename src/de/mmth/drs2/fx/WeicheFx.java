@@ -6,8 +6,10 @@ package de.mmth.drs2.fx;
 
 import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.parts.Weiche;
+import de.mmth.drs2.parts.state.SwitchState;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.scene.control.ComboBox;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -35,6 +37,7 @@ public class WeicheFx extends GridPane implements TickerEvent {
     private final Text verschluss;
     private final Text name;
     private boolean textStoerung = false;
+  private final ComboBox errorState;
     
     /**
      * Der Konstruktor enthält die Weiche deren
@@ -52,12 +55,21 @@ public class WeicheFx extends GridPane implements TickerEvent {
         this.setHgap(5);
         this.weiche = weiche;
         name = new Text(weiche.getName());
-        name.setOnMouseClicked(ev -> {
-            boolean stoerung = !weiche.isGestoert();
-            name.setText(weiche.getName() + (stoerung ? " (gestört)" : ""));
-            weiche.setStoerung(stoerung);
+        this.add(name, 0, 0, 1, 1);
+        this.errorState = new ComboBox();
+        errorState.getItems().addAll("Ok", "Aufgefahren", "Einf. Störung", "Blockiert");
+        errorState.getSelectionModel().selectFirst();
+        errorState.setOnAction(ev -> {
+          SwitchState newState;
+          switch(errorState.getSelectionModel().getSelectedIndex()) {
+            case 1: newState = SwitchState.AUFGEFAHREN; break;
+            case 2: newState = SwitchState.EINFACHE_BLOCKIERUNG; break;
+            case 3: newState = SwitchState.DAUERHAFTE_BLOCKIERUNG; break;
+            default: newState = SwitchState.OK; break;
+          }
+          weiche.setState(newState);
         });
-        this.add(name, 0, 0, 2, 1);
+        this.add(errorState, 1, 0, 1, 1);
         
         // Stellung
         Text labelStellung = new Text("Stellung");
@@ -96,6 +108,9 @@ public class WeicheFx extends GridPane implements TickerEvent {
             name.setText(weiche.getName() + (weiche.isGestoert() ? " (gestört)" : ""));
             textStoerung = weiche.isGestoert();
         }
+        
+        var index = weiche.getState().getValue();
+        errorState.getSelectionModel().select(index);
     }
 
     /**
