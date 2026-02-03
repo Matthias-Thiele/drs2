@@ -583,9 +583,13 @@ public class Config implements TickerEvent {
         }
         
         // Durchfahrt von M nach H auf Gleis 2
-        fahrstrassen[6].addEinfahrt(0);
+        fahrstrassen[6].addEinAusfahrt(0);
         // Durchfahrt von H nach M auf Gleis 1
-        fahrstrassen[4].addEinfahrt(2);
+        fahrstrassen[4].addEinAusfahrt(2);
+        // Durchfahrt von M nach H über Gleis 3
+        fahrstrassen[7].addEinAusfahrt(1);
+        // Durchfahrt von H nach M über Gleis 3
+        fahrstrassen[5].addEinAusfahrt(3);
     }
     
     /**

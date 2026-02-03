@@ -66,6 +66,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
      * @param vorblockPort 
      * @param blockStatePort 
    * @param blockSperrmelder 
+   * @param blockResetWSP 
      */
     public void init(Config config, String name, 
             int streckenTaste, int blockMelderWeiss, int blockMelderRot, 

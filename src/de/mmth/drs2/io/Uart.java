@@ -104,7 +104,7 @@ public final class Uart implements TickerEvent {
         boolean changed = false;
         //int inputVals = fromHex(status[1]) * 16 + fromHex(status[2]);
         int inputVals = (fromHex(status[2]) << 12) + (fromHex(status[3]) << 8) + (fromHex(status[4]) << 4) + fromHex(status[5]);
-        System.out.println("Inputs: " + Integer.toHexString(inputVals));
+        //System.out.println("Inputs: " + Integer.toHexString(inputVals));
         for (var i = IoInputStart; i < IoInputStart + 16; i++) {
             var newState  = (inputVals & 1) == 1;
             if (config.connector.drs2In[i] != newState) {

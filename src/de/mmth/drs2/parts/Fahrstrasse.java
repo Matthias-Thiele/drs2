@@ -61,7 +61,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private ColorMarker nextWhite;
     private long nextWhiteTStamp = Integer.MAX_VALUE;
     
-    private int verbundeneEinfahrt = -1;
+    private int verbundeneFahrt = -1;
     private boolean ersatzSignalFahrt;
     private int schluesselweiche1;
     private int schluesselweiche2;
@@ -155,10 +155,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * automatisch aufgelöst sobald der Zug den
      * Bahnhof verlassen hat.
      * 
-     * @param verbundeneEinfahrt 
+     * @param verbundeneFahrt 
      */
-    public void addEinfahrt(int verbundeneEinfahrt) {
-        this.verbundeneEinfahrt = verbundeneEinfahrt;
+    public void addEinAusfahrt(int verbundeneFahrt) {
+        this.verbundeneFahrt = verbundeneFahrt;
     }
 
     /**
@@ -687,11 +687,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 unlock(false);
                 streckeAus.activateGleiskontakt(false);
                 streckeAus.fahrstrassenauflösung();
-                if (verbundeneEinfahrt >= 0) {
+                if (verbundeneFahrt >= 0) {
                     // bei Durchfahrten wird die Einfahrt automatisch aufgelöst.
-                    if (config.fahrstrassen[verbundeneEinfahrt].isLocked) {
-                        config.fahrstrassen[verbundeneEinfahrt].unlock(true);
-                        config.fahrstrassen[verbundeneEinfahrt].streckeEin.startRückblock();
+                    if (config.fahrstrassen[verbundeneFahrt].isLocked) {
+                        config.fahrstrassen[verbundeneFahrt].unlock(true);
                     }
                 }
                 state = DONE;
