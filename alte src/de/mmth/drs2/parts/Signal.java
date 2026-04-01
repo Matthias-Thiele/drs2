@@ -102,10 +102,6 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         halt(false);
     }
     
-    public boolean isRed() {
-        return config.connector.isInSet(fahrwegRed);
-    }
-    
     /**
      * Stellt das Signal und Vorsignal auf Halt.
      * 

@@ -1,0 +1,127 @@
+/*
+ * DRS2 Stellpultsteuerung für Raspberry Pi
+ * (c) 2022 Matthias Thiele
+ */
+package de.mmth.drs2.fx;
+
+import de.mmth.drs2.TickerEvent;
+import de.mmth.drs2.parts.Weiche;
+import de.mmth.drs2.parts.state.SwitchState;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.scene.control.ComboBox;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+
+/**
+ * Diese Klasse visualisiert den Zustand einer
+ * Weiche.
+ * 
+ * Zudem kann der Zustand der Weiche über das
+ * User Interface verändert werden. Durch Klick
+ * auf das Label "Stellung" kann die Weiche umgestellt
+ * werden.
+ * 
+ * @author pi
+ */
+public class WeicheFx extends GridPane implements TickerEvent {
+
+    private final Weiche weiche;
+    private final Text stellung;
+    private final Text verschluss;
+    private final Text name;
+    private boolean textStoerung = false;
+  private final ComboBox errorState;
+    
+    /**
+     * Der Konstruktor enthält die Weiche deren
+     * Zustand angezeigt werden soll.
+     * 
+     * @param weiche 
+     */
+    public WeicheFx(Weiche weiche) {
+        BorderStroke borderStroke = new BorderStroke(Color.BLUE, BorderStrokeStyle.SOLID, new CornerRadii(3),
+                new BorderWidths(1));
+        Border border = new Border(borderStroke);   
+        this.setBorder(border);
+        this.setPadding(new Insets(5, 5, 5,5));
+        
+        this.setHgap(5);
+        this.weiche = weiche;
+        name = new Text(weiche.getName());
+        this.add(name, 0, 0, 1, 1);
+        this.errorState = new ComboBox();
+        errorState.getItems().addAll("Ok", "Aufgefahren", "Einf. Störung", "Blockiert");
+        errorState.getSelectionModel().selectFirst();
+        errorState.setOnAction(ev -> {
+          SwitchState newState;
+          switch(errorState.getSelectionModel().getSelectedIndex()) {
+            case 1: newState = SwitchState.AUFGEFAHREN; break;
+            case 2: newState = SwitchState.EINFACHE_BLOCKIERUNG; break;
+            case 3: newState = SwitchState.DAUERHAFTE_BLOCKIERUNG; break;
+            default: newState = SwitchState.OK; break;
+          }
+          weiche.setState(newState);
+        });
+        this.add(errorState, 1, 0, 1, 1);
+        
+        // Stellung
+        Text labelStellung = new Text("Stellung");
+        labelStellung.setOnMouseClicked(ev -> {
+            weiche.whenPressed(0, 0);
+        });
+        this.add(labelStellung, 0, 1);
+        stellung = new Text("unbekannt");
+        this.add( stellung, 1, 1);
+        
+        // Verschluss
+        Text labelVerschluss = new Text("Verschluss");
+        labelVerschluss.setOnMouseClicked(ev -> {
+            weiche.red(); // nur zum Test.
+        });
+        
+        this.add(labelVerschluss, 0, 2);
+        verschluss = new Text("unbekannt");
+        this.add(verschluss, 1, 2);
+    }
+    
+    /**
+     * Aktualisiert die Ansicht aus dem
+     * aktuellen Zustand der Weiche.
+     */
+    public void updateView() {
+        String status = weiche.isPlus() ? "Plus" : "Minus";
+        if (weiche.isRunning()) {
+            status = "Umlauf";
+        }
+        stellung.setText(status);
+        
+        verschluss.setText(weiche.isLocked() ? "Sperre" : "Frei");
+        
+        if (textStoerung != weiche.isGestoert()) {
+            name.setText(weiche.getName() + (weiche.isGestoert() ? " (gestört)" : ""));
+            textStoerung = weiche.isGestoert();
+        }
+        
+        var index = weiche.getState().getValue();
+        errorState.getSelectionModel().select(index);
+    }
+
+    /**
+     * Löst regelmäßig eine Aktualisierung
+     * der Ansicht aus.
+     * @param count 
+     */
+    @Override
+    public void tick(int count) {
+        Platform.runLater(() -> {
+            updateView();
+        });
+    }
+}

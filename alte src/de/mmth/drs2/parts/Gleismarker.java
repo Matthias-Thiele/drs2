@@ -58,11 +58,6 @@ public class Gleismarker implements ColorMarker {
     }
     
     @Override
-    public boolean isRed() {
-        return config.connector.isInSet(markerRed);
-    }
-    
-    @Override
     public void clear() {
         config.alert("Gleismarker " + name + " gelöscht.");
         config.connector.setOut(markerRed, false);

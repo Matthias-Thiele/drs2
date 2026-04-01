@@ -228,14 +228,14 @@ public class Config implements TickerEvent {
     private void initStrecken() {
         StreckeEinfahrt2 fromH = new StreckeEinfahrt2();
         fromH.init(this, "Von H", Const.BlockHIn, Const.StreckeVonHWeiss, 
-                Const.StreckeVonHRot, Const.EinfRaeumungsmelderH, Const.EinfFestlegemelderH, -1, -1, 1, 1);
+                Const.StreckeVonHRot, Const.EinfRaeumungsmelderH, Const.EinfFestlegemelderH, -1, -1, 1);
         streckenEin[FROM_H] = fromH;
         fromH.setSimulationMode(true);
         
         StreckeEinfahrt2 fromM = new StreckeEinfahrt2();
         fromM.init(this, "Von M", Const.BlockMIn, Const.StreckeVonMWeiss, 
                 Const.StreckeVonMRot, Const.EinfRaeumungsmelderM, Const.EinfFestlegemelderM, 
-                Const.StreckeVonAH, Const.BLOCK_AH_IN, 0, 0);
+                Const.StreckeVonAH, Const.BLOCK_AH_IN, 0);
         streckenEin[FROM_M] = fromM;
   
         StreckeAusfahrt2 toH = new StreckeAusfahrt2();

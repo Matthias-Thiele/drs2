@@ -199,10 +199,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
       if (ausfahrtsGleis != null) {
           ausfahrtsGleis.clear();
       }
-      
-      if (!bahnhofsGleis.isRed()) {
-        bahnhofsGleis.clear();
-      }
+      bahnhofsGleis.clear();
 
       if (streckeEin != null) streckeEin.doFHT();
       if (streckeAus != null) streckeAus.doFHT();

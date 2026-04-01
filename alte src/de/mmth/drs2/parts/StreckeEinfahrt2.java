@@ -40,7 +40,6 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   private boolean festlegemelderState = false;
   private int zsmCount = Integer.MAX_VALUE;
   private boolean allowAsLT;
-    private int ersatzId;
     
   /**
    * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -56,12 +55,11 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
    * @param rueckblockPort 
    * @param blockStatePort 
    * @param signalId 
-     * @param ersatzId 
    */
   public void init(Config config, String name, 
         int rueckblockTaste, int blockMelderWeiss, int blockMelderRot, 
         int raeumungsmelderId, int festlegemelderId, 
-        int rueckblockPort, int blockStatePort, int signalId, int ersatzId) {
+        int rueckblockPort, int blockStatePort, int signalId) {
       this.config = config;
       this.name = name;
       this.blockMelderWeiss = blockMelderWeiss;
@@ -71,7 +69,6 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       this.rückblockPort = rueckblockPort;
       this.blockStatePort = blockStatePort;
       this.signalId = signalId;
-      this.ersatzId = ersatzId;
 
       this.rückblockTaster = new Doppeltaster();
       this.rückblockTaster.init(config, this, Const.BlGT, rueckblockTaste);
@@ -158,15 +155,11 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
    * @param mitErsatzsignal
    */
   public void activateGleiskontakt(boolean mitErsatzsignal) {
-      if (mitErsatzsignal && !räummelderState) {
-        config.alert("Anschalttaste wurde nicht betätigt.");
-      } else {
-        räummelderDauerlicht = false;
-        räummelderState = true;
-        if (signalId == 0) {
-          // ZSM nur von der Signal A Seite aus aktivieren.
-          zsmCount = -30;
-        }
+      räummelderDauerlicht = false;
+      räummelderState = true;
+      if (signalId == 0) {
+        // ZSM nur von der Signal A Seite aus aktivieren.
+        zsmCount = -30;
       }
   }
   
@@ -189,7 +182,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   }
   
   private boolean isFahrt() {
-    return config.signale[signalId].isFahrt() || config.ersatzsignale[ersatzId].isFahrt();
+    return config.signale[signalId].isFahrt();
   }
   
   private boolean getBlockState() {
@@ -207,14 +200,9 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
         // Zug ist eingefahren, Strecke wird zurückgeblockt.
         if (isFahrt()) {
           config.alert("Zug noch nicht eingefahren, Signal noch auf Fahrt.");
-        } else if (!räummelderState || räummelderDauerlicht) {
-          config.alert("Zug noch nicht eingefahren, Räumungsmelder noch aktiv.");
         } else {
           startRückblock();
-        } 
-        
-        break;
-        
+        } break;
       case Const.RbHGT:
         if (streckenState != StreckenState.FREE) {
           if (config.ersatzsignale[signalId].isFahrt() || config.signale[signalId].isFahrt() || config.signale[signalId].isSh1()) {
@@ -225,14 +213,12 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
         }
         break;
       case Const.AsT:
-        if (!räummelderState) {
-            räummelderDauerlicht = true;
-            räummelderState = true;
-            allowAsLT = true;
-        }
+        räummelderDauerlicht = true;
+        räummelderState = true;
+        allowAsLT = true;
         break;
       case Const.AsLT:
-        if (allowAsLT && räummelderDauerlicht) {
+        if (allowAsLT) {
           allowAsLT = false;
           räummelderDauerlicht = false;
           räummelderState = false;        }
@@ -240,8 +226,6 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       default:
         break;
     }
-    
-    updateView();
   }
 
   /**
@@ -258,9 +242,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   private void tickRueckblock(int count) {
     if (rückblockCount < 0) {
       // Rückblocken starten
-      if (simulationMode) {
-        config.connector.setOut(Const.MJ1, true);
-      } else {
+      if (!simulationMode) {
         // Relaisblock anweisen das Rückblocken zu starten
         config.connector.setOut(rückblockPort, true);
       }
@@ -271,7 +253,6 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       räummelderState = false;
       if (simulationMode) {
         simulatedBlockState = false;
-        config.connector.setOut(Const.MJ1, false);
       } else {
         // Rückblocken beendet
         config.connector.setOut(rückblockPort, false);
@@ -323,10 +304,6 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
     checkStreckenState();
     if (räummelderState) {
       updateView();
-    }
-    if (simulationMode) {
-    } else {
-      config.connector.setOut(Const.MJ2, config.connector.isInSet(Const.MOTORINDUKTOR));
     }
   }
 

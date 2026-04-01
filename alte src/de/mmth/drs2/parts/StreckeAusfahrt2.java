@@ -219,9 +219,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
   private void tickVorblock(int count) {
     if (vorblockCount < 0) {
       // Vorblocken starten
-      if (simulationMode) {
-        config.connector.setOut(Const.MJ1, true);
-      } else {
+      if (!simulationMode) {
         // Relaisblock anweisen das Vorblocken zu starten
         config.connector.setOut(vorblockPort, true);
       }
@@ -229,17 +227,17 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
       vorblockCount = count - vorblockCount;
     } else if (vorblockCount < count) {
       // Ende der Vorblock-Zeit erreicht.
+      System.out.println("Beende Vorblocken.");
       if (simulationMode) {
-        config.connector.setOut(Const.MJ1, false);
         simulatedBlockState = true;
         rückblockCount = RÜCKBLOCK_SIMULATION_COUNT;
-        sperrmelderState = false;
-        vorblockCount = Integer.MAX_VALUE;
       } else {
         // Vorblocken beendet
         config.connector.setOut(vorblockPort, false);
       }
       
+      sperrmelderState = false;
+      vorblockCount = Integer.MAX_VALUE;
       updateView();
     } else if (vorblockCount < Integer.MAX_VALUE) {
       config.connector.setOut(sperrmelderId, sperrmelderState & config.blinklicht.getBlink());
@@ -270,7 +268,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     }
     
     public void clearWiederholsperre() {
-        //System.out.println("Wiederholsperre löschen.");
+        System.out.println("Wiederholsperre löschen.");
         sperrmelderState = false;
         updateView();
     }
@@ -285,9 +283,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
         startVorblock();
       }
 
-      if (this.simulationMode) {
-        clearWiederholsperre();
-      }
+      clearWiederholsperre();
   }
   
   /**
@@ -298,25 +294,36 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     config.connector.setOut(blockMelderRot, besetzt);
     config.connector.setOut(blockMelderWeiss, !besetzt);
     config.connector.setOut(sperrmelderId, sperrmelderState);
-    config.connector.setOut(Const.StrWSP, sperrmelderState);
     config.connector.setOut(festlegemelderId, festlegemelderState);
   }
   
     @Override
     public void whenPressed(int taste1, int taste2) {
        switch (taste1) {
+            case Const.AsT:
+                setWiederholsperre();
+                break;
+                
+            case Const.AsLT:
+                sperrmelderState = false;
+                updateView();
+                break;
+            
+            case Const.FHT:
+                sperrmelderState = false;
+                updateView();
+                break;
+                
             case Const.BlGT:
                 if (taste2 == vorblockHilfsTaste) {
-                    //if (sperrmelderState) {
-                    //  config.alert("Wiederholsperre aktiv, manuelles Vorblocken nicht möglich.");
-                    //  return;
-                    //}
+                    if (sperrmelderState) {
+                      config.alert("Wiederholsperre aktiv, manuelles Vorblocken nicht möglich.");
+                      return;
+                    }
                     // Bei der Ausfahrt über Hilfssignal muss manuell vorgeblockt werden.
                     startVorblock();
-                    if (this.simulationMode) {
-                        clearWiederholsperre();
-                        rückblockenUntil = 0;
-                    }
+                    clearWiederholsperre();
+                    rückblockenUntil = 0;
                 }
                 break;
                 
@@ -335,10 +342,6 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     tickVorblock(count);
     tickRückblock(count);
     checkStreckenState();
-    if (simulationMode) {
-    } else {
-      config.connector.setOut(Const.MJ2, config.connector.isInSet(Const.MOTORINDUKTOR));
-    }
   }
 
 }

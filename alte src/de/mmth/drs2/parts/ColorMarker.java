@@ -31,12 +31,6 @@ public interface ColorMarker {
     public String getName();
     
     /**
-     * Zeigt eine Rotausleuchtung des Markers an.
-     * @return 
-     */
-    public boolean isRed();
-    
-    /**
      * Nicht alle Signale haben einen Fahrwegmarker.
      * 
      * @return 

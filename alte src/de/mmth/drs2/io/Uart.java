@@ -23,7 +23,7 @@ import de.mmth.drs2.TickerEvent;
  * @author root
  */
 public final class Uart implements TickerEvent {
-    private final static int PENDING_TRAIN_DURATION = 10000;
+    private final static int PENDING_TRAIN_DURATION = 600;
 
     private final SerialPort comPort;
     private final Config config;
@@ -105,9 +105,6 @@ public final class Uart implements TickerEvent {
         //int inputVals = fromHex(status[1]) * 16 + fromHex(status[2]);
         int inputVals = (fromHex(status[2]) << 12) + (fromHex(status[3]) << 8) + (fromHex(status[4]) << 4) + fromHex(status[5]);
         //System.out.println("Inputs: " + Integer.toHexString(inputVals));
-        inputVals ^= 0x30;
-        
-        System.out.println("Inputs: " + Integer.toHexString(inputVals));
         for (var i = IoInputStart; i < IoInputStart + 16; i++) {
             var newState  = (inputVals & 1) == 1;
             if (config.connector.drs2In[i] != newState) {
@@ -222,7 +219,7 @@ public final class Uart implements TickerEvent {
     private void fillupOutputBuffer(byte[] buffer) {
         var outputs = config.connector.drs2Out;
         var pos = 0;
-        for (var i = 1; i < 15; i++) {
+        for (var i = 1; i < 16; i++) {
             if (i == 13) {
                 pos += 8; // Status vom Block
             }
@@ -364,10 +361,10 @@ public final class Uart implements TickerEvent {
             case UPDATE_OUTPUTS:
                 if (isDRS2) {
                     buffer[0] = OUTPUT_MARKER;
-                    buffer[15] = STATUS_END;
+                    buffer[16] = STATUS_END;
                     fillupOutputBuffer(buffer);
 
-                    bytesToSend = 16;
+                    bytesToSend = 17;
                 } else {
                     fillupIOBuffer(buffer);
 

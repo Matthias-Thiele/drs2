@@ -259,7 +259,6 @@ public class Rangierfahrt implements TickerEvent {
                 break;
                 
             case Stop:
-                config.stoerungsmelder.rangierMeldung();
                 position = -1;
                 break;
                 
