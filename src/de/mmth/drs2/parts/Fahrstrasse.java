@@ -630,6 +630,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                     state = WAIT_FOR_HP1; // Fahrstraße wurde ausgewählt.
                     setRed(count, bahnhofsGleis); // damit setWhite funktioniert
                     reportWait = true;
+                    if (verbundeneFahrt >= 0) {
+                        // bei Durchfahrten wird die Einfahrt automatisch aufgelöst.
+                        if (config.fahrstrassen[verbundeneFahrt].isLocked) {
+                            config.fahrstrassen[verbundeneFahrt].unlock(true);
+                        }
+                    }
                 } else {
                     if (reportWait) {
                         config.alert("Warte auf Zug.");
@@ -690,12 +696,6 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 config.alert("Bahnhof verlassen.");
                 unlock(false);
                 streckeAus.fahrstrassenauflösung();
-                if (verbundeneFahrt >= 0) {
-                    // bei Durchfahrten wird die Einfahrt automatisch aufgelöst.
-                    if (config.fahrstrassen[verbundeneFahrt].isLocked) {
-                        config.fahrstrassen[verbundeneFahrt].unlock(true);
-                    }
-                }
                 state = DONE;
                 
             case DONE:
