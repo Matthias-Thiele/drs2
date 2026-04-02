@@ -156,9 +156,13 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 config.connector.setOut(WEICHE_IV_OUT, false);
                 if (!config.connector.isInSet(wsCheck)) {
                     // Schlüsselrückgabe.
+                    if (config.drs60sw) {
+                      state = 0;
+                    } else {
                     state = 5;
                     config.connector.setOut(weiss, true);
                     config.alert("Schlüssel zurückgegeben.");
+                    }
                 }
                 break;
             

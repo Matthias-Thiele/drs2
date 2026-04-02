@@ -141,13 +141,19 @@ public class MainPane extends HBox implements TickerEvent {
           }
         });
         
-        var drs60wk = createSizedButton("DRS60 WK", STD_BUTTON_SIZE);
+        var drs60wk = createSizedButton("DRS60 WLK", STD_BUTTON_SIZE);
         drs60wk.setOnAction(ev -> {
           config.drs60wk = !config.drs60wk;
           drs60wk.setStyle(config.drs60wk ? "-fx-background-color: lime" : "");
         });
         
-        box.getChildren().addAll(block1,block3, simu, blink, zsm, drs60wk);
+        var drs60sw = createSizedButton("DRS60 SW", STD_BUTTON_SIZE);
+        drs60sw.setOnAction(ev -> {
+          config.drs60sw = !config.drs60sw;
+          drs60sw.setStyle(config.drs60sw ? "-fx-background-color: lime" : "");
+        });
+        
+        box.getChildren().addAll(block1,block3, simu, blink, zsm, drs60wk, drs60sw);
         
         var gleis1 = createSizedButton("Zug G1", STD_BUTTON_SIZE);
         gleis1.setOnAction(ev -> {

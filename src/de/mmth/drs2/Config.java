@@ -191,6 +191,7 @@ public class Config implements TickerEvent {
     public int pendingTrainM = 0;
     
     public boolean drs60wk = false;
+    public boolean drs60sw = false;
     
     /**
      * Initialisiert die Systemkonfiguration
