@@ -13,7 +13,7 @@ import de.mmth.drs2.parts.state.SwitchState;
  * @author pi
  */
 public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
-    private static final int BLINK_DURATION = 72;
+    private static final int BLINK_DURATION = 48;
     private Doppeltaster taste;
     private int firstWhite;
     private int sndWhite;

@@ -86,7 +86,7 @@ public class Weichenlaufkette implements TickerEvent {
 
     if (doStart) {
       doStart = false;
-      if (!weiche.starteUmlauf()) {
+      if ((weiche.isPlus() != isPlus) && !weiche.starteUmlauf()) {
         hasError = true;
         activePlus = -1;
         activeMinus = -1;

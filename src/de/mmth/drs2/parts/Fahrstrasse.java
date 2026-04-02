@@ -95,14 +95,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
      * @param streckeTaster
      * @param schluesselweiche1
      * @param schluesselweiche2
-     * @param pruefungPlus
-     * @param pruefungMinus
      * @param aufloesungsTaste
      */
     public void init(Config config, String name, int[] plusWeichen, int[] minusWeichen, int[] fahrwegWeichen, 
             int signalTaste, int gleisTaste, Gleismarker bahnhofsGleis, int signalNummer, int ersatzSignalNummer,
             Gleismarker ausfahrtsGleis, StreckeEinfahrt2 streckeEin, StreckeAusfahrt2 streckeAus, int streckeTaster, int schluesselweiche1, int schluesselweiche2,
-            int pruefungPlus, int pruefungMinus, int aufloesungsTaste) {
+            int aufloesungsTaste) {
         this.config = config;
         this.name = name;
         this.streckeEin = streckeEin;
@@ -113,21 +111,9 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             this.plusWeichen[i] = config.weichen[plusWeichen[i]];    
         }
         
-        if (pruefungPlus != -1) {
-            this.pruefungPlus = config.weichen[pruefungPlus];
-        } else {
-            this.pruefungPlus = null;
-        }
-        
         this.minusWeichen = new Weiche[minusWeichen.length];
         for (int i = 0; i < minusWeichen.length; i++) {
             this.minusWeichen[i] = config.weichen[minusWeichen[i]];
-        }
-        
-       if (pruefungMinus != -1) {
-            this.pruefungMinus = config.weichen[pruefungMinus];
-        } else {
-            this.pruefungMinus = null;
         }
         
         this.fahrwegWeichen = new Weiche[fahrwegWeichen.length];

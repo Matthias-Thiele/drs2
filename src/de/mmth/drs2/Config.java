@@ -410,7 +410,6 @@ public class Config implements TickerEvent {
             int streckenTaster = -1;
             int ersatz = -1;
             int schluesselweiche1 = -1, schluesselweiche2 = -1;
-            int pruefungPlus = -1, pruefungMinus = -1;
             int aufloesungsTaste = -1;
             StreckeEinfahrt2 streckeEin = null; StreckeAusfahrt2 streckeAus = null;
             
@@ -423,7 +422,7 @@ public class Config implements TickerEvent {
                     gleis = 1;
                     int[] minusWeichen0 = {};
                     minusWeichen = minusWeichen0;
-                    int[] plusWeichen0 = {0, 1, 2};
+                    int[] plusWeichen0 = {0, 1, 2, 3};
                     plusWeichen = plusWeichen0;
                     int[] fahrwegWeichen0 = {1, 2};
                     fahrwegWeichen = fahrwegWeichen0;
@@ -431,7 +430,6 @@ public class Config implements TickerEvent {
                     streckenTaster = 17;
                     ersatz = 0;
                     streckeEin = streckenEin[FROM_M];
-                    pruefungPlus = 3;
                     break;
                     
                 case 1:
@@ -440,7 +438,7 @@ public class Config implements TickerEvent {
                     taste2 = Const.GLEIS3;
                     aufloesungsTaste = Const.SIGNAL_A;
                     gleis = 2;
-                    int[] minusWeichen1 = {2};
+                    int[] minusWeichen1 = {2, 3};
                     minusWeichen = minusWeichen1;
                     int[] plusWeichen1 = {0, 1};
                     plusWeichen = plusWeichen1;
@@ -451,7 +449,6 @@ public class Config implements TickerEvent {
                     ersatz = 0;
                     streckeEin = streckenEin[FROM_M];
                     schluesselweiche1 = 2;
-                    pruefungMinus = 3;
                     break;
                     
                 case 2:
@@ -462,7 +459,7 @@ public class Config implements TickerEvent {
                     gleis = 0;
                     int[] minusWeichen2 = {};
                     minusWeichen = minusWeichen2;
-                    int[] plusWeichen2 = {4, 5, 1};
+                    int[] plusWeichen2 = {4, 5, 1, 0};
                     plusWeichen = plusWeichen2;
                     int[] fahrwegWeichen2 = {5};
                     fahrwegWeichen = fahrwegWeichen2;
@@ -471,7 +468,6 @@ public class Config implements TickerEvent {
                     ersatz = 1;
                     streckeEin = streckenEin[FROM_H];
                     schluesselweiche1 = 1;
-                    pruefungPlus = 0;
                     break;
                     
                 case 3:
@@ -480,7 +476,7 @@ public class Config implements TickerEvent {
                     taste2 = Const.GLEIS3;
                     aufloesungsTaste = Const.SIGNAL_F;
                     gleis = 2;
-                    int[] minusWeichen3 = {3, 4, 5};
+                    int[] minusWeichen3 = {3, 4, 5, 2};
                     minusWeichen = minusWeichen3;
                     int[] plusWeichen3 = {};
                     plusWeichen = plusWeichen3;
@@ -491,7 +487,6 @@ public class Config implements TickerEvent {
                     ersatz = 1;
                     streckeEin = streckenEin[FROM_H];
                     schluesselweiche1 = 2;
-                    pruefungMinus = 2;
                     break;
                     
                 case 4:
@@ -582,7 +577,7 @@ public class Config implements TickerEvent {
             fahrstrasse.init(this, name, plusWeichen, minusWeichen, fahrwegWeichen, 
                     taste1, taste2, gleise[gleis], signalNummer, ersatz, ausfahrtsGleis,
                     streckeEin, streckeAus, streckenTaster, schluesselweiche1, schluesselweiche2,
-                    pruefungPlus, pruefungMinus, aufloesungsTaste);
+                    aufloesungsTaste);
             
             fahrstrassen[i] = fahrstrasse;
         }
