@@ -132,7 +132,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                 
             case 2:
                 // Waretet bis der Schlüssel entnommen wird, blinkt solange rot.
-                config.connector.setOut(rot, config.blinklicht.getBlink());
+                config.connector.setOut(rot, config.blinklicht.getBlink() || !config.drs60sw);
                 if (config.connector.isInSet(wsCheck)) {
                     // Schlüssel entnommen.
                     state = 3;
@@ -158,6 +158,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
                     // Schlüsselrückgabe.
                     if (config.drs60sw) {
                       state = 0;
+                      config.alert("Schlüssel zurückgegeben und Schlüsselfreigabe beendet.");
                     } else {
                     state = 5;
                     config.connector.setOut(weiss, true);
@@ -168,7 +169,7 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
             
             case 5:
                 // Wartet auf SlFLT
-                config.connector.setOut(rot, config.blinklicht.getBlink());
+                config.connector.setOut(rot, config.blinklicht.getBlink() || !config.drs60sw);
                 break;
                 
             default:
