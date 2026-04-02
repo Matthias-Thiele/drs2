@@ -25,7 +25,7 @@ public class Blinklicht implements TickerEvent {
   
   @Override
   public void tick(int count) {
-    onOff = (count & 0x10) == 0x10;
+    onOff = (count & 0x8) == 0x8;
   }
   
   public void setStoerung(boolean stoerung) {

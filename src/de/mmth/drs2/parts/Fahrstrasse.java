@@ -73,6 +73,9 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private StreckeEinfahrt2 streckeEin;
     private StreckeAusfahrt2 streckeAus;
     
+    private Weichenlaufkette weichenlauf;
+    private boolean pendingWeichenlauf;
+    
     /**
      * Initialisiert die Parameter der Fahrstraße.
      * 
@@ -148,6 +151,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.schluesselweiche2 = schluesselweiche2;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
         
+        weichenlauf = new Weichenlaufkette(this.plusWeichen, this.minusWeichen);
+        config.ticker.add(weichenlauf);
         config.ticker.add(this);
     }
     
@@ -176,7 +181,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             default:
-                fahrstrassenfestlegung();
+                if (config.drs60wk) {
+                  pendingWeichenlauf = true;
+                  weichenlauf.start();
+                } else {
+                  fahrstrassenfestlegung();
+                }
         }
     }
     
@@ -337,7 +347,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         state = INIT;
         if (isInbound && pendingTrain) {
             state = WAIT_FOR_HP1;
-            config.alert("Begonnen Fahrt wird fortgesetzt.");
+            config.alert("Begonnene Fahrt wird fortgesetzt.");
         }
         
         reportWait = true;
@@ -511,6 +521,16 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             } else {
                 outboundTick(count);
             }
+        }
+        
+        if (pendingWeichenlauf) {
+          if (weichenlauf.hasError()) {
+            config.alert("Weichenlaufkette konnte nicht komplett ausgeführt werden.");
+            pendingWeichenlauf = false;
+          } else if (weichenlauf.isReady()) {
+            fahrstrassenfestlegung();
+            pendingWeichenlauf = false;
+          }
         }
     }
     

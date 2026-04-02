@@ -84,6 +84,16 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
       }
     }
     
+    public boolean starteUmlauf() {
+      if (state == SwitchState.OK) {
+        inPlusStellung = !inPlusStellung;
+        blink = BLINK_DURATION;
+        return true;
+      } else {
+        return false;
+      }
+    }
+    
     /**
      * Stelle die Weiche direkt auf Störung da sie aufgefahren wurde.
      */
