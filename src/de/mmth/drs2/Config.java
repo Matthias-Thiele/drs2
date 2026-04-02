@@ -21,6 +21,7 @@ import de.mmth.drs2.parts.Stoerungsmelder;
 import de.mmth.drs2.parts.StreckeAusfahrt2;
 import de.mmth.drs2.parts.StreckeEinfahrt2;
 import de.mmth.drs2.parts.Weiche;
+import de.mmth.drs2.parts.state.RedWhiteList;
 import javafx.stage.Stage;
 
 /**
@@ -152,6 +153,7 @@ public class Config implements TickerEvent {
     public final StreckeEinfahrt2[] streckenEin = new StreckeEinfahrt2[ANZAHL_STRECKEN_EIN];
     public final StreckeAusfahrt2[] streckenAus = new StreckeAusfahrt2[ANZAHL_STRECKEN_AUS];
     
+    public final RedWhiteList rwList = new RedWhiteList();
     /**
      * Verbindung zum externen Streckenblock-Adapter und DRS2
      */
@@ -213,6 +215,7 @@ public class Config implements TickerEvent {
         //Uart.createUarts(this, "/dev/ttyAMA2", "/dev/ttyAMA1", connector.polarity);        
         Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", connector.polarity);        
         ticker.add(this);
+        ticker.add(rwList);
     }
     
     /**

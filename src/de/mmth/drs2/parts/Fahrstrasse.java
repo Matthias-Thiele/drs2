@@ -18,7 +18,8 @@ import de.mmth.drs2.TickerEvent;
 public class Fahrstrasse implements TastenEvent, TickerEvent {
     
     private final static int SIGNAL_FIRST_OUTBOUND = 2;
-    private final static int STEP_SHORT_WAIT = 20;
+    private final static int STEP_VERY_SHORT_WAIT = 9;
+    private final static int STEP_SHORT_WAIT = 3 * STEP_VERY_SHORT_WAIT;
     private final static int STEP_LONG_WAIT = 3 * STEP_SHORT_WAIT;
     private final static int DORMANT = -1;
     private final static int INBOUND_RED = -2;
@@ -35,7 +36,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private final static int WAIT_FOR_TRAIN = -13;
     private final static int WAITERSATZ = -14;
     
-    private final static int RED_DELTA_TICKS = STEP_SHORT_WAIT / 2;
+    private final static int RED_DELTA_TICKS = STEP_SHORT_WAIT * 3 / 2;
     
     private Config config;
     private Weiche[] plusWeichen;
@@ -583,14 +584,14 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
                 if (weiche < fahrwegWeichen.length) {
                     config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
-                    setRed(count, fahrwegWeichen[weiche]);
+                    config.rwList.add(count + RED_DELTA_TICKS, fahrwegWeichen[weiche]);
                 } else {
                     config.alert("Ausfahrtsgleis erreicht.");
                     nextStep = count + STEP_SHORT_WAIT;
                     state = AUSFAHRT1;
                     break;
                 }
-                nextStep = count + STEP_SHORT_WAIT;
+                nextStep = count + STEP_VERY_SHORT_WAIT;
                 
                 state++;
                 break;
@@ -719,14 +720,14 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
                 if (weiche < fahrwegWeichen.length) {
                     config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
-                    setRed(count, fahrwegWeichen[weiche]);
+                    config.rwList.add(count + RED_DELTA_TICKS, fahrwegWeichen[weiche]);
                 } else {
                     config.alert("Ausfahrtsgleis erreicht.");
                     nextStep = count + STEP_SHORT_WAIT;
                     state = AUSFAHRT1;
                     break;
                 }
-                nextStep = count + STEP_SHORT_WAIT;
+                nextStep = count + STEP_VERY_SHORT_WAIT;
                 
                 state++;
                 break;
@@ -868,15 +869,17 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                     // den Streckenabschnitt zum Einfahrtssignal.
                     config.alert("Zug verlässt Signalblock.");
                     streckeEin.activateGleiskontakt(ersatzSignalFahrt);
+                    config.rwList.add(count + RED_DELTA_TICKS, lastRed);
+                    nextWhite = null;
                     
                     // signal geht erst beim Befahren der ersten Weiche auf HP0
                     signal.halt();
                 }
                 
-                nextStep = count + STEP_SHORT_WAIT;
+                nextStep = count + STEP_VERY_SHORT_WAIT;
                 if (weiche < fahrwegWeichen.length) {
                     config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
-                    setRed(count, fahrwegWeichen[weiche]);
+                    config.rwList.add(count + RED_DELTA_TICKS, fahrwegWeichen[weiche]);
                 } else {
                     // Zielgleis wird angefahren
                     nextStep = count + STEP_LONG_WAIT;
