@@ -18,17 +18,20 @@ public class RedWhiteList implements TickerEvent {
   class RWData {
     public int expirationTime;
     public ColorMarker nextRed;
+    public boolean clear;
     
-    public RWData(int expirationTime, ColorMarker nextRed) {
+    public RWData(int expirationTime, ColorMarker nextRed, boolean clear) {
       this.expirationTime = expirationTime;
       this.nextRed = nextRed;
+      this.clear = clear;
     };
   }
   
   private final List<RWData> activeReds = new ArrayList<>();
   
-  public void add(int expirationTime, ColorMarker nextRed) {
-    var data = new RWData(expirationTime, nextRed);
+  public void add(int expirationTime, ColorMarker nextRed, boolean clear) {
+    System.out.println("Add red timer " + nextRed.getName() + ", Time: " + expirationTime);
+    var data = new RWData(expirationTime, nextRed, clear);
     activeReds.add(data);
     nextRed.red();
   }
@@ -37,7 +40,13 @@ public class RedWhiteList implements TickerEvent {
   public void tick(int count) {
     for (var d: activeReds) {
       if (d.expirationTime < count) {
-        d.nextRed.white();
+        System.out.println("Clear red " + d.nextRed.getName() + ", Time: " + d.expirationTime);
+        if (d.clear) {
+          d.nextRed.clear();
+        } else {
+          d.nextRed.white();
+        }
+        
         activeReds.remove(d);
         break;
       }

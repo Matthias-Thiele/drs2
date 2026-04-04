@@ -477,7 +477,7 @@ public class Config implements TickerEvent {
                     taste2 = Const.GLEIS3;
                     aufloesungsTaste = Const.SIGNAL_F;
                     gleis = 2;
-                    int[] minusWeichen3 = {3, 4, 5, 2};
+                    int[] minusWeichen3 = {5, 4, 3, 2};
                     minusWeichen = minusWeichen3;
                     int[] plusWeichen3 = {};
                     plusWeichen = plusWeichen3;
