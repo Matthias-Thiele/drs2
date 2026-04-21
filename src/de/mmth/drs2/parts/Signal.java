@@ -362,8 +362,22 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         updateView();
     }
 
+    boolean fadenbruchAktiv = false;
+    private void checkFadenbruch() {
+      if (name.equals("Sig P3")) {
+        if (!isFahrt && conn.isInSet(Const.HAUPTFADEN_DEFEKT)) {
+          conn.setOut(sigHalt, config.blinklicht.getBlink());
+          fadenbruchAktiv = true;
+        } else if (fadenbruchAktiv) {
+          fadenbruchAktiv = false;
+          updateView();
+        }
+      }
+    }
+    
     @Override
     public void tick(int count) {
+        checkFadenbruch();
         if (count > nextAction) {
             if (nextAction == 0) {
                 nextAction = count + 5;
