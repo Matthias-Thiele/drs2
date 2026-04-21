@@ -64,6 +64,10 @@ public class Const {
     public static final int MOTORINDUKTOR = 62;
     public static final int WHSPERRE_ZURÜCK = 63;
     
+    // Zweite IO Karte
+    public static final int PAUSE = 64;
+    public static final int HAUPTFADEN_DEFEKT = 65;
+    
     // Schlüsselweiche
     public static final int WSCHLUESSEL3 = 34;
     public static final int WSCHLUESSEL1 = 58;

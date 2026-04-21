@@ -488,6 +488,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             }
         }
         
+        if (config.checkPause()) {
+          return;
+        }
+        
         if (ersatzSignalFahrt) {
             if (isInbound) {
                 inboundErsatzTick(count);

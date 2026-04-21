@@ -805,6 +805,20 @@ public class Config implements TickerEvent {
         mainPane.addMessage(message);
     }
 
+    /**
+     * Prüft nach, ob die Pause Taste aktiv ist.
+     */
+    boolean pausiert = false;
+    public boolean checkPause() {
+      boolean pause = connector.isInSet(Const.PAUSE);
+      if (pause != pausiert) {
+        alert("Pause " + (pause ? "gestartet." : "beendet.")); 
+        pausiert = pause;
+      }
+      
+      return pause;
+    }
+    
     @Override
     public void tick(int count) {
         if (tastenAnschalter != this.connector.isInSet(Const.TA)) {
