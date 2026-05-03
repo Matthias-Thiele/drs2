@@ -215,7 +215,7 @@ public class Config implements TickerEvent {
         stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66, 65, Const.Wecker);
         blinklicht.init(this);
         
-        //Uart.createUarts(this, "/dev/ttyAMA2", "/dev/ttyAMA1", connector.polarity);        
+        //Uart.createUarts(this, "/dev/ttyAMA1", "/dev/ttyAMA3", connector.polarity);        
         Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", connector.polarity);        
         ticker.add(this);
         ticker.add(rwList);

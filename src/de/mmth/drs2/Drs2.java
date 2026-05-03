@@ -40,7 +40,6 @@ public class Drs2 extends Application {
         
         //inputTester();
         //outputTester2(48, 64);
-        config.connector.setOut(Connector.V24_OUT, true);
         MainPane main = new MainPane(config);
         StackPane root = new StackPane();
         root.getChildren().add(main);
