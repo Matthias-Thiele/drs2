@@ -30,6 +30,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
     private Doppeltaster loeschtaste;
   private Signal signal;
   private int[] weichen;
+    private boolean isP1P3;
     
     /**
      * Initialisiert das Ersatzsignal.
@@ -51,6 +52,8 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
         this.lock2 = lock2;
         this.signal = (signalId >= 0) ? conf.signale[signalId] : null;
         this.weichen = weichen;
+        
+        isP1P3 = name.startsWith("Ers P");
         
         taste = new Doppeltaster();
         taste.init(conf, this, Const.ErsGT, signalT);
@@ -93,6 +96,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
                     conf.alert(name + ": Es ist bereits eine Fahrt freigegeben - " + otherName);
                 } else {
                     isFahrt = true;
+                    updateErsatzsignal();
                 }
               }
               break;
@@ -101,6 +105,13 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
                 isFahrt = false;
                 hp0();
                 break;
+                
+            case 0:
+                isFahrt = !isFahrt;
+                if (!isFahrt) {
+                    hp0();
+                }
+                updateErsatzsignal();
         }
     }
 
@@ -157,6 +168,13 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
         isFahrt = false;
         conf.connector.setOut(signalLampe, isFahrt);
         fahrtBis = 0;
+        updateErsatzsignal();
         conf.alert("Ersatzsignal " + this.toString());
+    }
+    
+    void updateErsatzsignal() {
+        if (isP1P3) {
+              conf.connector.setOut(Const.LS_ZS1, isFahrt);
+        }
     }
 }

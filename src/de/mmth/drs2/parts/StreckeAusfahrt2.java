@@ -16,7 +16,7 @@ import de.mmth.drs2.parts.state.StreckenState;
 public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
   private static final int VORBLOCK_RELAIS_COUNT = -20;
   private static final int VORBLOCK_SIMULATION_COUNT = -60;
-  private static final int RÜCKBLOCK_SIMULATION_COUNT = -200;
+  private static final int RÜCKBLOCK_SIMULATION_COUNT = -800;
   
 
   protected Config config;

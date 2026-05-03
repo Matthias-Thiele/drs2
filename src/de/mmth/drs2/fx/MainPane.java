@@ -121,14 +121,6 @@ public class MainPane extends HBox implements TickerEvent {
             config.streckenEin[Config.FROM_H].tryVorblock();
         });
         
-        var simu = createSizedButton("Relaisblock", STD_BUTTON_SIZE);
-        simu.setOnAction(ev -> {
-            simulateAH = !simulateAH;
-            config.streckenEin[Config.FROM_M].setSimulationMode(simulateAH);
-            config.streckenAus[Config.TO_M].setSimulationMode(simulateAH);
-            simu.setText(simulateAH ? "Simulation" : "Relaisblock");
-        });
-        
         var blink = createSizedButton("Blink Störung", STD_BUTTON_SIZE);
         blink.setOnAction(ev -> {
             config.blinklicht.setStoerung(!config.blinklicht.getStoerung());
@@ -153,7 +145,7 @@ public class MainPane extends HBox implements TickerEvent {
           drs60sw.setStyle(config.drs60sw ? "-fx-background-color: lime" : "");
         });
         
-        box.getChildren().addAll(block1,block3, simu, blink, zsm, drs60wk, drs60sw);
+        box.getChildren().addAll(block1,block3, blink, zsm, drs60wk, drs60sw);
         
         var gleis1 = createSizedButton("Zug G1", STD_BUTTON_SIZE);
         gleis1.setOnAction(ev -> {
