@@ -79,6 +79,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     
     private Weichenlaufkette weichenlauf;
     private boolean pendingWeichenlauf;
+  private int nextWCheck;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -469,8 +470,50 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         return false;
     }
     
+    /**
+     * Prüft nach, ob bei einer der beteiligten Weichen eine Störung vorliegt.
+     * 
+     * @return 
+     */
+    private boolean checkWeichenkette(int count) {
+      if (count > nextWCheck) {
+        nextWCheck = count + 10;
+        
+        for (Weiche plusWeiche : plusWeichen) {
+            if (plusWeiche.isGestoert()) {
+                config.alert("Die Weiche " + plusWeiche.getName() + " ist gestört.");
+                return false;
+            }
+        }
+        
+        if ((pruefungPlus != null) && pruefungPlus.isGestoert()) {
+            config.alert("Die Weiche " + pruefungPlus.getName() + " ist gestört.");
+            return false;
+        }
+        
+        for (Weiche minusWeiche : minusWeichen) {
+            if (minusWeiche.isGestoert()) {
+                config.alert("Die Weiche " + minusWeiche.getName() + " ist gestört.");
+                return false;
+            }
+        }
+        
+        if ((pruefungMinus != null) && pruefungMinus.isGestoert()) {
+            config.alert("Die Weiche " + pruefungMinus.getName() + " ist gestört.");
+            return false;
+        }
+      }
+      
+      return true;
+    }
+    
     @Override
     public void tick(int count) {
+        if (signal.isFahrt() && !checkWeichenkette(count)) {
+          signal.halt();
+          config.alert("Signal vorzeitig auf HP0 zurückgestellt.");
+        }
+        
         if (isInbound) {
             if (!ersatzSignalFahrt && (ersatzSignalNummer >= 0) 
                     && config.ersatzsignale[ersatzSignalNummer].isFahrt()
@@ -565,6 +608,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 nextStep = count + STEP_LONG_WAIT;
                 //strecke.unblock();
                 ausfahrtsGleis.clear();
+                streckeAus.fahrstrassenauflösung();
                 state = DONE;
                 break;
                 
