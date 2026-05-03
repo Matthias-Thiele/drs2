@@ -114,6 +114,16 @@ public class Connector implements TickerEvent {
     }
     
     /**
+     * Meldet zurück, ob der Ausgang aktiv ist.
+     * 
+     * @param portNo
+     * @return 
+     */
+    public boolean isOutSet(int portNo) {
+      return drs2Out[portNo];
+    }
+    
+    /**
      * Setzt den Wert eines Ausgangs.
      * 
      * @param portNo

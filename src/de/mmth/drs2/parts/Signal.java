@@ -108,8 +108,9 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         halt(false);
     }
     
+    @Override
     public boolean isRed() {
-        return config.connector.isInSet(fahrwegRed);
+        return config.connector.isOutSet(fahrwegRed);
     }
     
     /**
@@ -281,6 +282,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     @Override
     public void white() {
         fahrwegMarker = this.fahrwegWhite;
+        config.alert("Marker weiß " + name);
         updateView();
     }
 
@@ -290,6 +292,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     @Override
     public void red() {
         fahrwegMarker = this.fahrwegRed;
+        config.alert("Marker rot " + name);
         updateView();
     }
     
@@ -299,6 +302,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     @Override
     public void clear() {
         fahrwegMarker = -1;
+        config.alert("Marker aus " + name);
         updateView();
     }
 

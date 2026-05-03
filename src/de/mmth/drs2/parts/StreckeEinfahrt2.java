@@ -32,6 +32,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   private Doppeltaster RbHG;
 
   private int signalId;
+  private Signal signal;
   private int blockStatePort;
   private int rückblockPort;
   private int rückblockCount = Integer.MAX_VALUE;
@@ -40,7 +41,8 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   private boolean festlegemelderState = false;
   private int zsmCount = Integer.MAX_VALUE;
   private boolean allowAsLT;
-    private int ersatzId;
+  private int ersatzId;
+  private boolean signalBlockBesetzt = false;
     
   /**
    * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -71,6 +73,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       this.rückblockPort = rueckblockPort;
       this.blockStatePort = blockStatePort;
       this.signalId = signalId;
+      this.signal = config.signale[signalId];
       this.ersatzId = ersatzId;
 
       this.rückblockTaster = new Doppeltaster();
@@ -161,8 +164,6 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       if (mitErsatzsignal && !räummelderState) {
         config.alert("Anschalttaste wurde nicht betätigt.");
       } else {
-        räummelderDauerlicht = false;
-        räummelderState = true;
         if (signalId == 0) {
           // ZSM nur von der Signal A Seite aus aktivieren.
           zsmCount = -30;
@@ -189,7 +190,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   }
   
   private boolean isFahrt() {
-    return config.signale[signalId].isFahrt() || config.ersatzsignale[ersatzId].isFahrt();
+    return signal.isFahrt() || config.ersatzsignale[ersatzId].isFahrt();
   }
   
   private boolean getBlockState() {
@@ -217,7 +218,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
         
       case Const.RbHGT:
         if (streckenState != StreckenState.FREE) {
-          if (config.ersatzsignale[signalId].isFahrt() || config.signale[signalId].isFahrt() || config.signale[signalId].isSh1()) {
+          if (config.ersatzsignale[signalId].isFahrt() || isFahrt() || signal.isSh1()) {
             config.alert("Signal oder Ersatzsignal noch auf Fahrt.");
           } else {
             startRückblock();
@@ -313,6 +314,14 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       }
       streckenState = newStreckenState;
       updateView();
+    }
+    
+    if (signalBlockBesetzt && !signal.isRed()) {
+      räummelderDauerlicht = false;
+      räummelderState = true;
+      signalBlockBesetzt = false;
+    } else if (!signalBlockBesetzt && signal.isRed()) {
+      signalBlockBesetzt = true;
     }
   }
   

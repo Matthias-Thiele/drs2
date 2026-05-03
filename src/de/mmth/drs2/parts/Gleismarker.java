@@ -59,7 +59,7 @@ public class Gleismarker implements ColorMarker {
     
     @Override
     public boolean isRed() {
-        return config.connector.isInSet(markerRed);
+        return config.connector.isOutSet(markerRed);
     }
     
     @Override
