@@ -39,6 +39,8 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     private int fahrstrasse2;
     private int fahrstrasse3;
     private int fahrstrasse4;
+    private boolean isP1P3;
+    private boolean showHP1;
     
     private int changeState = 0;
     private int nextAction = Integer.MAX_VALUE;
@@ -95,6 +97,10 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         isFahrt = false;
         changeState = 1;
         nextAction = 0;
+        
+        isP1P3 = name.startsWith("Sig P");
+        showHP1 = name.equals("Sig P1");
+        
         updateView();
     }
     
@@ -206,6 +212,14 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         return name;
     }
     
+    private void updateSignal() {
+      if (isP1P3) {
+        conn.setOut(Const.LS_HP1, showHP1 & isFahrt);
+        conn.setOut(Const.LS_HP2, !showHP1 & isFahrt);
+        conn.setOut(Const.LS_SH1, isSh1);
+      } 
+    }
+    
     /**
      * Aktualisiert den Zustand der Anzeigelampen
      * gemäß der aktuellen Fahrt Einstellung.
@@ -252,6 +266,8 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         if (fahrwegMarker >= 0) {
             conn.setOut(fahrwegMarker, true);
         }
+        
+        updateSignal();
     }
 
     @Override
