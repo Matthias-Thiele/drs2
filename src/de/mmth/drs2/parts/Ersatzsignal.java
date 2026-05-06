@@ -89,7 +89,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
         switch (taste1) {
             case Const.ErsGT:
               if (checkWeichen()) {
-                if (signal != null && signal.isFahrt()) {
+                if (signal != null && (signal.isFahrt() || signal.isSh1())) {
                   conf.alert(name + ": Das zugehörende Signal steht auf Fahrt.");
                 } else if (lock1.isFahrt() || lock2.isFahrt()) {
                     String otherName = (lock1.isFahrt() ? lock1.name : lock2.name);

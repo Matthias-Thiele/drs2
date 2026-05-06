@@ -787,7 +787,7 @@ public class Config implements TickerEvent {
                     
             }
             
-            signal.init(this, name, sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, 
+            signal.init(this, name, i, sigTaste, sigFahrt, sigHalt, vorsigFahrt, vorsigHalt, 
                     fahrwegWhite, fahrwegRed, 
                     sh1Lampe, sh1WPlus, sh1WMinus, einfahrtSignal, 
                     fahrstrasse1, fahrstrasse2,fahrstrasse3, fahrstrasse4);

@@ -44,6 +44,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     
     private int changeState = 0;
     private int nextAction = Integer.MAX_VALUE;
+  private int id;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -51,6 +52,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
      * 
      * @param config
      * @param name
+   * @param id
      * @param sigTaste
      * @param sigFahrt
      * @param sigHalt
@@ -67,12 +69,13 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
      * @param fahrstrasse3 
      * @param fahrstrasse4
      */
-    public void init(Config config, String name, int sigTaste, int sigFahrt, int sigHalt, 
+    public void init(Config config, String name, int id, int sigTaste, int sigFahrt, int sigHalt, 
             int vorsigFahrt, int vorsigHalt, int fahrwegWhite, int fahrwegRed,
             int sh1Lampe, int sh1WPlus, int sh1WMinus, int einfahrtSignal,
             int fahrstrasse1, int fahrstrasse2, int fahrstrasse3, int fahrstrasse4) {
         this.config = config;
         this.name = name;
+        this.id = id;
         this.conn = config.connector;
         this.sigTaste = new Doppeltaster();
         this.sigTaste.init(config, this, Const.HaGT, sigTaste);
@@ -324,8 +327,17 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     }
     
     /**
+     * Ein aktives Ersatzsignal verhindert die Fahrtstellung des Signals.
+     * 
+     * @return 
+     */
+    private boolean isZs1Locked() {
+      return config.ersatzsignale[id].isFahrt();
+    }
+    /**
      * Wenn eine der beiden möglichen Fahrstraßen zum Gleis des
      * Ausfahrtsignals belegt ist, dann darf SH1 nicht gesetzt werden.
+     * 
      * 
      * @return 
      */
@@ -367,6 +379,11 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
                 config.alert("Signal über HaGT auf HP0 gestellt.");
             }
         } else if (taste1 == Const.SGT) {
+            if (isZs1Locked()) {
+              config.alert("Das Ersatzsignal zu diesem Signal ist auf Fahrt.");
+              return;
+            }
+            
             if (checkSh1Weiche()) {
                 if (!isSh1Locked()) {
                     isSh1 = true;

@@ -55,6 +55,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     private Gleismarker bahnhofsGleis;
     private String name;
     private Signal signal;
+    private Ersatzsignal ersatzSignal;
     private boolean isInbound;
     private boolean reportWait;
     private boolean pendingTrain;
@@ -79,7 +80,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
     
     private Weichenlaufkette weichenlauf;
     private boolean pendingWeichenlauf;
-  private int nextWCheck;
+    private int nextWCheck;
     
     /**
      * Initialisiert die Parameter der Fahrstraße.
@@ -137,7 +138,8 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.bahnhofsGleis = bahnhofsGleis;
         this.ausfahrtsGleis = ausfahrtsGleis;
         this.signal = config.signale[signalNummer];
-        this.ersatzSignalNummer = ersatzSignalNummer;
+        this.ersatzSignal = config.ersatzsignale[signalNummer];
+        
         this.schluesselweiche1 = schluesselweiche1;
         this.schluesselweiche2 = schluesselweiche2;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
@@ -239,6 +241,12 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         
         if (!isInbound && streckeAus.isLocked()) {
             config.alert("Der Ausfahrtsperrmelder ist noch aktiv.");
+            return;
+        }
+        
+        // Signalabhängigkeiten prüfen
+        if (signal.isFahrt() || signal.isSh1() || ersatzSignal.isFahrt()) {
+            config.alert("Eine abhängiges Signal steht bereits auf Fahrt.");
             return;
         }
         
