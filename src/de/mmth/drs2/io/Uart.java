@@ -33,7 +33,7 @@ public final class Uart implements TickerEvent {
     private final byte STATUS_END = (byte)'X';
     private byte RECEIVE_MARKER = (byte) 'B';
     private byte RECEIVE_END = (byte) 'X';
-    private int STATUS_LEN = 7;
+    private int STATUS_LEN;
     
     private final int IoInputStart = 56; // Input start der IO Platine(n)
     private final int IoOutputStart = 120; // Output start der IO Platine(n)
@@ -75,7 +75,7 @@ public final class Uart implements TickerEvent {
             STATUS_LEN = 6;
         } else {
             STATUS_MARKER = 'U';
-            STATUS_LEN = 6;
+            STATUS_LEN = 8;
             RECEIVE_MARKER = 'Z';
             RECEIVE_END = 'T';
         }
@@ -103,12 +103,12 @@ public final class Uart implements TickerEvent {
     private void processIoBytes(byte[] status) {
         boolean changed = false;
         //int inputVals = fromHex(status[1]) * 16 + fromHex(status[2]);
-        int inputVals = (fromHex(status[2]) << 12) + (fromHex(status[3]) << 8) + (fromHex(status[4]) << 4) + fromHex(status[5]);
+        int inputVals = (fromHex(status[2]) << 20) + (fromHex(status[3]) << 16) + (fromHex(status[4]) << 12) + (fromHex(status[5]) << 8) + (fromHex(status[6]) << 4) + fromHex(status[7]);
         //System.out.println("Inputs: " + Integer.toHexString(inputVals));
         inputVals ^= 0x30;
         
         //System.out.println("Inputs: " + Integer.toHexString(inputVals));
-        for (var i = IoInputStart; i < IoInputStart + 16; i++) {
+        for (var i = IoInputStart; i < IoInputStart + 24; i++) {
             var newState  = (inputVals & 1) == 1;
             if (config.connector.drs2In[i] != newState) {
                 changed = true;
@@ -134,56 +134,6 @@ public final class Uart implements TickerEvent {
         }
     }
     
-/*    private void processStatusByte(byte[] status) {
-        byte b = status[0];
-        if (b < 0) {
-            //System.out.print(b & 0xf);
-            if ((b & 1) == 1) {
-                if (!actEinfahrt1) {
-                    // Streckenblock M, Einfahrt von Weiß nach Rot
-                    actEinfahrt1 = true;
-                    config.stoerungsmelder.meldung();
-                    config.pendingTrainM = PENDING_TRAIN_DURATION;
-                }
-            } else {
-                actEinfahrt1 = false;
-            }
-
-            if ((b & 4) == 4) {
-                if (!actEinfahrt2) {
-                    // Streckenblock H, Einfahrt von Weiß nach Rot
-                    actEinfahrt2 = true;
-                    config.stoerungsmelder.meldung();
-                }
-            } else {
-                actEinfahrt2 = false;
-            }
-
-            config.strecken[1].updateStreckenblock((b & 1) == 1);
-            config.strecken[3].updateStreckenblock((b & 2) == 2);
-            config.strecken[0].updateStreckenblock((b & 4) == 4);
-            config.strecken[2].updateStreckenblock((b & 8) == 8);
-        }
-        
-        boolean changed = false;
-        b = status[1];
-        var pol = 3;
-        for (var j = 0; j < 8; j++) {
-            var newState = (b & 1) != (pol & 1);
-            if (config.connector.drs2In[32 + j] != newState) {
-                changed = true;
-                System.out.print((32 + j) + " " + newState + ", ");
-            }
-            config.connector.drs2In[32 + j] = newState;
-
-            b >>= 1;
-            pol >>= 1;
-        }
-        
-        if (changed) {
-            System.out.println("changed.");
-        }
-    } */
     
     private void processInputBytes(byte[] buffer) {
         var pos = 0;
@@ -240,31 +190,9 @@ public final class Uart implements TickerEvent {
     }
     
     /**
-     * Füllt die Status-Flags vom Block in den Sendepuffer.
-     * drs2Out[96...103] liegen im Block und nicht im DRS2.
-     * 
-     * @param buffer 
-     */
-    private void fillupStatusBuffer(byte[] buffer) {
-        var outputs = config.connector.drs2Out;
-        var pos = 96;
-        var b = 0; 
-        for (var j = 0; j < 8; j++) {
-            b >>= 1;
-
-            if (outputs[pos++]) {
-                b |= 0x80;
-            }
-        }
-
-        buffer[1] = (byte) (b | 0x80);
-    }
-    
-    /**
      * Füllt die Ausgabe-Bits in den Buffer für die serielle
      * Schnittstelle. Die zusätzlichen neuen Outputs liegen
-     * im Bereich von 120 bis 128 (1 Platine) bzw. bis 136
-     * (2 Platinen).
+     * im Bereich von 120 bis 144 (3 Platinen).
      * 
      * @param buffer 
      */
@@ -274,7 +202,7 @@ public final class Uart implements TickerEvent {
         var ix = 0;
         
         buffer[ix++] = 'X';
-        for (var i = 0; i < 16; i++) {
+        for (var i = 0; i < 24; i++) {
             buffer[ix++] = (byte) (outputs[pos ++] ? ('a' + i) : ('A' + i));
         }
         buffer[ix] = 'y';
@@ -340,7 +268,7 @@ public final class Uart implements TickerEvent {
     }
     
     public void sendCommand(UartCommand cmdNo) {
-        byte[] buffer = new byte[20];
+        byte[] buffer = new byte[30];
         var bytesToSend = 1;
         
         switch (cmdNo) {

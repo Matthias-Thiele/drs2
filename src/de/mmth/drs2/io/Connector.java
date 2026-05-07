@@ -16,13 +16,13 @@ public class Connector implements TickerEvent {
     /**
      * Anzahl der Eingänge von der DRS2, muss ein vielfaches von 16 sein.
      */
-    public final static int INPUT_COUNT = 64;
+    public final static int INPUT_COUNT = 80;
     private final static int LOCAL_INPUT_COUNT = 8;
     
     /**
      * Anzahl der Ausgänge von der DRS2, muss ein vielfaches von 16 sein.
      */
-    public final static int OUTPUT_COUNT = 136;
+    public final static int OUTPUT_COUNT = 144;
     public final static int LOCAL_OUTPUT_COUNT = 2;
     public final static int WEICHE_IV_OUT = OUTPUT_COUNT - 8;
     public final static int WECKER = OUTPUT_COUNT - 7;

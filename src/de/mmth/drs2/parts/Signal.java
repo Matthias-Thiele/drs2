@@ -39,12 +39,12 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     private int fahrstrasse2;
     private int fahrstrasse3;
     private int fahrstrasse4;
-    private boolean isP1P3;
-    private boolean showHP1;
     
     private int changeState = 0;
     private int nextAction = Integer.MAX_VALUE;
-  private int id;
+    private int id;
+    private boolean showHP1;
+    private boolean hasLichtsignal;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -100,11 +100,23 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         isFahrt = false;
         changeState = 1;
         nextAction = 0;
-        
-        isP1P3 = name.startsWith("Sig P");
         showHP1 = name.equals("Sig P1");
         
         updateView();
+    }
+    
+    /**
+     * Zeigt an, ob dieses Signal mit dem externen Lichtsignal verbunden ist.
+     * 
+     * @param active 
+     */
+    public void hasLichtsignal(boolean active) {
+      this.hasLichtsignal = active;
+      if (active) {
+        config.alert("Signal " + name + " ist mit dem Lichtsignal verbunden.");
+      } else {
+        config.alert("Signal " + name + " ist nicht mehr mit dem Lichtsignal verbunden.");
+      }
     }
     
     public void halt() {
@@ -217,7 +229,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     }
     
     private void updateSignal() {
-      if (isP1P3) {
+      if (hasLichtsignal) {
         conn.setOut(Const.LS_HP1, showHP1 & isFahrt);
         conn.setOut(Const.LS_HP2, !showHP1 & isFahrt);
         conn.setOut(Const.LS_SH1, isSh1);

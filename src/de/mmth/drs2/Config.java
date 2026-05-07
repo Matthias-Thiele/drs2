@@ -14,12 +14,14 @@ import de.mmth.drs2.parts.Ersatzsignal;
 import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Gleismarker;
+import de.mmth.drs2.parts.LSswitcher;
 import de.mmth.drs2.parts.Rangierfahrt;
 import de.mmth.drs2.parts.Schluesselschalter;
 import de.mmth.drs2.parts.Schluesselweiche;
 import de.mmth.drs2.parts.Stoerungsmelder;
 import de.mmth.drs2.parts.StreckeAusfahrt2;
 import de.mmth.drs2.parts.StreckeEinfahrt2;
+import de.mmth.drs2.parts.Umschalttaster;
 import de.mmth.drs2.parts.Weiche;
 import de.mmth.drs2.parts.state.RedWhiteList;
 import javafx.stage.Stage;
@@ -193,6 +195,9 @@ public class Config implements TickerEvent {
     public boolean drs60wk = false;
     public boolean drs60sw = false;
     
+    private Umschalttaster switchP1P3;
+    private LSswitcher lsSwitcher;
+    
     /**
      * Initialisiert die Systemkonfiguration
      */
@@ -208,6 +213,7 @@ public class Config implements TickerEvent {
         initSchluesselweichen();
         initSchluesselschalter();
         initRangierfahrten();
+        initTaster();
         
         var df = new Durchfahrt();
         df.init(this);
@@ -397,6 +403,13 @@ public class Config implements TickerEvent {
         gleise[2].init(this, "Gleis 3", 26, 27, 3);
         gleise[3].init(this, "Strecke A", 41, 40, 4);
         gleise[4].init(this, "Strecke F", 55, 54, 5);
+    }
+    
+    /**
+     * Funktionen der Tastenleiste.
+     */
+    private void initTaster() {
+      lsSwitcher = new LSswitcher(this);
     }
     
     /**
