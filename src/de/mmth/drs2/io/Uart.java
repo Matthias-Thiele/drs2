@@ -205,7 +205,7 @@ public final class Uart implements TickerEvent {
         for (var i = 0; i < 24; i++) {
             buffer[ix++] = (byte) (outputs[pos ++] ? ('a' + i) : ('A' + i));
         }
-        buffer[ix] = 'z';
+        buffer[ix] = 'y';
         System.out.println(new String(buffer));
     }
     
@@ -282,7 +282,7 @@ public final class Uart implements TickerEvent {
                 if (isDRS2) {
                     buffer[0] = 'Q';
                 } else {
-                    buffer[0] = 'X';
+                    buffer[0] = 'Z';
                     buffer[1] = 'z';
                     bytesToSend = 2;
                     statusPtr = -1;
