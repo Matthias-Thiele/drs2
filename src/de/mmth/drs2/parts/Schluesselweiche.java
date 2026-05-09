@@ -133,11 +133,13 @@ public class Schluesselweiche implements TastenEvent, TickerEvent {
             case 2:
                 // Waretet bis der Schlüssel entnommen wird, blinkt solange rot.
                 config.connector.setOut(rot, config.blinklicht.getBlink() || !config.drs60sw);
+                if (config.drs60sw) {
+                    config.connector.setOut(weiss, false);
+                }
                 if (config.connector.isInSet(wsCheck)) {
                     // Schlüssel entnommen.
                     state = 3;
                     config.alert("Schlüssel entnommen.");
-                    config.connector.setOut(weiss, false);
                     config.connector.setOut(wsRelais, false);
                 }
                 break;

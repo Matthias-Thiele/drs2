@@ -198,6 +198,10 @@ public class Const {
     public static final int LS_HP2 = 130;
     public static final int LS_SH1 = 132;
     public static final int LS_ZS1 = 134;
+    public static final int LS_RH1_DEFEKT = 129;
+    public static final int LS_RN1_DEFEKT = 131;
+    public static final int LS_RT2_DEFEKT = 133;
+    public static final int LS_FD_DEFEKT = 135;
     
     // Anzeigelampen im Tastenfeld
     public static final int LS_P1_P3_State = 136;

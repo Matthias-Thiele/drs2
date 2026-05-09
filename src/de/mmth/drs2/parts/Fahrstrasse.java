@@ -615,14 +615,13 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             case OUTGOING_TRAIN:
                 nextStep = count + STEP_LONG_WAIT;
                 //strecke.unblock();
-                ausfahrtsGleis.clear();
                 streckeAus.fahrstrassenauflösung();
                 state = DONE;
                 break;
                 
             case DONE:
                 config.alert("Zugfahrt beendet.");
-                bahnhofsGleis.clear();
+                ausfahrtsGleis.clear();
                 lastRed = null;
                 ersatzSignalFahrt = false;
                 state = DORMANT;
@@ -636,17 +635,21 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
                 // Weiche 0 bis n
                 int weiche = state;
-                
-                if (weiche < fahrwegWeichen.length) {
-                    config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
-                    setRed(count, fahrwegWeichen[weiche]);
+                if (weiche == 0) {
+                  // bei der Ausfahrt ist es nicht Teil des Fahrwegs und
+                  // wird deshalb sofort dunkel wenn der Zug es verlassen hat.
+                  setRed(count, fahrwegWeichen[weiche]);
+                  nextStep = count + STEP_WEICHE_WEICHE;
+                } else if (weiche < fahrwegWeichen.length) {
+                  config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
+                  setRed(count, fahrwegWeichen[weiche]);
+                  nextStep = count + STEP_WEICHE_WEICHE;
                 } else {
-                    config.alert("Ausfahrtsgleis erreicht.");
-                    nextStep = count + STEP_SHORT_WAIT;
-                    state = AUSFAHRT1;
-                    break;
+                  config.alert("Ausfahrtsgleis erreicht.");
+                  nextStep = count + STEP_WEICHE_GLEIS;
+                  state = AUSFAHRT1;
+                  break;
                 }
-                nextStep = count + STEP_VERY_SHORT_WAIT;
                 
                 state++;
                 break;

@@ -201,11 +201,11 @@ public final class Uart implements TickerEvent {
         var pos = IoOutputStart;
         var ix = 0;
         
-        buffer[ix++] = 'X';
+        buffer[ix++] = 'Z';
         for (var i = 0; i < 24; i++) {
             buffer[ix++] = (byte) (outputs[pos ++] ? ('a' + i) : ('A' + i));
         }
-        buffer[ix] = 'y';
+        buffer[ix] = 'z';
         System.out.println(new String(buffer));
     }
     
@@ -299,7 +299,7 @@ public final class Uart implements TickerEvent {
                 } else {
                     fillupIOBuffer(buffer);
 
-                    bytesToSend = 18;
+                    bytesToSend = 26;
                 }
                 break;
                 
