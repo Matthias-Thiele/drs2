@@ -174,6 +174,11 @@ public class MainPane extends HBox implements TickerEvent {
             }
         });
         
+        var ne1Fahrt = createSizedButton("Ne1 von AH", STD_BUTTON_SIZE);
+        ne1Fahrt.setOnAction(ev -> {
+          config.ne1Fahrt.startAH();
+        });
+        
         var checkBulbBox = new HBox();
         var input = new TextField();
         input.setMaxWidth(60.0);
@@ -189,7 +194,7 @@ public class MainPane extends HBox implements TickerEvent {
         });
         checkBulbBox.getChildren().addAll(input, toggle);
         
-        box.getChildren().addAll(gleis1,gleis2, gleis3, checkBulbBox);
+        box.getChildren().addAll(gleis1,gleis2, gleis3, ne1Fahrt, checkBulbBox);
         
         box.setSpacing(5);
         parent.getChildren().add(box);

@@ -45,6 +45,7 @@ public class Rangierfahrt implements TickerEvent {
         Meldung,
         StreckeRot,
         StreckeClear,
+        Delay,
         Stop
     }
     
@@ -128,8 +129,19 @@ public class Rangierfahrt implements TickerEvent {
         } else if (!checkStartGleis(fahrweg.get(0).param)) {
             config.alert("Startgleis ist nicht besetzt.");
         } else {
+            config.alert("Rangierfahrt gestartet: " + name);
             position = 0;
         }
+    }
+    
+    /**
+     * Startet eine Einfahrt aus dem Gegengleis.
+     * 
+     * Es werden keine Vorbedingungen geprüft.
+     */
+    public void startNe1() {
+      position = 0;
+      config.alert("Rangierfahrt " + name + " gestartet.");
     }
     
     private boolean resume() {
@@ -278,6 +290,10 @@ public class Rangierfahrt implements TickerEvent {
                 config.connector.setOut(step.param, false);
                 break;
                 
+            case Delay:
+                position++;
+                break;
+                
             default:
                 config.alert("Unbekanntes Kommando: " + step.action);
                 position = -1;
@@ -292,10 +308,9 @@ public class Rangierfahrt implements TickerEvent {
       
       switch (action.charAt(0)) {
         case 'G': // Gleis (Start oder Ziel) GS1 GZ4
-          msg = "Rangierfahrt gestartet: " + name;
           gleis = action.charAt(2) - '1'; // Gleis 1..3 oder 5 -> 1..4
           var atype = (action.charAt(1) == 'S') ? ActionType.CheckGleis : ActionType.SetGleis;
-          fahrweg.add(new Step(atype, gleis, SHORT_DELAY, msg));
+          fahrweg.add(new Step(atype, gleis, SHORT_DELAY, ""));
           if (atype.equals(ActionType.CheckGleis)) {
             pendingClear = new Step(ActionType.ClearGleis, gleis, SHORT_DELAY);
           } else {
@@ -311,7 +326,7 @@ public class Rangierfahrt implements TickerEvent {
             checkPendingClear();
           }
           
-          fahrweg.add(new Step(ActionType.Stop, 0, 0, "Rangierziel erreicht."));
+          fahrweg.add(new Step(ActionType.Stop, 0, 0, "Ziel erreicht."));
           break;
           
         case 'W': // Weiche befahren W5
@@ -370,6 +385,11 @@ public class Rangierfahrt implements TickerEvent {
           
         case 'H':
           fahrweg.add(new Step(ActionType.HaltSh1, rangierSignal, 0));
+          break;
+          
+        case 'D':
+          int duration = action.charAt(1) == 'S' ? SHORT_DELAY : LONG_DELAY;
+          fahrweg.add(new Step(ActionType.Delay, 0, duration));
           break;
       }
     }

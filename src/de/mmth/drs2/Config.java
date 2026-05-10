@@ -15,6 +15,7 @@ import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Fahrstrasse;
 import de.mmth.drs2.parts.Gleismarker;
 import de.mmth.drs2.parts.LSswitcher;
+import de.mmth.drs2.parts.Ne1Fahrt;
 import de.mmth.drs2.parts.Rangierfahrt;
 import de.mmth.drs2.parts.Schluesselschalter;
 import de.mmth.drs2.parts.Schluesselweiche;
@@ -195,6 +196,8 @@ public class Config implements TickerEvent {
     public boolean drs60wk = false;
     public boolean drs60sw = false;
     
+    public Ne1Fahrt ne1Fahrt;
+    
     private Umschalttaster switchP1P3;
     private LSswitcher lsSwitcher;
     
@@ -225,6 +228,8 @@ public class Config implements TickerEvent {
         Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", connector.polarity);        
         ticker.add(this);
         ticker.add(rwList);
+        
+        ne1Fahrt = new Ne1Fahrt(this);
     }
     
     /**
