@@ -50,13 +50,15 @@ public class MainPane extends HBox implements TickerEvent {
      */
     public MainPane(Config config) {
         this.config = config;
-        this.setSpacing(5);
         
         var box = new HBox();
+        box.setSpacing(3);
         addSchalter(box);
         
         var vbox = new VBox();
+        vbox.setSpacing(5);
         var hbox = new HBox();
+        hbox.setSpacing(5);
         addSignale(hbox);
         addErsatzsignale(hbox);
         addWeichen(hbox);
@@ -67,6 +69,7 @@ public class MainPane extends HBox implements TickerEvent {
         
         box.getChildren().add(vbox);
         this.getChildren().add(box);
+        this.setSpacing(5);
         
         config.ticker.add(this);
     }
@@ -271,8 +274,10 @@ public class MainPane extends HBox implements TickerEvent {
     
     private void addRangierfahrten(VBox parent) {
         var box = new VBox();
+        box.setSpacing(3);
         for (var fahrt: config.rangierfahrten) {
             var rf = new Button(fahrt.getName());
+            rf.setPrefWidth(STD_BUTTON_SIZE * 2);
             rf.setOnAction(ev -> {fahrt.start();});
             box.getChildren().add(rf);
         
@@ -358,6 +363,17 @@ public class MainPane extends HBox implements TickerEvent {
         parent.getChildren().add(box);
     }
     
+    private Button createActionButton(String name, int relaisId) {
+      var bt = createSizedButton(name, STD_BUTTON_SIZE);
+      bt.setOnAction(ev -> {
+        var newState = !config.connector.isOutSet(relaisId);
+        config.connector.setOut(relaisId, newState);
+        bt.setStyle(newState ? "-fx-background-color: lightblue" : "");
+      });
+      
+      return bt;
+    }
+    
     /**
      * Fügt die Liste der Signal Controls in
      * die MainPane ein.
@@ -375,6 +391,13 @@ public class MainPane extends HBox implements TickerEvent {
             box.getChildren().add(sfx);
             config.ticker.add(sfx);
         }
+        
+        var hdr2 = new Text("LS Signalstörungen");
+        var rh1 = createActionButton("RH1 Defekt", Const.LS_RH1_DEFEKT);
+        var rn1 = createActionButton("RN1 Defekt", Const.LS_RN1_DEFEKT);
+        var rt2 = createActionButton("Rot 2 Defekt", Const.LS_RT2_DEFEKT);
+        var fd = createActionButton("Fadenbruch", Const.LS_FD_DEFEKT);
+        box.getChildren().addAll(hdr2, rh1, rn1, rt2, fd);
         
         parent.getChildren().add(box);
     }
