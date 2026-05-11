@@ -25,6 +25,8 @@ public class LSswitcher implements TastenEvent {
   public void whenPressed(int taste1, int taste2) {
     config.signale[2].hasLichtsignal(taste2 != 0);
     config.signale[3].hasLichtsignal(taste2 == 0);
+    config.ersatzsignale[2].hasLichtsignal(taste2 != 0);
+    config.ersatzsignale[3].hasLichtsignal(taste2 == 0);
   }
   
 }

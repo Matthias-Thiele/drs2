@@ -208,7 +208,9 @@ public class Config implements TickerEvent {
         ticker = new Ticker(this);
         initWeichen();
         initSignale();
+        signale[2].hasLichtsignal(true);
         initErsatzsignale();
+        ersatzsignale[2].hasLichtsignal(true);
         initGleise();
         initStrecken();
         initFahrstrassen();
@@ -820,7 +822,9 @@ public class Config implements TickerEvent {
      */
     public void alert(String message) {
         System.out.println(message);
-        mainPane.addMessage(message);
+        if (mainPane != null) {
+          mainPane.addMessage(message);
+        }
     }
 
     /**
