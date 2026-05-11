@@ -114,8 +114,12 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
       this.hasLichtsignal = active;
       if (active) {
         config.alert("Signal " + name + " ist mit dem Lichtsignal verbunden.");
+        updateSignal();
       } else {
         config.alert("Signal " + name + " ist nicht mehr mit dem Lichtsignal verbunden.");
+        conn.setOut(Const.LS_HP1, false);
+        conn.setOut(Const.LS_HP2, false);
+        conn.setOut(Const.LS_SH1, false);
       }
     }
     
