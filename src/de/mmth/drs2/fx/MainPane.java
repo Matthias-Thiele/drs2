@@ -29,8 +29,6 @@ import javafx.scene.text.Text;
  */
 public class MainPane extends HBox implements TickerEvent {
     private final static int STD_BUTTON_SIZE = 140;
-    private final static int TEST_STOPPED = -1;
-    private final static int TEST_RANGE = 96;
     
     private final Config config;
     private TextArea messages;
@@ -39,8 +37,7 @@ public class MainPane extends HBox implements TickerEvent {
     private boolean pendingH, pendingM;
     private Button pendingHButton;
     private Button pendingMButton;
-    private int lampentest = TEST_STOPPED;
-    private boolean simulateAH = false;
+    private int signalState = -1;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -244,9 +241,15 @@ public class MainPane extends HBox implements TickerEvent {
         });
         box.getChildren().add(clear);
         
-        var test = new Button("Lampentest");
+        var test = new Button("Signalbilder");
         test.setOnAction(ev -> {
-            doTest();
+            if (signalState < 0) {
+              config.lsSwitcher.signalOff();
+              config.alert("Lichtsignal auf Animation umgestellt.");
+              signalState = 0;
+            } else {
+              signalState = 8;
+            }
         });
         box.getChildren().add(test);
         
@@ -314,23 +317,6 @@ public class MainPane extends HBox implements TickerEvent {
                 break;
         }
     }
-    
-    /**
-     * Führt einen Lampentest aus indem jeder Ausgang
-     * durchlaufend für eine kurze Zeit eingeschaltet wird.
-     */
-    private void doTest() {
-        if (lampentest == TEST_STOPPED) {
-            for (int i = 0; i < TEST_RANGE; i++) {
-                config.connector.setOut(i, false);
-            }
-
-            lampentest = 0;
-        } else {
-            config.connector.setOut(lampentest, false);
-            lampentest = TEST_STOPPED;
-        }
-    };
     
     /**
      * Prüft, ob die Fahrstraße verschlossen ist und löst
@@ -454,18 +440,61 @@ public class MainPane extends HBox implements TickerEvent {
         });
     }
 
+    private void tickSignal(int count) {
+      if ((signalState >= 0) && ((count & 127) == 127)) {
+        signalState++;
+        
+        switch (signalState) {
+          case 1:
+            config.connector.setOut(Const.LS_HP1, true);
+            break;
+            
+          case 2:
+            config.connector.setOut(Const.LS_HP1, false);
+            break;
+            
+          case 3:
+            config.connector.setOut(Const.LS_HP2, true);
+            break;
+            
+          case 4:
+            config.connector.setOut(Const.LS_HP2, false);
+            break;
+            
+          case 5:
+            config.connector.setOut(Const.LS_ZS1, true);
+            break;
+            
+          case 6:
+            config.connector.setOut(Const.LS_ZS1, false);
+            break;
+            
+          case 7:
+            config.connector.setOut(Const.LS_SH1, true);
+            break;
+            
+          case 8:
+            config.connector.setOut(Const.LS_SH1, false);
+            signalState = 0;
+            break;
+            
+          case 9:
+            config.connector.setOut(Const.LS_HP1, false);
+            config.connector.setOut(Const.LS_HP2, false);
+            config.connector.setOut(Const.LS_ZS1, false);
+            config.connector.setOut(Const.LS_SH1, false);
+            signalState = -1;
+            config.lsSwitcher.signalOn();
+            config.alert("DRS2 ist wieder mit dem Lichtsignal verbunden.");
+            break;
+        }
+      }
+    }
+    
     @Override
     public void tick(int count) {
-        if (lampentest != -1) {
-            if ((count & 0x7) == 7) {
-                config.connector.setOut(lampentest, false);
-                lampentest++;
-                if (lampentest == TEST_RANGE) {
-                    lampentest = 0;
-                }
-                config.connector.setOut(lampentest, true);
-            }
-        }
+        tickSignal(count);
+
         if (pendingH != (config.pendingTrainH > 0)) {
             pendingH = !pendingH;
             pendingHButton.setStyle(pendingH ? "-fx-background-color: lightblue" : "");

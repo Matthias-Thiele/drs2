@@ -199,7 +199,7 @@ public class Config implements TickerEvent {
     public Ne1Fahrt ne1Fahrt;
     
     private Umschalttaster switchP1P3;
-    private LSswitcher lsSwitcher;
+    public LSswitcher lsSwitcher;
     
     /**
      * Initialisiert die Systemkonfiguration
