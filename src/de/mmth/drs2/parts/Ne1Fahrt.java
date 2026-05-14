@@ -41,9 +41,12 @@ public class Ne1Fahrt {
   public boolean startAH() {
     int gleis = checkDestination();
     
-    fahrwege[gleis - 1].startNe1();
-    return true;
-    
+    if (fahrwege[gleis - 1].isRunning()) {
+      return false;
+    } else {
+      fahrwege[gleis - 1].startNe1();
+      return true;
+    }
   }
   
   private int checkDestination() {

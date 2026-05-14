@@ -51,6 +51,7 @@ public class LSswitcher implements TastenEvent {
     config.signale[3].hasLichtsignal(taste2 == 0);
     config.ersatzsignale[2].hasLichtsignal(taste2 != 0);
     config.ersatzsignale[3].hasLichtsignal(taste2 == 0);
+    config.connector.setOut(Const.LS_P1_P3_State, taste2 != 0);
   }
   
 }

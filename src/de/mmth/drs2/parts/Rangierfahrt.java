@@ -5,6 +5,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -135,13 +136,23 @@ public class Rangierfahrt implements TickerEvent {
     }
     
     /**
+     * Meldet zurück, ob eine Ne1 oder Rangierfahrt aktiv ist.
+     * 
+     * @return 
+     */
+    public boolean isRunning() {
+      return position >= 0;
+    }
+    
+    /**
      * Startet eine Einfahrt aus dem Gegengleis.
      * 
      * Es werden keine Vorbedingungen geprüft.
      */
     public void startNe1() {
       position = 0;
-      config.alert("Rangierfahrt " + name + " gestartet.");
+      config.alert("Einfahrt " + name + " gestartet.");
+      config.connector.setOut(Const.NE1_LED, true);
     }
     
     private boolean resume() {
@@ -273,6 +284,7 @@ public class Rangierfahrt implements TickerEvent {
             case Stop:
                 config.stoerungsmelder.rangierMeldung();
                 position = -1;
+                config.connector.setOut(Const.NE1_LED, false); // Ne1 Fahrt beendet.
                 break;
                 
             case Meldung:

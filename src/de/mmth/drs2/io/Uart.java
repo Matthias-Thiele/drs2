@@ -131,6 +131,10 @@ public final class Uart implements TickerEvent {
             } else {
               actEinfahrt1 = false;
             }
+            
+            if (config.connector.drs2In[Const.NE1_COMMAND]) {
+              config.ne1Fahrt.startAH();
+            }
         }
     }
     
