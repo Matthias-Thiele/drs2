@@ -71,6 +71,7 @@ public class Const {
     // Dritte IO Karte, Bedientasten
     public static final int SWITCH_LS = 72;
     public static final int NE1_COMMAND = 73;
+    public static final int RF_WAIT = 74;
     
     // Schlüsselweiche
     public static final int WSCHLUESSEL3 = 34;
@@ -207,6 +208,7 @@ public class Const {
     // Anzeigelampen im Tastenfeld
     public static final int LS_P1_P3_State = 136;
     public static final int NE1_LED = 137;
+    public static final int RF_RICHTUNGSWECHSEL = 138;
     
     // Bahnhofsgleise
     public static final int Gleis1Weiss = 30;

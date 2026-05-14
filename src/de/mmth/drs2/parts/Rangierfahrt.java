@@ -278,7 +278,11 @@ public class Rangierfahrt implements TickerEvent {
                 break;
                 
             case Wait:
-                position++;
+                config.connector.setOut(Const.RF_RICHTUNGSWECHSEL, true);
+                if (config.connector.isInSet(Const.RF_WAIT)) {
+                  config.connector.setOut(Const.RF_RICHTUNGSWECHSEL, false);
+                  position++;
+                }
                 break;
                 
             case Stop:
