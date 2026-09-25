@@ -24,10 +24,12 @@ public class Rangierfahrt implements TickerEvent {
     
     private int position = -1;
     private int nextAction = 0;
+    private int buttonLED = 0;
     private Step pendingClear = null;
     private int rangierSignal;
     private boolean addPendingClear;
     private int waitCounter = 0;
+    private boolean pendingConfirmation = false;
     
     
     private enum ActionType {
@@ -148,11 +150,14 @@ public class Rangierfahrt implements TickerEvent {
      * Startet eine Einfahrt aus dem Gegengleis.
      * 
      * Es werden keine Vorbedingungen geprüft.
+     * 
+     * @param fromAH 
      */
-    public void startNe1() {
+    public void startNe1(boolean fromAH) {
       position = 0;
       config.alert("Einfahrt " + name + " gestartet.");
-      config.connector.setOut(Const.NE1_LED, true);
+      buttonLED = fromAH ? Const.NE1_LED_AH : Const.NE1_LED_WB;
+      config.connector.setOut(buttonLED, true);
     }
     
     private boolean resume() {
@@ -178,6 +183,7 @@ public class Rangierfahrt implements TickerEvent {
             case WaitSh1:
                 if (config.signale[step.param].isSh1()) {
                     position++;
+                    config.rangierfahrtAktiv = true;
                 } else {
                     config.alert("Warte auf Sh1");
                 }
@@ -279,7 +285,8 @@ public class Rangierfahrt implements TickerEvent {
                 
             case Wait:
                 config.connector.setOut(Const.RF_RICHTUNGSWECHSEL, true);
-                if (config.connector.isInSet(Const.RF_WAIT)) {
+                if (pendingConfirmation) {
+                  pendingConfirmation = false;
                   config.connector.setOut(Const.RF_RICHTUNGSWECHSEL, false);
                   position++;
                 }
@@ -288,12 +295,17 @@ public class Rangierfahrt implements TickerEvent {
             case Stop:
                 config.stoerungsmelder.rangierMeldung();
                 position = -1;
-                config.connector.setOut(Const.NE1_LED, false); // Ne1 Fahrt beendet.
+                config.rangierfahrtAktiv = false;
+                if (buttonLED != 0) {
+                  config.connector.setOut(buttonLED, false); // Ne1 Fahrt beendet.
+                  buttonLED = 0;
+                }
                 break;
                 
             case Meldung:
                 position++;
                 config.stoerungsmelder.rangierMeldung();
+                pendingConfirmation = false;
                 break;
                 
             case StreckeRot:
@@ -393,7 +405,7 @@ public class Rangierfahrt implements TickerEvent {
           break;
           
         case 'B': // Streckenmarker auf belegt oder frei umstellen
-          marker = action.charAt(1) == '1' ? 40 : 42;
+          marker = action.charAt(1) == '1' ? 40 : 54;
           fahrweg.add(new Step(ActionType.StreckeRot, marker, SHORT_DELAY));
           checkPendingClear();
           pendingClear = new Step(ActionType.StreckeClear, marker, SHORT_DELAY);
@@ -427,6 +439,10 @@ public class Rangierfahrt implements TickerEvent {
     
     @Override
     public void tick(int count) {
+        if (config.connector.isInSet(Const.RF_WAIT)) {
+            pendingConfirmation = true;
+        }
+        
         if (count >= nextAction && position != -1) {
             advance(count);
         }

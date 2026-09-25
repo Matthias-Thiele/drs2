@@ -31,6 +31,8 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
     private Signal signal;
     private int[] weichen;
     private boolean hasLichtsignal;
+    private boolean activateP1P3 = false;
+    private boolean isP3 = false;
     
     /**
      * Initialisiert das Ersatzsignal.
@@ -59,6 +61,10 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
         loeschtaste = new Doppeltaster();
         loeschtaste.init(conf, this, Const.HaGT, signalT);
         conf.ticker.add(this);
+        
+        activateP1P3 = name.equals("Ers P1") || name.equals("Ers P3");
+        hasLichtsignal = this.name.equals("Ers P3");
+        isP3 = hasLichtsignal;
     }
 
     /**
@@ -90,7 +96,7 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
         conf.alert("Signal " + name + " ist mit dem Lichtsignal verbunden.");
         updateErsatzsignal();
       } else {
-        conf.alert("Signal " + name + " ist nicht mehr mit dem Lichtsignal verbunden.");
+        //conf.alert("Signal " + name + " ist nicht mehr mit dem Lichtsignal verbunden.");
         conf.connector.setOut(Const.LS_ZS1, false);
       }
     }
@@ -110,6 +116,10 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
                     conf.alert(name + ": Es ist bereits eine Fahrt freigegeben - " + otherName);
                 } else {
                     isFahrt = true;
+            
+                    if (activateP1P3) {
+                        conf.lsSwitcher.changeState(isP3);
+                    }
                     updateErsatzsignal();
                 }
               }

@@ -131,10 +131,6 @@ public final class Uart implements TickerEvent {
             } else {
               actEinfahrt1 = false;
             }
-            
-            if (config.connector.drs2In[Const.NE1_COMMAND]) {
-              config.ne1Fahrt.startAH();
-            }
         }
     }
     
@@ -222,7 +218,8 @@ public final class Uart implements TickerEvent {
     public void tick(int count) {
         while (comPort.bytesAvailable() > 0) {
             comPort.readBytes(byteBuffer, 1);
-            //System.out.println("Read: " + Integer.toHexString(byteBuffer[0] & 0xff) + ", ptr: " + statusPtr);
+            //if (!isDRS2) System.out.print((char)byteBuffer[0]);
+            // System.out.println("Read: " + Integer.toHexString(byteBuffer[0] & 0xff) + ", ptr: " + statusPtr);
             if ((statusPtr == -1) && (byteBuffer[0] == RECEIVE_MARKER)) {
                 statusPtr = 0;
             } else {

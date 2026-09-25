@@ -66,12 +66,15 @@ public class Const {
     
     // Zweite IO Karte
     public static final int PAUSE = 71;
-    public static final int HAUPTFADEN_DEFEKT = 68;
+    public static final int HALTMELDER_AKTIV = 70;
+    public static final int NEBENFADEN_AKTIV = 68;
+    public static final int FAHRTMELDER_AKTIV = 66;
     
     // Dritte IO Karte, Bedientasten
     public static final int SWITCH_LS = 72;
-    public static final int NE1_COMMAND = 73;
-    public static final int RF_WAIT = 74;
+    public static final int NE1_COMMAND_WB = 73;
+    public static final int NE1_COMMAND_AH = 74;
+    public static final int RF_WAIT = 75;
     
     // Schlüsselweiche
     public static final int WSCHLUESSEL3 = 34;
@@ -207,8 +210,9 @@ public class Const {
     
     // Anzeigelampen im Tastenfeld
     public static final int LS_P1_P3_State = 136;
-    public static final int NE1_LED = 137;
-    public static final int RF_RICHTUNGSWECHSEL = 138;
+    public static final int NE1_LED_WB = 137;
+    public static final int NE1_LED_AH = 138;
+    public static final int RF_RICHTUNGSWECHSEL = 139;
     
     // Bahnhofsgleise
     public static final int Gleis1Weiss = 30;

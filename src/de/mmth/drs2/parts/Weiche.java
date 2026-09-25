@@ -85,7 +85,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     }
     
     public boolean starteUmlauf() {
-      if (state == SwitchState.OK) {
+      if ((state == SwitchState.OK) && !isLocked()) {
         inPlusStellung = !inPlusStellung;
         blink = BLINK_DURATION;
         return true;
@@ -186,6 +186,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
      * Meldet zurück ob die Weiche gerade befahren wird.
      * @return 
      */
+    @Override
     public boolean isRed() {
       return isActive;
     }

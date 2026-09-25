@@ -36,6 +36,10 @@ public class Umschalttaster implements TickerEvent {
     
   }
   
+  public void changeState(boolean newState) {
+      actState = newState;
+  }
+  
   /**
    * Prüft regelmäßig ob der Taster betätigt wurde.
    * 

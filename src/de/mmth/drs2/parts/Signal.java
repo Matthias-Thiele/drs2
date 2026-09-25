@@ -45,6 +45,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     private int id;
     private boolean showHP1;
     private boolean hasLichtsignal;
+    private boolean activateP1P3 = false;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -101,7 +102,8 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         changeState = 1;
         nextAction = 0;
         showHP1 = name.equals("Sig P1");
-        
+        hasLichtsignal = name.equals("Sig P3");
+        activateP1P3 = showHP1 || hasLichtsignal;
         updateView();
     }
     
@@ -116,7 +118,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         config.alert("Signal " + name + " ist mit dem Lichtsignal verbunden.");
         updateSignal();
       } else {
-        config.alert("Signal " + name + " ist nicht mehr mit dem Lichtsignal verbunden.");
+        //config.alert("Signal " + name + " ist nicht mehr mit dem Lichtsignal verbunden.");
         conn.setOut(Const.LS_HP1, false);
         conn.setOut(Const.LS_HP2, false);
         conn.setOut(Const.LS_SH1, false);
@@ -168,6 +170,10 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             changeState = 1;
             nextAction = 0;
             updateView();
+            
+            if (activateP1P3) {
+                config.lsSwitcher.changeState(!showHP1);
+            }
         }
     }
     
@@ -404,6 +410,10 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
                 if (!isSh1Locked()) {
                     isSh1 = true;
                     config.alert("Signal " + name + " auf SH1 gestellt.");
+            
+                    if (activateP1P3) {
+                        config.lsSwitcher.changeState(!showHP1);
+                    }
                 } else {
                     config.alert("Gleis ist durch Fahrstraße belegt.");
                 }
@@ -416,9 +426,35 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     }
 
     boolean fadenbruchAktiv = false;
+    boolean störungAktiv = false;
+    int störungCount = 0;
+    
+    private void setDelayedStörung() {
+        störungCount++;
+        if (störungCount > 5) {
+            störungAktiv = true;
+            setStoerung(true);
+        }
+    }
+    
     private void checkFadenbruch() {
-      if (name.equals("Sig P3")) {
-        if (!isFahrt && conn.isInSet(Const.HAUPTFADEN_DEFEKT)) {
+      if (this.hasLichtsignal) {
+        boolean nf = conn.isInSet(Const.NEBENFADEN_AKTIV);
+        boolean hm = conn.isInSet(Const.HALTMELDER_AKTIV);
+        boolean fm = conn.isInSet(Const.FAHRTMELDER_AKTIV);
+        
+        if (!hm && !fm && !nf) {
+            // signal erloschen
+            setDelayedStörung();
+        } else {
+            störungCount = 0;
+            if (störungAktiv) {
+                this.setStoerung(false);
+                störungAktiv = false;
+            }
+        }
+        
+        if (!isFahrt && conn.isInSet(Const.NEBENFADEN_AKTIV)) {
           conn.setOut(sigHalt, config.blinklicht.getBlink());
           fadenbruchAktiv = true;
         } else if (fadenbruchAktiv) {

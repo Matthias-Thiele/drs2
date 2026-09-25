@@ -298,7 +298,9 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     config.connector.setOut(blockMelderRot, besetzt);
     config.connector.setOut(blockMelderWeiss, !besetzt);
     config.connector.setOut(sperrmelderId, sperrmelderState);
-    config.connector.setOut(Const.StrWSP, sperrmelderState);
+    if (!this.simulationMode) {
+      config.connector.setOut(Const.StrWSP, sperrmelderState);
+    }
     config.connector.setOut(festlegemelderId, festlegemelderState);
   }
   

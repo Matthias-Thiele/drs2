@@ -43,6 +43,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   private boolean allowAsLT;
   private int ersatzId;
   private boolean signalBlockBesetzt = false;
+    private boolean ohneAST;
     
   /**
    * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -163,7 +164,9 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   public void activateGleiskontakt(boolean mitErsatzsignal) {
       if (mitErsatzsignal && !räummelderState) {
         config.alert("Anschalttaste wurde nicht betätigt.");
+        ohneAST = true;
       } else {
+        ohneAST = false;
         if (signalId == 0) {
           // ZSM nur von der Signal A Seite aus aktivieren.
           zsmCount = -30;
@@ -304,6 +307,10 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
    * @param count 
    */
   private void checkStreckenState() {
+    if (config.rangierfahrtAktiv) {
+      return;
+    }
+    
     var newStreckenState = getBlockState() ? StreckenState.WAIT_FOR_TRAIN : StreckenState.FREE;
     if (!newStreckenState.equals(streckenState)) {
       if (newStreckenState.equals(StreckenState.WAIT_FOR_TRAIN)) {
@@ -318,7 +325,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
     
     if (signalBlockBesetzt && !signal.isRed()) {
       räummelderDauerlicht = false;
-      räummelderState = true;
+      räummelderState = !ohneAST;
       signalBlockBesetzt = false;
     } else if (!signalBlockBesetzt && signal.isRed()) {
       signalBlockBesetzt = true;

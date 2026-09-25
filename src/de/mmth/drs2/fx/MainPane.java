@@ -38,6 +38,7 @@ public class MainPane extends HBox implements TickerEvent {
     private Button pendingHButton;
     private Button pendingMButton;
     private int signalState = -1;
+    private boolean signalActivated;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -69,6 +70,18 @@ public class MainPane extends HBox implements TickerEvent {
         this.setSpacing(5);
         
         config.ticker.add(this);
+    }
+    
+    /**
+     * Schaltet die Ansteuerung für das externe Lichtsignal ein oder aus.
+     * 
+     * @param signalActive 
+     */
+    private void toogleSignal(Button signalActive) {
+        signalActivated = !signalActivated;
+        signalActive.setStyle(signalActivated ? "-fx-background-color: lightblue" : "");
+            
+        config.lsSwitcher.setLockState(!signalActivated);
     }
     
     /**
@@ -174,10 +187,19 @@ public class MainPane extends HBox implements TickerEvent {
             }
         });
         
-        var ne1Fahrt = createSizedButton("Ne1 von AH", STD_BUTTON_SIZE);
-        ne1Fahrt.setOnAction(ev -> {
+        var ne1FahrtAH = createSizedButton("Ne1 von AH", STD_BUTTON_SIZE);
+        ne1FahrtAH.setOnAction(ev -> {
           config.ne1Fahrt.startAH();
         });
+        
+        var ne1FahrtWB = createSizedButton("Ne1 von WB", STD_BUTTON_SIZE);
+        ne1FahrtWB.setOnAction(ev -> {
+          config.ne1Fahrt.startWB();
+        });
+        
+        var signalActive = createSizedButton("Signal", STD_BUTTON_SIZE);
+        signalActive.setOnAction(ev -> {toogleSignal(signalActive);});
+        toogleSignal(signalActive);
         
         var checkBulbBox = new HBox();
         var input = new TextField();
@@ -194,7 +216,7 @@ public class MainPane extends HBox implements TickerEvent {
         });
         checkBulbBox.getChildren().addAll(input, toggle);
         
-        box.getChildren().addAll(gleis1,gleis2, gleis3, ne1Fahrt, checkBulbBox);
+        box.getChildren().addAll(gleis1,gleis2, gleis3, ne1FahrtAH, ne1FahrtWB, signalActive, checkBulbBox);
         
         box.setSpacing(5);
         parent.getChildren().add(box);
