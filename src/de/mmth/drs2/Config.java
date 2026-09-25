@@ -160,7 +160,7 @@ public class Config implements TickerEvent {
     /**
      * Verbindung zum externen Streckenblock-Adapter und DRS2
      */
-    public Uart uart1, uart2;
+    public Uart uart1, uart2, uart3;
     
     /**
      * JavaFX Anzeige des Systemzustands.
@@ -226,7 +226,7 @@ public class Config implements TickerEvent {
         blinklicht.init(this);
         
         //Uart.createUarts(this, "/dev/ttyAMA1", "/dev/ttyAMA3", connector.polarity);        
-        Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", connector.polarity);        
+        Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB6", connector.polarity);        
         ticker.add(this);
         ticker.add(rwList);
         

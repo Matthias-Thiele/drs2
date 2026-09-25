@@ -5,6 +5,7 @@
 package de.mmth.drs2.io;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 
 import de.mmth.drs2.TickerEvent;
 /**
@@ -73,6 +74,7 @@ public class Connector implements TickerEvent {
         }
         
         blockChanged = true;
+        drs2In[Const.HALTMELDER_AKTIV] = true;
     }
     
     /**

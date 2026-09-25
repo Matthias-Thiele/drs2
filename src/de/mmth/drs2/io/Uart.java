@@ -24,6 +24,19 @@ import de.mmth.drs2.TickerEvent;
  */
 public final class Uart implements TickerEvent {
     private final static int PENDING_TRAIN_DURATION = 10000;
+    private final static byte ESTW_VORBLOCK = (byte) 0x86;
+    private final static byte ESTW_VORBLOCK_ANSWER = (byte) 0x83;
+    private final static byte ESTW_RÜCKBLOCK = (byte) 0x84;
+    private final static byte ESTW_RÜCKBLOCK_ANSWER = (byte) 0x81;
+    private final static byte ESTW_CHECK = (byte) 0x94;
+    private final static byte ESTW_CHECK_ANSWER = (byte) 0x91;
+    private final static byte ESTW_ZUGNUMMER = (byte) 0xb6;
+    private final static byte ESTW_QUERY_VORBLOCK = (byte) 0xbc;
+    private final static byte ESTW_QUERY_VORBLOCK_ANSWER = (byte) 0xb9;
+    private final static byte ESTW_QUERY_RÜCKBLOCK = (byte) 0xc4;
+    private final static byte ESTW_QUERY_RÜCKBLOCK_ANSWER = (byte) 0xc1;
+    private final static byte ESTW_QUERY_ERLAUBNIS = (byte) 0xc6;
+    private final static byte ESTW_QUERY_ERLAUBNIS_ANSWER = (byte) 0xc8;
 
     private final SerialPort comPort;
     private final Config config;
@@ -37,54 +50,75 @@ public final class Uart implements TickerEvent {
     
     private final int IoInputStart = 56; // Input start der IO Platine(n)
     private final int IoOutputStart = 120; // Output start der IO Platine(n)
+    private final ConnectionType connectionType;
+    
+    enum ConnectionType {
+      DRS2,
+      IO,
+      ESTW
+    }
     
     /**
      * Erzeugt ein neues Uart Objekt und meldet es
      * am ticker an.
      * 
      * @param config
-     * @param portName1
-     * @param portName2
+     * @param portName1 // DRS 2
+     * @param portName2 // IO Karte
+     * @param portName3 // ESTW
      * @param inputPolarity
      */
-    public static void createUarts(Config config, String portName1, String portName2, int[] inputPolarity) {
-        config.uart1 = new Uart(config, portName1, inputPolarity, false);
+    public static void createUarts(Config config, String portName1, String portName2, String portName3, int[] inputPolarity) {
+        config.uart1 = new Uart(config, portName1, inputPolarity, ConnectionType.IO);
         config.ticker.add(config.uart1);
-        config.uart2 = new Uart(config, portName2, inputPolarity, true);
+        config.uart2 = new Uart(config, portName2, inputPolarity, ConnectionType.DRS2);
         config.ticker.add(config.uart2);
+        config.uart3 = new Uart(config, portName3, inputPolarity, ConnectionType.ESTW);
+        config.ticker.add(config.uart3);
     }
     
     private final int[] inputPolarity;
     private int statusPtr = -1;
     private final byte[] byteBuffer = new byte[1];
     private final byte[] statusMsg = new byte[32];
-    private final boolean isDRS2;
+    
+    private StringBuilder zugnummer = new StringBuilder(8);
+    private boolean readZugnummer = false;
+    private boolean inboundState = false;
+    private boolean outboundState = false;
+    
     /**
      * Öffnet den Port zum Wechselstrom Block
      * 
      * @param config
      * @param portName 
      */
-    private Uart(Config config, String portName, int[] inputPolarity, boolean isDRS2) {
+    private Uart(Config config, String portName, int[] inputPolarity, ConnectionType conType) {
         this.config = config;
         this.inputPolarity = inputPolarity;
-        this.isDRS2 = isDRS2;
+        this.connectionType = conType;
         
-        if (isDRS2) {
+        switch (connectionType) {
+          case DRS2:
             STATUS_MARKER = 'B';
             STATUS_LEN = 6;
-        } else {
+          break;
+            
+          case IO:
             STATUS_MARKER = 'U';
             STATUS_LEN = 8;
             RECEIVE_MARKER = 'Z';
             RECEIVE_END = 'T';
+          break;
+            
+          case ESTW:
+            break;
         }
-        
+       
         comPort = SerialPort.getCommPort(portName);
         System.out.println("Open Port " + portName);
         comPort.openPort();
         
-        System.out.println("ClearUART");
         clearUART();
         System.out.println("Get status.");
         sendCommand(UartCommand.GET_STATUS);
@@ -210,6 +244,165 @@ public final class Uart implements TickerEvent {
     }
     
     /**
+     * Sendet ein Vorblock Kommando zum ESTW.
+     * 
+     * Die Ausfahrt wird nur als belegt markiert, wenn vom
+     * ESTW eine Antwort zurückkommt.
+     */
+    public void ESTW_Vorblocken() {
+      sendByte(ESTW_VORBLOCK);
+    }
+    
+    /**
+     * Sendet ein Rückblock Kommando zum ESTW.
+     * 
+     * Die Einfahrt wird nur als frei markiert, wenn vom
+     * ESTW eine Antwort kommt.
+     */
+    public void ESTW_RÜCKBLOCKEN() {
+      sendByte(ESTW_RÜCKBLOCK);
+    }
+    
+    /**
+     * Sendet ein byte zum COM Port.
+     * @param data 
+     */
+    private void sendByte(byte data) {
+      byteBuffer[0] = data;
+      comPort.writeBytes(byteBuffer, 1);
+    }
+    
+    /**
+     * Verarbeitet ein ESTW Kommando.
+     * @param nextChar 
+     */
+    private void processEstwCommand(byte nextChar) {
+      switch(nextChar) {
+        case ESTW_VORBLOCK:
+          inboundState = true;
+          sendByte(ESTW_VORBLOCK_ANSWER);
+          break;
+          
+        case ESTW_VORBLOCK_ANSWER:
+          outboundState = true;
+          break;
+          
+        case ESTW_RÜCKBLOCK:
+          outboundState = false;
+          sendByte(ESTW_RÜCKBLOCK_ANSWER);
+          break;
+          
+        case ESTW_RÜCKBLOCK_ANSWER:
+          inboundState = false;
+          break;
+          
+        case ESTW_CHECK:
+          sendByte(ESTW_CHECK_ANSWER);
+          break;
+          
+        case ESTW_ZUGNUMMER:
+          readZugnummer = true;
+          zugnummer.setLength(0);
+          break;
+          
+        case ESTW_QUERY_VORBLOCK:
+          sendByte((byte) (ESTW_QUERY_VORBLOCK_ANSWER | (inboundState ? 2 : 0)));
+          break;
+          
+        case ESTW_QUERY_RÜCKBLOCK:
+          sendByte((byte) (ESTW_QUERY_RÜCKBLOCK_ANSWER | (outboundState ? 2 : 0)));
+          break;
+          
+        case ESTW_QUERY_ERLAUBNIS:
+          sendByte(ESTW_QUERY_ERLAUBNIS_ANSWER);
+          break;
+          
+        default:
+          System.out.println("Invalid ESTW Command: " + Integer.toHexString(nextChar));
+      }
+    }
+    
+    /**
+     * Verarbeitet das nächste Byte von der ESTW Schnittstelle.
+     * @param nextChar 
+     */
+    private void tickESTW(byte nextChar) {
+      if ((nextChar & 0x80) != 0) {
+        processEstwCommand(nextChar);
+      } else if (readZugnummer) {
+        // process Zugnummer.
+        zugnummer.append((char) nextChar);
+        if (zugnummer.length() == 6) {
+          config.alert("Zugankündigung " + zugnummer.toString());
+          readZugnummer = false;
+          zugnummer.setLength(0);
+        }
+      } else {
+        System.out.print(nextChar);
+      }
+    }
+    
+    /**
+     * Verarbeitet das nächste Byte vom DRS2.
+     * @param nextChar 
+     */
+    private void tickDRS2(byte nextChar) {
+      if ((statusPtr == -1) && (nextChar == RECEIVE_MARKER)) {
+          statusPtr = 0;
+      } else {
+          if (statusPtr < 0) {
+            //System.out.write(byteBuffer[0]);
+          } else if (statusPtr >= STATUS_LEN) {
+            if (nextChar == RECEIVE_END) {
+              // process status
+              processInputBytes(statusMsg);
+              statusPtr = -1;
+            } else {
+              // invalid status message
+              System.out.println("Invalid DRS2 status package dropped.");
+              statusPtr = -1;
+            }
+
+          } else {
+              statusMsg[statusPtr] = nextChar;
+              statusPtr++;
+              //System.out.println("cnt: " + statusPtr + ", read: " + nextChar + ", exp: " + STATUS_LEN + ", msg: " + (new String(statusMsg)));
+          }
+      }
+    }
+    
+    /**
+     * Verarbeitet das nächste Byte von den IO Karten.
+     * @param nextChar 
+     */
+    private void tickIO(byte nextChar) {
+      if ((statusPtr == -1) && (nextChar == RECEIVE_MARKER)) {
+          statusPtr = 0;
+      } else {
+        if (statusPtr < 0) {
+          //System.out.write(nextChar);
+        } else if (statusPtr >= STATUS_LEN) {
+          if (nextChar == RECEIVE_END) {
+            processIoBytes(statusMsg);
+            statusPtr = -1;
+          } else {
+            // invalid status message
+            System.out.println("Invalid IO status package dropped: " + (new String(statusMsg)));
+            statusPtr = -1;
+
+            if (new String(statusMsg).startsWith("No ")) {
+              sendCommand(UartCommand.GET_STATUS);
+            }
+          }
+        } else {
+          statusMsg[statusPtr] = nextChar;
+          statusPtr++;
+          //System.out.println("cnt: " + statusPtr + ", read: " + nextChar + ", exp: " + STATUS_LEN + ", msg: " + (new String(statusMsg)));
+        }
+      }
+    }
+    
+    /**
      * Liest Rückmeldungen vom Block ein.
      * 
      * @param count 
@@ -220,41 +413,23 @@ public final class Uart implements TickerEvent {
             comPort.readBytes(byteBuffer, 1);
             //if (!isDRS2) System.out.print((char)byteBuffer[0]);
             // System.out.println("Read: " + Integer.toHexString(byteBuffer[0] & 0xff) + ", ptr: " + statusPtr);
-            if ((statusPtr == -1) && (byteBuffer[0] == RECEIVE_MARKER)) {
-                statusPtr = 0;
-            } else {
-                if (statusPtr < 0) {
-                    //System.out.write(byteBuffer[0]);
-                } else if (statusPtr >= STATUS_LEN) {
-                    if (isDRS2) {
-                        if (byteBuffer[0] == RECEIVE_END) {
-                        // process status
-                            processInputBytes(statusMsg);
-                            statusPtr = -1;
-                        } else {
-                            // invalid status message
-                            System.out.println("Invalid DRS2 status package dropped.");
-                            statusPtr = -1;
-                        }
-                    } else {
-                      if (byteBuffer[0] == RECEIVE_END) {
-                          processIoBytes(statusMsg);
-                          statusPtr = -1;
-                      } else {
-                          // invalid status message
-                          System.out.println("Invalid IO status package dropped: " + (new String(statusMsg)));
-                          statusPtr = -1;
-                          
-                          if (new String(statusMsg).startsWith("No ")) {
-                            sendCommand(UartCommand.GET_STATUS);
-                          }
-                      }
-                    }
-                } else {
-                    statusMsg[statusPtr] = byteBuffer[0];
-                    statusPtr++;
-                    //System.out.println("cnt: " + statusPtr + ", read: " + byteBuffer[0] + ", exp: " + STATUS_LEN + ", msg: " + (new String(statusMsg)));
-                }
+            if (connectionType.equals(ConnectionType.ESTW)) {
+              tickESTW(byteBuffer[0]);
+              return;
+            }
+            
+            switch (connectionType) {
+              case DRS2:
+                tickDRS2(byteBuffer[0]);
+                break;
+                
+              case IO:
+                tickIO(byteBuffer[0]);
+                break;
+                
+              case ESTW:
+                tickESTW(byteBuffer[0]);
+                break;
             }
             
         }
@@ -280,30 +455,44 @@ public final class Uart implements TickerEvent {
             case GET_STATUS:
                 clearUART();
                 
-                if (isDRS2) {
+                switch (connectionType) {
+                  case DRS2:
                     buffer[0] = 'Q';
-                } else {
+                    break;
+                    
+                  case IO:
                     buffer[0] = 'Z';
                     buffer[1] = 'z';
                     bytesToSend = 2;
                     statusPtr = -1;
+                    break;
+                    
+                  case ESTW:
+                    break;
                 }
                 break;
                 
             case UPDATE_OUTPUTS:
-                if (isDRS2) {
+                switch (connectionType) {
+                  case DRS2:
                     buffer[0] = OUTPUT_MARKER;
                     buffer[15] = STATUS_END;
                     fillupOutputBuffer(buffer);
 
                     bytesToSend = 16;
-                } else {
+                    break;
+
+                  case IO:
                     fillupIOBuffer(buffer);
 
                     bytesToSend = 26;
+                    break;
+
+                  case ESTW:
+                    break;
                 }
                 break;
-                
+
             case BLOCK1:
                 buffer[0] = 'i';
                 break;

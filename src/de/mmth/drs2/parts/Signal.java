@@ -454,7 +454,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             }
         }
         
-        if (!isFahrt && conn.isInSet(Const.NEBENFADEN_AKTIV)) {
+        if (!isFahrt && (nf || !hm)) {
           conn.setOut(sigHalt, config.blinklicht.getBlink());
           fadenbruchAktiv = true;
         } else if (fadenbruchAktiv) {
