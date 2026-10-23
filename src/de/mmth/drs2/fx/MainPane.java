@@ -39,6 +39,7 @@ public class MainPane extends HBox implements TickerEvent {
     private Button pendingMButton;
     private int signalState = -1;
     private boolean signalActivated;
+    private boolean simulateWB = true;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -134,7 +135,15 @@ public class MainPane extends HBox implements TickerEvent {
             config.streckenEin[Config.FROM_H].tryVorblock();
         });
         
-        var blink = createSizedButton("Blink Störung", STD_BUTTON_SIZE);
+        var simu = createSizedButton("Simulation", STD_BUTTON_SIZE);
+        simu.setOnAction(ev -> {
+            simulateWB = !simulateWB;
+            config.streckenEin[Config.FROM_H].setSimulationMode(simulateWB);
+            config.streckenAus[Config.TO_H].setSimulationMode(simulateWB);
+            simu.setText(simulateWB ? "Simulation" : "ESTW");
+        });
+        
+         var blink = createSizedButton("Blink Störung", STD_BUTTON_SIZE);
         blink.setOnAction(ev -> {
             config.blinklicht.setStoerung(!config.blinklicht.getStoerung());
         });
@@ -158,7 +167,7 @@ public class MainPane extends HBox implements TickerEvent {
           drs60sw.setStyle(config.drs60sw ? "-fx-background-color: lime" : "");
         });
         
-        box.getChildren().addAll(block1,block3, blink, zsm, drs60wk, drs60sw);
+        box.getChildren().addAll(block1,block3, simu, blink, zsm, drs60wk, drs60sw);
         
         var gleis1 = createSizedButton("Zug G1", STD_BUTTON_SIZE);
         gleis1.setOnAction(ev -> {

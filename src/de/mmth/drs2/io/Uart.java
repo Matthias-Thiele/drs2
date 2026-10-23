@@ -8,6 +8,8 @@ import com.fazecast.jSerialComm.SerialPort;
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Das Uart Objekt verwaltet die Kommunikation
@@ -24,20 +26,15 @@ import de.mmth.drs2.TickerEvent;
  */
 public final class Uart implements TickerEvent {
     private final static int PENDING_TRAIN_DURATION = 10000;
-    private final static byte ESTW_VORBLOCK = (byte) 0x86;
-    private final static byte ESTW_VORBLOCK_ANSWER = (byte) 0x83;
-    private final static byte ESTW_RÜCKBLOCK = (byte) 0x84;
-    private final static byte ESTW_RÜCKBLOCK_ANSWER = (byte) 0x81;
-    private final static byte ESTW_CHECK = (byte) 0x94;
-    private final static byte ESTW_CHECK_ANSWER = (byte) 0x91;
-    private final static byte ESTW_ZUGNUMMER = (byte) 0xb6;
-    private final static byte ESTW_QUERY_VORBLOCK = (byte) 0xbc;
-    private final static byte ESTW_QUERY_VORBLOCK_ANSWER = (byte) 0xb9;
-    private final static byte ESTW_QUERY_RÜCKBLOCK = (byte) 0xc4;
-    private final static byte ESTW_QUERY_RÜCKBLOCK_ANSWER = (byte) 0xc1;
-    private final static byte ESTW_QUERY_ERLAUBNIS = (byte) 0xc6;
-    private final static byte ESTW_QUERY_ERLAUBNIS_ANSWER = (byte) 0xc8;
-
+    private final static byte ESTW_QUERY_TRACK_STATE = (byte) 0x90;
+    private final static byte ESTW_LOCK_OUTBOUND = (byte) 0x91;
+    private final static byte ESTW_UNLOCK_INBOUND = (byte) 0x92;
+    private final static byte ESTW_TRACK_STATE_CHANGED0 = (byte) 0xa0;
+    private final static byte ESTW_TRACK_STATE_CHANGED1 = (byte) 0xa1;
+    private final static byte ESTW_TRACK_STATE_CHANGED2 = (byte) 0xa2;
+    private final static byte ESTW_TRACK_STATE_CHANGED3 = (byte) 0xa3;
+    private final static byte ESTW_ZUGNUMMER = (byte) 0xb8;
+    
     private final SerialPort comPort;
     private final Config config;
     private boolean actEinfahrt1 = false;
@@ -250,7 +247,7 @@ public final class Uart implements TickerEvent {
      * ESTW eine Antwort zurückkommt.
      */
     public void ESTW_Vorblocken() {
-      sendByte(ESTW_VORBLOCK);
+      sendByte(ESTW_LOCK_OUTBOUND);
     }
     
     /**
@@ -259,8 +256,41 @@ public final class Uart implements TickerEvent {
      * Die Einfahrt wird nur als frei markiert, wenn vom
      * ESTW eine Antwort kommt.
      */
-    public void ESTW_RÜCKBLOCKEN() {
-      sendByte(ESTW_RÜCKBLOCK);
+    public void ESTW_Rückblocken() {
+      sendByte(ESTW_UNLOCK_INBOUND);
+    }
+    
+    /**
+     * Fordert die aktuelle Streckenbelegung an.
+     */
+    public void ESTW_UpdateInitState() {
+      sendByte(ESTW_QUERY_TRACK_STATE);
+      /*
+      for (var i = 0; i < 100; i++) {
+      sendByte(ESTW_QUERY_TRACK_STATE);
+          try {
+              Thread.sleep(50);
+          } catch (InterruptedException ex) {
+              Logger.getLogger(Uart.class.getName()).log(Level.SEVERE, null, ex);
+              break;
+          }
+      }*/
+    }
+    
+    /**
+     * Meldet die Belegung des Einfahrtgleises zurück.
+     * @return 
+     */
+    public boolean ESTW_GetInboundState() {
+      return inboundState;
+    }
+    
+    /**
+     * Meldet die Belegung des Ausfahrtgleises zurück.
+     * @return 
+     */
+    public boolean ESTW_GetOutboundState() {
+      return outboundState;
     }
     
     /**
@@ -278,43 +308,22 @@ public final class Uart implements TickerEvent {
      */
     private void processEstwCommand(byte nextChar) {
       switch(nextChar) {
-        case ESTW_VORBLOCK:
-          inboundState = true;
-          sendByte(ESTW_VORBLOCK_ANSWER);
-          break;
+        case ESTW_TRACK_STATE_CHANGED0:
+        case ESTW_TRACK_STATE_CHANGED1:
+        case ESTW_TRACK_STATE_CHANGED2:
+        case ESTW_TRACK_STATE_CHANGED3:
+          if (!inboundState && ((nextChar & 1) == 1)) {
+            config.pendingTrainH = PENDING_TRAIN_DURATION;
+          }
           
-        case ESTW_VORBLOCK_ANSWER:
-          outboundState = true;
-          break;
-          
-        case ESTW_RÜCKBLOCK:
-          outboundState = false;
-          sendByte(ESTW_RÜCKBLOCK_ANSWER);
-          break;
-          
-        case ESTW_RÜCKBLOCK_ANSWER:
-          inboundState = false;
-          break;
-          
-        case ESTW_CHECK:
-          sendByte(ESTW_CHECK_ANSWER);
+          inboundState = (nextChar & 1) != 0;
+          outboundState = (nextChar & 2) != 0;
+          System.out.println("Track state: " + (nextChar & 0x3));
           break;
           
         case ESTW_ZUGNUMMER:
           readZugnummer = true;
           zugnummer.setLength(0);
-          break;
-          
-        case ESTW_QUERY_VORBLOCK:
-          sendByte((byte) (ESTW_QUERY_VORBLOCK_ANSWER | (inboundState ? 2 : 0)));
-          break;
-          
-        case ESTW_QUERY_RÜCKBLOCK:
-          sendByte((byte) (ESTW_QUERY_RÜCKBLOCK_ANSWER | (outboundState ? 2 : 0)));
-          break;
-          
-        case ESTW_QUERY_ERLAUBNIS:
-          sendByte(ESTW_QUERY_ERLAUBNIS_ANSWER);
           break;
           
         default:
@@ -429,6 +438,7 @@ public final class Uart implements TickerEvent {
                 
               case ESTW:
                 tickESTW(byteBuffer[0]);
+                System.out.print((char)byteBuffer[0]);
                 break;
             }
             

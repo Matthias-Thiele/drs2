@@ -225,12 +225,14 @@ public class Config implements TickerEvent {
         stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66, 65, Const.Wecker);
         blinklicht.init(this);
         
-        //Uart.createUarts(this, "/dev/ttyAMA1", "/dev/ttyAMA3", connector.polarity);        
-        Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB6", connector.polarity);        
+        //Uart.createUarts(this, "/dev/ttyAMA1", "/dev/ttyAMA3", "/dev/ttyUSB1", connector.polarity);        
+        Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB4", connector.polarity); 
+        
         ticker.add(this);
         ticker.add(rwList);
         
         ne1Fahrt = new Ne1Fahrt(this);
+        uart3.ESTW_UpdateInitState();
     }
     
     /**
@@ -249,6 +251,7 @@ public class Config implements TickerEvent {
                 Const.StreckeVonHRot, Const.EinfRaeumungsmelderH, Const.EinfFestlegemelderH, -1, -1, 1, 1);
         streckenEin[FROM_H] = fromH;
         fromH.setSimulationMode(true);
+        fromH.setESTWMode(true);
         
         StreckeEinfahrt2 fromM = new StreckeEinfahrt2();
         fromM.init(this, "Von M", Const.BlockMIn, Const.StreckeVonMWeiss, 
@@ -262,6 +265,7 @@ public class Config implements TickerEvent {
                 Const.AusfFestlegemelderH, -1, -1, -1, -1);
         streckenAus[TO_H] = toH;
         toH.setSimulationMode(true);
+        toH.setESTWMode(true);
         
         StreckeAusfahrt2 toM = new StreckeAusfahrt2();
         toM.init(this, "Nach M", Const.BlockMOut, Const.StreckeNachMWeiss,

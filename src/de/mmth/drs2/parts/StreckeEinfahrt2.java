@@ -43,7 +43,8 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
   private boolean allowAsLT;
   private int ersatzId;
   private boolean signalBlockBesetzt = false;
-    private boolean ohneAST;
+  private boolean ohneAST;
+  private boolean estwMode = false;
     
   /**
    * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -112,6 +113,15 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
    */
   public void setSimulationMode(boolean simulation) {
     simulationMode = simulation;
+  }
+  
+  /**
+   * Stellt ein, ob der Block mit dem Relaisblock oder dem ESTW verbunden ist.
+   * 
+   * @param estwMode
+   */
+  public void setESTWMode(boolean estwMode) {
+    this.estwMode = estwMode;
   }
   
   public boolean tryVorblock() {
@@ -200,7 +210,11 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
     if (simulationMode) {
       return simulatedBlockState;
     } else {
-      return config.connector.isInSet(blockStatePort);
+      if (estwMode) {
+        return config.uart3.ESTW_GetInboundState();
+      } else {
+        return config.connector.isInSet(blockStatePort);
+      }
     }
   }
   
@@ -265,8 +279,14 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       if (simulationMode) {
         config.connector.setOut(Const.MJ1, true);
       } else {
-        // Relaisblock anweisen das Rückblocken zu starten
-        config.connector.setOut(rückblockPort, true);
+        if (estwMode) {
+          // Rückblockkommando an ESTW senden.
+          config.connector.setOut(Const.MJ1, true);
+          config.uart3.ESTW_Rückblocken();
+        } else {
+          // Relaisblock anweisen das Rückblocken zu starten
+          config.connector.setOut(rückblockPort, true);
+        }
       }
       
       rückblockCount = count - rückblockCount;
@@ -277,8 +297,12 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
         simulatedBlockState = false;
         config.connector.setOut(Const.MJ1, false);
       } else {
-        // Rückblocken beendet
-        config.connector.setOut(rückblockPort, false);
+        if (estwMode) {
+          config.connector.setOut(Const.MJ1, false);
+        } else {
+          // Rückblocken beendet
+          config.connector.setOut(rückblockPort, false);
+        }
       }
       
       config.connector.setOut(Const.ZSM, false);
@@ -340,7 +364,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
     if (räummelderState) {
       updateView();
     }
-    if (simulationMode) {
+    if (simulationMode || estwMode) {
     } else {
       config.connector.setOut(Const.MJ2, config.connector.isInSet(Const.MOTORINDUKTOR));
     }

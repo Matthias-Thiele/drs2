@@ -50,6 +50,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
   private int blockStatePort;
   private int blockSperrmelder;
   private int blockResetWSP;
+  private boolean estwMode = false;
 
     /**
      * Die Initialisierung übergibt die Nummer der Streckenblock
@@ -130,6 +131,15 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     simulationMode = simulation;
   }
   
+  /**
+   * Stellt ein, ob der Block mit dem Relaisblock oder dem ESTW verbunden ist.
+   * 
+   * @param estwMode
+   */
+  public void setESTWMode(boolean estwMode) {
+    this.estwMode = estwMode;
+  }
+
   public String getName() {
     return name;
   }
@@ -192,7 +202,11 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     if (simulationMode) {
       return simulatedBlockState;
     } else {
-      return config.connector.isInSet(blockStatePort);
+      if (estwMode) {
+        return config.uart3.ESTW_GetOutboundState();
+      } else {
+        return config.connector.isInSet(blockStatePort);
+      }
     }
   }
   
@@ -222,8 +236,14 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
       if (simulationMode) {
         config.connector.setOut(Const.MJ1, true);
       } else {
-        // Relaisblock anweisen das Vorblocken zu starten
-        config.connector.setOut(vorblockPort, true);
+        if (estwMode) {
+          // ESTW Vorblock Kommando senden
+          config.connector.setOut(Const.MJ1, true);
+          config.uart3.ESTW_Vorblocken();
+        } else {
+          // Relaisblock anweisen das Vorblocken zu starten
+          config.connector.setOut(vorblockPort, true);
+        }
       }
       
       vorblockCount = count - vorblockCount;
@@ -237,7 +257,11 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
         vorblockCount = Integer.MAX_VALUE;
       } else {
         // Vorblocken beendet
-        config.connector.setOut(vorblockPort, false);
+        if (estwMode) {
+          config.connector.setOut(Const.MJ1, false);
+        } else {
+          config.connector.setOut(vorblockPort, false);
+        }
       }
       
       updateView();
@@ -299,7 +323,13 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     config.connector.setOut(blockMelderWeiss, !besetzt);
     config.connector.setOut(sperrmelderId, sperrmelderState);
     if (!this.simulationMode) {
-      config.connector.setOut(Const.StrWSP, sperrmelderState);
+      if (estwMode) {
+        if (config.uart3.ESTW_GetOutboundState()) {
+          sperrmelderState = false;
+        }  
+      } else {
+        config.connector.setOut(Const.StrWSP, sperrmelderState);
+      }
     }
     config.connector.setOut(festlegemelderId, festlegemelderState);
   }
@@ -337,7 +367,7 @@ public class StreckeAusfahrt2 implements TastenEvent, TickerEvent {
     tickVorblock(count);
     tickRückblock(count);
     checkStreckenState();
-    if (simulationMode) {
+    if (simulationMode || estwMode) {
     } else {
       config.connector.setOut(Const.MJ2, config.connector.isInSet(Const.MOTORINDUKTOR));
     }
