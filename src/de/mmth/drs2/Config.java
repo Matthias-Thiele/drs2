@@ -565,7 +565,7 @@ public class Config implements TickerEvent {
                     aufloesungsTaste = Const.BlockHOut;
                     gleis = 1;
                     ausfahrt = 4;
-                    int[] minusWeichen6 = {};
+                    int[] minusWeichen6 = {5};
                     minusWeichen = minusWeichen6;
                     int[] plusWeichen6 = {3, 4, 5};
                     plusWeichen = plusWeichen6;
@@ -583,7 +583,7 @@ public class Config implements TickerEvent {
                     aufloesungsTaste = Const.BlockHOut;
                     gleis = 2;
                     ausfahrt = 4;
-                    int[] minusWeichen7 = {3};
+                    int[] minusWeichen7 = {3, 5};
                     minusWeichen = minusWeichen7;
                     int[] plusWeichen7 = {4};
                     plusWeichen = plusWeichen7;
