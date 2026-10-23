@@ -42,7 +42,7 @@ public class Config implements TickerEvent {
      * Anzahl der Fahrstrassen die über das
      * System verwaltet werden.
      */
-    public final static int ANZAHL_FAHRSTRASSEN = 8;
+    public final static int ANZAHL_FAHRSTRASSEN = 9;
     
     /**
      * Anzahl der Signale die über das System
@@ -53,7 +53,7 @@ public class Config implements TickerEvent {
     /**
      * Anzahl der Start- oder Zielgleise im System.
      */
-    public final static int ANZAHL_GLEISE = 5;
+    public final static int ANZAHL_GLEISE = 7;
     
     /**
      * Anzahl der Ersatzsignale im System.
@@ -416,6 +416,8 @@ public class Config implements TickerEvent {
         gleise[2].init(this, "Gleis 3", 26, 27, 3);
         gleise[3].init(this, "Strecke A", 41, 40, 4);
         gleise[4].init(this, "Strecke F", 55, 54, 5);
+        gleise[5].init(this, "Strecke A (Gegengleis)", 45, 44, 6);
+        gleise[6].init(this, "Strecke F (Gegengleis)", 42, 43, 7);
     }
     
     /**
@@ -590,6 +592,26 @@ public class Config implements TickerEvent {
                     signalNummer = 5;
                     streckeAus = streckenAus[TO_H];
                     ersatz = 5;
+                    schluesselweiche1 = 0;
+                    break;
+                    
+                case 8:
+                    name = "Von Gleis 3 nach M (Gegengleis)";
+                    taste1 = Const.SIGNAL_P3;
+                    taste2 = Const.BlockMOut;
+                    aufloesungsTaste = Const.BlockMOut;
+                    gleis = 2;
+                    ausfahrt = 5;
+                    int[] minusWeichen8 = {2};
+                    minusWeichen = minusWeichen8;
+                    int[] plusWeichen8 = {1};
+                    plusWeichen = plusWeichen8;
+                    int[] fahrwegWeichen8 = {2, 1};
+                    fahrwegWeichen = fahrwegWeichen8;
+                    signalNummer = 3;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+                    streckeAus = null;
+                    streckeEin = streckenEin[FROM_M];
+                    ersatz = 3;
                     schluesselweiche1 = 0;
                     break;
                     

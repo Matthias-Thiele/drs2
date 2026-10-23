@@ -471,8 +471,15 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                         return false;
                 }
             
-            case 2:
             case 3:
+                if (ausfahrtsGleis.getGleisNummer() == 6) {
+                  // Ausfahrt mit Ersatzsignal ins Gegengleis.
+                  return config.weichen[1].isPlus();
+                } else {
+                  return !config.weichen[1].isPlus();
+                }
+                
+            case 2:
             case 4:
             case 5:
                 // Bei den Ausfahrten ist die Zuordnung Gleis zu
@@ -549,6 +556,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                     && bahnhofsGleis.isInUse()
                     && checkFahrweg()) {
                 ersatzSignalFahrt = true;
+                config.alert("Ersatzsignalfahrt gestartet: " + name);
                 state = INIT;
             }
         }
@@ -605,7 +613,14 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
 
             case AUSFAHRT1:
                 setRed(count, ausfahrtsGleis);
-                streckeAus.activateGleiskontakt(true);
+                if (streckeAus != null) {
+                  streckeAus.activateGleiskontakt(true);
+                }
+                
+                if (streckeEin != null) {
+                  streckeEin.activateGleiskontakt(true);
+                }
+                
                 nextStep = count + STEP_LONG_WAIT;
                 state = AUSFAHRT2;
                 break;
@@ -613,7 +628,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             case AUSFAHRT2:
                 config.alert("Bahnhof verlassen.");
                 fahrwegWeichen[fahrwegWeichen.length - 1].white();
-                ausfahrtsGleis.clear();
+                
                 nextStep = count + STEP_LONG_WAIT;
                 state = OUTGOING_TRAIN;
                 break;
@@ -621,7 +636,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             case OUTGOING_TRAIN:
                 nextStep = count + STEP_LONG_WAIT;
                 //strecke.unblock();
-                streckeAus.fahrstrassenauflösung();
+                if (streckeAus != null) { // bei Ausfahrten ins Gegengleis gibt es die nicht.
+                  streckeAus.fahrstrassenauflösung();
+                }
+                
                 state = DONE;
                 break;
                 
@@ -640,26 +658,49 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 }
                 
                 // Weiche 0 bis n
-                int weiche = state;
-                if (weiche == 0) {
-                  // bei der Ausfahrt ist es nicht Teil des Fahrwegs und
-                  // wird deshalb sofort dunkel wenn der Zug es verlassen hat.
-                  setRed(count, fahrwegWeichen[weiche]);
-                  nextStep = count + STEP_WEICHE_WEICHE;
-                } else if (weiche < fahrwegWeichen.length) {
-                  config.alert("Zug bei Weiche " + fahrwegWeichen[weiche].getName());
-                  setRed(count, fahrwegWeichen[weiche]);
-                  nextStep = count + STEP_WEICHE_WEICHE;
-                } else {
-                  config.alert("Ausfahrtsgleis erreicht.");
+                int weicheId = state;
+                if (weicheId >= fahrwegWeichen.length) {
+                  config.alert("Letzte Weiche erreicht.");
                   nextStep = count + STEP_WEICHE_GLEIS;
                   state = AUSFAHRT1;
-                  break;
+                } else {
+                  Weiche weiche = fahrwegWeichen[weicheId];
+                  if (!checkPlusMinus(weiche)) {
+                    weiche.setStoerung();
+                  }
+
+                  if (weicheId == 0) {
+                    // bei der Ausfahrt ist es nicht Teil des Fahrwegs und
+                    // wird deshalb sofort dunkel wenn der Zug es verlassen hat.
+                    setRed(count, weiche);
+                    nextStep = count + STEP_WEICHE_WEICHE;
+                  } else {
+                    config.alert("Zug bei Weiche " + weiche.getName());
+                    setRed(count, weiche);
+                    nextStep = count + STEP_WEICHE_WEICHE;
+                  }
+                  state++;
                 }
-                
-                state++;
                 break;
         }
+    }
+    
+    private boolean checkPlusMinus(Weiche weiche) {
+      if (weiche.isPlus()) {
+        for (var w: this.plusWeichen) {
+          if (weiche == w) {
+            return true;
+          }
+        }
+      } else {
+        for (var w: this.minusWeichen) {
+          if (weiche == w) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
     }
     
     /**
