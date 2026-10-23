@@ -86,6 +86,7 @@ public class Weiche implements TickerEvent, TastenEvent, ColorMarker {
     
     public boolean starteUmlauf() {
       if ((state == SwitchState.OK) && !isLocked()) {
+        config.alert("Weiche " + name + " umschalten nach " + (inPlusStellung ? "Minus" : "Plus"));
         inPlusStellung = !inPlusStellung;
         blink = BLINK_DURATION;
         return true;

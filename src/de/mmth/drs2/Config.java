@@ -565,7 +565,7 @@ public class Config implements TickerEvent {
                     aufloesungsTaste = Const.BlockHOut;
                     gleis = 1;
                     ausfahrt = 4;
-                    int[] minusWeichen6 = {5};
+                    int[] minusWeichen6 = {};
                     minusWeichen = minusWeichen6;
                     int[] plusWeichen6 = {3, 4, 5};
                     plusWeichen = plusWeichen6;
@@ -583,9 +583,9 @@ public class Config implements TickerEvent {
                     aufloesungsTaste = Const.BlockHOut;
                     gleis = 2;
                     ausfahrt = 4;
-                    int[] minusWeichen7 = {3, 5};
+                    int[] minusWeichen7 = {3};
                     minusWeichen = minusWeichen7;
-                    int[] plusWeichen7 = {4};
+                    int[] plusWeichen7 = {4, 5};
                     plusWeichen = plusWeichen7;
                     int[] fahrwegWeichen7 = {3, 4};
                     fahrwegWeichen = fahrwegWeichen7;
@@ -597,8 +597,8 @@ public class Config implements TickerEvent {
                     
                 case 8:
                     name = "Von Gleis 3 nach M (Gegengleis)";
-                    taste1 = Const.SIGNAL_P3;
-                    taste2 = Const.BlockMOut;
+                    taste1 = -1;
+                    taste2 = -1;
                     aufloesungsTaste = Const.BlockMOut;
                     gleis = 2;
                     ausfahrt = 5;
@@ -617,8 +617,8 @@ public class Config implements TickerEvent {
                     
                 case 9:
                     name = "Von Gleis 2 nach H (Gegengleis)";
-                    taste1 = Const.SIGNAL_N2;
-                    taste2 = Const.BlockHOut;
+                    taste1 = -1;
+                    taste2 = -1;
                     aufloesungsTaste = Const.BlockHOut;
                     gleis = 1;
                     ausfahrt = 6;
@@ -636,8 +636,8 @@ public class Config implements TickerEvent {
                     
                 case 10:
                     name = "Von Gleis 3 nach H (Gegengleis)";
-                    taste1 = Const.SIGNAL_N3;
-                    taste2 = Const.BlockHOut;
+                    taste1 = -1;
+                    taste2 = -1;
                     aufloesungsTaste = Const.BlockHOut;
                     gleis = 2;
                     ausfahrt = 6;

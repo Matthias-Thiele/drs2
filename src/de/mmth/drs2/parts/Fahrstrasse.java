@@ -145,7 +145,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         this.schluesselweiche2 = schluesselweiche2;
         isInbound = signalNummer < SIGNAL_FIRST_OUTBOUND;
         
-        weichenlauf = new Weichenlaufkette(this.plusWeichen, this.minusWeichen);
+        weichenlauf = new Weichenlaufkette(config, name, this.plusWeichen, this.minusWeichen);
         config.ticker.add(weichenlauf);
         config.ticker.add(this);
     }
@@ -175,12 +175,14 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             default:
-                if (config.drs60wk) {
+              if (this.ausfahrtsGleis.getGleisNummer() < 6) {
+                if (config.drs60wk && (taste1 != Const.ErsGT)) {
                   pendingWeichenlauf = true;
                   weichenlauf.start();
                 } else {
                   fahrstrassenfestlegung();
                 }
+              }; // andernfalls Ausfahrten ins Gegengleis, nicht über Taster gestartet.
         }
     }
     
@@ -475,7 +477,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 // Ausfahrt von Gleis 3 nach AH
                 if (ausfahrtsGleis.getGleisNummer() == 6) {
                   // Ausfahrt mit Ersatzsignal ins Gegengleis.
-                  return config.weichen[1].isPlus();
+                  return config.weichen[1].isPlus() && ersatzSignal.isFahrt();
                 } else {
                   return !config.weichen[1].isPlus();
                 }
@@ -485,7 +487,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 // Ausfahrt von Gleis 3 nach WB
                 if (ausfahrtsGleis.getGleisNummer() == 7) {
                   // Ausfahrt mit Ersatzsignal ins Gegengleis.
-                  return !config.weichen[4].isPlus();
+                  return !config.weichen[4].isPlus() && ersatzSignal.isFahrt();
                 } else {
                   return config.weichen[4].isPlus();
                 }

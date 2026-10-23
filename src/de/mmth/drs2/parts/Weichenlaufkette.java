@@ -4,6 +4,7 @@
  */
 package de.mmth.drs2.parts;
 
+import de.mmth.drs2.Config;
 import de.mmth.drs2.TickerEvent;
 
 /**
@@ -20,14 +21,20 @@ public class Weichenlaufkette implements TickerEvent {
   private boolean hasError;
   private boolean done;
   private boolean doStart = false;
+  private final String name;
+  private final Config config;
   
   /**
    * Initialisiert eine Weichenkette zu einer Fahrstraße.
    * 
+   * @param config
+   * @param name
    * @param plusWeichen
    * @param minusWeichen 
    */
-  public Weichenlaufkette(Weiche[] plusWeichen, Weiche[] minusWeichen) {
+  public Weichenlaufkette(Config config, String name, Weiche[] plusWeichen, Weiche[] minusWeichen) {
+    this.config = config;
+    this.name = name;
     this.plusWeichen = plusWeichen;
     this.minusWeichen = minusWeichen;
   }
@@ -36,6 +43,7 @@ public class Weichenlaufkette implements TickerEvent {
    * Startet den Umlauf der beteiligten Weichen.
    */
   public void start() {
+    config.alert("Weichenlaufkette " + name + " gestartet.");
     hasError = false;
     if (plusWeichen.length > 0) {
       activePlus = 0;
