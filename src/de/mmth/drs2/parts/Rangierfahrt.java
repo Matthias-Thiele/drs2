@@ -405,7 +405,13 @@ public class Rangierfahrt implements TickerEvent {
           break;
           
         case 'B': // Streckenmarker auf belegt oder frei umstellen
-          marker = action.charAt(1) == '1' ? 40 : 54;
+          switch (action.charAt(1)) {
+            case '1': marker = 40; break;
+            case '2': marker = 42; break;
+            case '3': marker = 54; break;
+            default: marker = 40; break;
+          }
+          
           fahrweg.add(new Step(ActionType.StreckeRot, marker, SHORT_DELAY));
           checkPendingClear();
           pendingClear = new Step(ActionType.StreckeClear, marker, SHORT_DELAY);
