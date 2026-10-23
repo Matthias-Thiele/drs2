@@ -472,6 +472,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 }
             
             case 3:
+                // Ausfahrt von Gleis 3 nach AH
                 if (ausfahrtsGleis.getGleisNummer() == 6) {
                   // Ausfahrt mit Ersatzsignal ins Gegengleis.
                   return config.weichen[1].isPlus();
@@ -479,9 +480,17 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                   return !config.weichen[1].isPlus();
                 }
                 
-            case 2:
             case 4:
             case 5:
+                // Ausfahrt von Gleis 3 nach WB
+                if (ausfahrtsGleis.getGleisNummer() == 7) {
+                  // Ausfahrt mit Ersatzsignal ins Gegengleis.
+                  return !config.weichen[4].isPlus();
+                } else {
+                  return config.weichen[4].isPlus();
+                }
+              
+            case 2:
                 // Bei den Ausfahrten ist die Zuordnung Gleis zu
                 // Ersatzsignal eindeutig, die Weichenstellung
                 // muss nicht überprüft werden.

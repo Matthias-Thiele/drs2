@@ -42,7 +42,7 @@ public class Config implements TickerEvent {
      * Anzahl der Fahrstrassen die über das
      * System verwaltet werden.
      */
-    public final static int ANZAHL_FAHRSTRASSEN = 9;
+    public final static int ANZAHL_FAHRSTRASSEN = 11;
     
     /**
      * Anzahl der Signale die über das System
@@ -417,7 +417,7 @@ public class Config implements TickerEvent {
         gleise[3].init(this, "Strecke A", 41, 40, 4);
         gleise[4].init(this, "Strecke F", 55, 54, 5);
         gleise[5].init(this, "Strecke A (Gegengleis)", 45, 44, 6);
-        gleise[6].init(this, "Strecke F (Gegengleis)", 42, 43, 7);
+        gleise[6].init(this, "Strecke F (Gegengleis)", 43, 42, 7);
     }
     
     /**
@@ -612,6 +612,45 @@ public class Config implements TickerEvent {
                     streckeAus = null;
                     streckeEin = streckenEin[FROM_M];
                     ersatz = 3;
+                    schluesselweiche1 = 0;
+                    break;
+                    
+                case 9:
+                    name = "Von Gleis 2 nach H (Gegengleis)";
+                    taste1 = Const.SIGNAL_N2;
+                    taste2 = Const.BlockHOut;
+                    aufloesungsTaste = Const.BlockHOut;
+                    gleis = 1;
+                    ausfahrt = 6;
+                    int[] minusWeichen9 = {4, 5};
+                    minusWeichen = minusWeichen9;
+                    int[] plusWeichen9 = {3};
+                    plusWeichen = plusWeichen9;
+                    int[] fahrwegWeichen9 = {3, 4, 5};
+                    fahrwegWeichen = fahrwegWeichen9;
+                    signalNummer = 4;
+                    streckeAus = null;
+                    streckeEin = streckenEin[FROM_H];
+                    ersatz = 4;
+                    break;
+                    
+                case 10:
+                    name = "Von Gleis 3 nach H (Gegengleis)";
+                    taste1 = Const.SIGNAL_N3;
+                    taste2 = Const.BlockHOut;
+                    aufloesungsTaste = Const.BlockHOut;
+                    gleis = 2;
+                    ausfahrt = 6;
+                    int[] minusWeichen10 = {3, 4, 5};
+                    minusWeichen = minusWeichen10;
+                    int[] plusWeichen10 = {};
+                    plusWeichen = plusWeichen10;
+                    int[] fahrwegWeichen10 = {3, 4, 5};
+                    fahrwegWeichen = fahrwegWeichen10;
+                    signalNummer = 5;
+                    streckeAus = null;
+                    streckeEin = streckenEin[FROM_H];
+                    ersatz = 5;
                     schluesselweiche1 = 0;
                     break;
                     
