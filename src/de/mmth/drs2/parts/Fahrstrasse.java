@@ -240,7 +240,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             return;
         }
         
-        if (!isInbound && streckeAus.isLocked()) {
+        if (!isInbound && (streckeAus != null) && streckeAus.isLocked()) {
             config.alert("Der Ausfahrtsperrmelder ist noch aktiv.");
             return;
         }
@@ -727,7 +727,9 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case INIT:
                 signal.white();
-                streckeAus.setFahrstrassenfestlegung();
+                if (streckeAus != null) {
+                  streckeAus.setFahrstrassenfestlegung();
+                }
                 nextStep = count + STEP_SHORT_WAIT;
                 lastRed = bahnhofsGleis;
                 state = SET_HP1; // Fahrstraße wurde ausgewählt.
@@ -735,7 +737,9 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case SET_HP1:
                 signal.fahrt();
-                streckeAus.setWiederholsperre();
+                if (streckeAus != null) {
+                  streckeAus.setWiederholsperre();
+                }
                 nextStep = count + STEP_SHORT_WAIT;
                 state = WAIT_FOR_TRAIN;
                 break;
@@ -743,7 +747,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
             case WAIT_FOR_TRAIN:
                 nextStep = count + STEP_SHORT_WAIT;
                 if (bahnhofsGleis.isInUse()) {
-                    config.alert("Fahrt gestartet in Richtung " + streckeAus.getName());
+                    config.alert("Fahrt gestartet in Richtung " + ((streckeAus != null) ? streckeAus.getName() : "unbekannt"));
                     state = WAIT_FOR_HP1; // Fahrstraße wurde ausgewählt.
                     reportWait = true;
                     if (verbundeneFahrt >= 0) {
@@ -799,7 +803,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 checkPendingHalt();
                 
                 setRed(count, ausfahrtsGleis);
-                streckeAus.activateGleiskontakt(false);
+                if (streckeAus != null) {
+                  streckeAus.activateGleiskontakt(false);
+                }
+                
                 nextStep = count + STEP_LONG_WAIT;
                 state = AUSFAHRT2;
                 break;
@@ -816,7 +823,9 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 // Ausfahrtsgleis erreicht
                 config.alert("Bahnhof verlassen.");
                 unlock(false);
-                streckeAus.fahrstrassenauflösung();
+                if (streckeAus != null) {
+                  streckeAus.fahrstrassenauflösung();
+                }
                 state = DONE;
                 
             case DONE:

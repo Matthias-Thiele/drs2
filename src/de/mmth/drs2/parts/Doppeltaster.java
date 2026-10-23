@@ -6,6 +6,7 @@
 package de.mmth.drs2.parts;
 
 import de.mmth.drs2.Config;
+import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.io.Connector;
 
@@ -43,10 +44,6 @@ public class Doppeltaster implements TickerEvent {
      */
     @Override
     public void tick(int count) {
-        if (!config.tastenAnschalter) {
-            return;
-        }
-        
         if (drs2.isInSet(taste1)) {
             taste1Count++;
         } else {
@@ -63,7 +60,7 @@ public class Doppeltaster implements TickerEvent {
          || ((taste2Count == ACTIVATION_COUNT) && (taste1Count >= ACTIVATION_COUNT))) {
             if (actionOnRelease) {
               triggerActivation = true;
-            } else {
+            } else if (config.tastenAnschalter || (taste1 == Const.HaGT)) {
               activateWhenPressed.whenPressed(taste1, taste2);  
             }
         }
@@ -82,7 +79,9 @@ public class Doppeltaster implements TickerEvent {
         
         if (triggerActivation && (taste1Count == 0) && (taste2Count == 0)) {
             triggerActivation = false;
-            activateWhenPressed.whenPressed(taste1, taste2);
+            if (config.tastenAnschalter || (taste1 == Const.HaGT)) {
+              activateWhenPressed.whenPressed(taste1, taste2);
+            }
         }
     }
     
