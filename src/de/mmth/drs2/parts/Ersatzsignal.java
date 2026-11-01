@@ -93,10 +93,8 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
     public void hasLichtsignal(boolean active) {
       this.hasLichtsignal = active;
       if (active) {
-        conf.alert("Signal " + name + " ist mit dem Lichtsignal verbunden.");
         updateErsatzsignal();
       } else {
-        //conf.alert("Signal " + name + " ist nicht mehr mit dem Lichtsignal verbunden.");
         conf.connector.setOut(Const.LS_ZS1, false);
       }
     }

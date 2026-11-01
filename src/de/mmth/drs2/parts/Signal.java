@@ -321,7 +321,6 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         fahrwegMarker = this.fahrwegWhite;
         conn.setOut(fahrwegRed, false);
         conn.setOut(fahrwegWhite, true);
-        config.alert("Marker weiß " + name);
         updateView();
     }
 
@@ -333,7 +332,6 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         fahrwegMarker = this.fahrwegRed;
         conn.setOut(fahrwegWhite, false);
         conn.setOut(fahrwegRed, true);
-        config.alert("Marker rot " + name);
         updateView();
     }
     

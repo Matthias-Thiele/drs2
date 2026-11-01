@@ -50,7 +50,6 @@ public class Counter implements TastenEvent, TickerEvent {
                 if (count > shutdown) {
                     shutdown = NOT_ACTIVE;
                     config.connector.setOut(port, false);
-                    config.alert("Zähler " + name + " deaktiviert.");
                 }
         }
     }

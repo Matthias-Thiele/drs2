@@ -924,7 +924,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                         config.pendingTrainM = 0;
                     }
                     //config.stoerungsmelder.meldung();
-                    config.alert("Fahrt gestartet: " + name);
+                    config.alert("Einfahrt: " + name);
                     nextStep = count + STEP_VERY_SHORT_WAIT;
                 } else {
                     nextStep = count + STEP_SHORT_WAIT;
