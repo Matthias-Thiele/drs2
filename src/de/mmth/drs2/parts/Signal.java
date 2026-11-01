@@ -501,13 +501,13 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             if (count > nextAction) {
               nextAction = count + 3;
               actState = SigState.NUR_SIGNAL;
+              isFahrt = true;
               System.out.println("State NUR_SIGNAL");
             }
             break;
             
           case NUR_SIGNAL:
             if (count > nextAction) {
-              isFahrt = true;
               nextAction = count + 3;
               actState = SigState.ANZEIGE;
               System.out.println("State ANZEIGE 1");
