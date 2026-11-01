@@ -11,7 +11,9 @@ package de.mmth.drs2;
 public class Const {
     public final static int PENDING_TRAIN_DURATION = 600;
 
+    // =====================================
     // Eingänge
+    // =====================================
     
     // Tastenanschalter
     public static final int TA = 44;
@@ -67,8 +69,12 @@ public class Const {
     // Zweite IO Karte
     public static final int PAUSE = 71;
     public static final int HALTMELDER_AKTIV = 70;
+    public static final int IO2_NOT_USED = 69;
     public static final int NEBENFADEN_AKTIV = 68;
+    public static final int LS_MELDER_ZS1 = 67;
     public static final int FAHRTMELDER_AKTIV = 66;
+    public static final int LS_MELDER_VP1 = 65;
+    public static final int LS_MELDER_SH1 = 64;
     
     // Dritte IO Karte, Bedientasten
     public static final int SWITCH_LS = 72;
@@ -94,7 +100,9 @@ public class Const {
     public static final int WHT = -2;
     public static final int AZGRT = -3;
     
+    // =====================================
     // Ausgänge
+    // =====================================
     public static final int NC = -1;
     
     // Signal A

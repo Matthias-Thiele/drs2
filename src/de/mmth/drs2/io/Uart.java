@@ -8,8 +8,6 @@ import com.fazecast.jSerialComm.SerialPort;
 import de.mmth.drs2.Config;
 import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Das Uart Objekt verwaltet die Kommunikation

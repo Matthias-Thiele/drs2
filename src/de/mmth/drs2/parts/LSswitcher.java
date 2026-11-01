@@ -36,8 +36,8 @@ public class LSswitcher implements TastenEvent {
    * Löst die Verbindung zwischen DRS2 und externen Lichtsignal.
    */
   public void signalOff() {
-    config.signale[2].hasLichtsignal(false);
-    config.signale[3].hasLichtsignal(false);
+    config.signale[2].assignLichtsignal(false);
+    config.signale[3].assignLichtsignal(false);
     config.ersatzsignale[2].hasLichtsignal(false);
     config.ersatzsignale[3].hasLichtsignal(false);
   }
@@ -67,8 +67,8 @@ public class LSswitcher implements TastenEvent {
   
   private void updateIO() {
     if (!locked) {
-        config.signale[2].hasLichtsignal(!actState);
-        config.signale[3].hasLichtsignal(actState);
+        config.signale[2].assignLichtsignal(!actState);
+        config.signale[3].assignLichtsignal(actState);
         config.ersatzsignale[2].hasLichtsignal(!actState);
         config.ersatzsignale[3].hasLichtsignal(actState);
         config.connector.setOut(Const.LS_P1_P3_State, !actState);

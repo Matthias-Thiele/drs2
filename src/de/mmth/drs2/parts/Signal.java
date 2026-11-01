@@ -9,6 +9,15 @@ import de.mmth.drs2.Const;
 import de.mmth.drs2.TickerEvent;
 import de.mmth.drs2.io.Connector;
 
+enum SigState {
+  ANZEIGE,
+  NACH_FAHRT,
+  DUNKEL_FAHRT,
+  NUR_SIGNAL,
+  NACH_HALT,
+  DUNKEL_HALT
+}
+
 /**
  * Diese Klasse kapselt die Definition und 
  * Verwendung eines Signals.
@@ -40,12 +49,13 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     private int fahrstrasse3;
     private int fahrstrasse4;
     
-    private int changeState = 0;
     private int nextAction = Integer.MAX_VALUE;
     private int id;
     private boolean showHP1;
     private boolean hasLichtsignal;
     private boolean activateP1P3 = false;
+    
+    private SigState actState = SigState.ANZEIGE;
     
     /**
      * Zur Initialisierung wird der PortEpander Connector
@@ -99,7 +109,6 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         }
         config.ticker.add(this);
         isFahrt = false;
-        changeState = 1;
         nextAction = 0;
         showHP1 = name.equals("Sig P1");
         hasLichtsignal = name.equals("Sig P3");
@@ -112,11 +121,11 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
      * 
      * @param active 
      */
-    public void hasLichtsignal(boolean active) {
+    public void assignLichtsignal(boolean active) {
       this.hasLichtsignal = active;
       if (active) {
         config.alert("Signal " + name + " ist mit dem Lichtsignal verbunden.");
-        updateSignal();
+        updateSignal(isFahrt);
       } else {
         //config.alert("Signal " + name + " ist nicht mehr mit dem Lichtsignal verbunden.");
         conn.setOut(Const.LS_HP1, false);
@@ -146,13 +155,10 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
      */
     public void halt(boolean delayedAction) {
         if (isSh1) {
-            isSh1 = false;
-            config.alert("Signal " + name + " auf SH0 gestellt.");
+          isSh1 = false;
+          config.alert("Signal " + name + " auf SH0 gestellt.");
         } else if (isFahrt) {
-            isFahrt = false;
-            
-            changeState = (delayedAction) ? 4 : 1;
-            nextAction = 0;
+          actState = SigState.NACH_HALT;
         }
         
         updateView();
@@ -166,10 +172,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
      */
     public void fahrt() {
         if (!isGestoert) {
-            isFahrt = true;
-            changeState = 1;
-            nextAction = 0;
-            updateView();
+            actState = SigState.NACH_FAHRT;
             
             if (activateP1P3) {
                 config.lsSwitcher.changeState(!showHP1);
@@ -182,7 +185,11 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
      * @return 
      */
     public boolean isFahrt() {
-        return isFahrt;
+      if (hasLichtsignal) {
+        isFahrt = conn.isInSet(Const.FAHRTMELDER_AKTIV);
+      }
+
+      return isFahrt;
     }
     
     /**
@@ -238,10 +245,10 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         return name;
     }
     
-    private void updateSignal() {
+    private void updateSignal(boolean isLsFahrt) {
       if (hasLichtsignal) {
-        conn.setOut(Const.LS_HP1, showHP1 & isFahrt);
-        conn.setOut(Const.LS_HP2, !showHP1 & isFahrt);
+        conn.setOut(Const.LS_HP1, showHP1 & isLsFahrt);
+        conn.setOut(Const.LS_HP2, !showHP1 & isLsFahrt);
         conn.setOut(Const.LS_SH1, isSh1);
       } 
     }
@@ -259,41 +266,46 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             conn.setOut(sh1Lampe, false);            
         } else {
             conn.setOut(sh1Lampe, isSh1);
+            var redActive = !isFahrt;
+            var greenActive = isFahrt;
+            var vorsigActive = isFahrt;
             
-            switch (changeState) {
-                case 0: // Normale Anzeige
-                    conn.setOut(sigFahrt, isFahrt);
-                    conn.setOut(sigHalt, !isFahrt);
-                    conn.setOut(vorsigHalt, !isFahrt);
-                    conn.setOut(vorsigFahrt, isFahrt);
-                    break;
-                    
-                case 1: // Signal wird umgeschaltet
-                    conn.setOut(sigFahrt, false);
-                    conn.setOut(sigHalt, false);
-                    conn.setOut(vorsigHalt, false);
-                    conn.setOut(vorsigFahrt, false);
-                    break;
-                    
-                case 2: // neues Signalbild aktiv, Vorsignal noch dunkel
-                    conn.setOut(sigFahrt, isFahrt);
-                    conn.setOut(sigHalt, !isFahrt);
-                    conn.setOut(vorsigHalt, false);
-                    conn.setOut(vorsigFahrt, false);
-                    break;
-                case 3: // warten
-                    break;
+            switch (actState) {
+              case ANZEIGE: // Normale Anzeige - Fahrt oder Halt
+                if (hasLichtsignal) {
+                  greenActive = conn.isInSet(Const.FAHRTMELDER_AKTIV);
+                  redActive = !fadenbruchAktiv && !greenActive;
+                  vorsigActive = conn.isInSet(Const.LS_MELDER_VP1);
+                }
+                conn.setOut(sigFahrt, greenActive);
+                conn.setOut(sigHalt, redActive);
+                conn.setOut(vorsigHalt, !vorsigActive);
+                conn.setOut(vorsigFahrt, vorsigActive);
+                break;
+                
+              case DUNKEL_FAHRT: // Anzeige wird gerade umgeschaltet
+              case DUNKEL_HALT:
+                conn.setOut(sigFahrt, false);
+                conn.setOut(sigHalt, false);
+                conn.setOut(vorsigHalt, false);
+                conn.setOut(vorsigFahrt, false);
+                break;
+                
+              case NUR_SIGNAL: // Signal leuchtet, Vorsignal noch nicht
+                if (hasLichtsignal) {
+                  conn.setOut(sigFahrt, true);
+                  conn.setOut(sigHalt, false);
+                } else {
+                  conn.setOut(sigFahrt, greenActive);
+                  conn.setOut(sigHalt, redActive);
+                }
+                conn.setOut(vorsigHalt, false);
+                conn.setOut(vorsigFahrt, false);
+                break;
+                
             }
             
         }
-        
-        conn.setOut(fahrwegWhite, false);
-        conn.setOut(fahrwegRed, false);
-        if (fahrwegMarker >= 0) {
-            conn.setOut(fahrwegMarker, true);
-        }
-        
-        updateSignal();
     }
 
     @Override
@@ -307,6 +319,8 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     @Override
     public void white() {
         fahrwegMarker = this.fahrwegWhite;
+        conn.setOut(fahrwegRed, false);
+        conn.setOut(fahrwegWhite, true);
         config.alert("Marker weiß " + name);
         updateView();
     }
@@ -317,6 +331,8 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     @Override
     public void red() {
         fahrwegMarker = this.fahrwegRed;
+        conn.setOut(fahrwegWhite, false);
+        conn.setOut(fahrwegRed, true);
         config.alert("Marker rot " + name);
         updateView();
     }
@@ -327,6 +343,8 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     @Override
     public void clear() {
         fahrwegMarker = -1;
+        conn.setOut(fahrwegWhite, false);
+        conn.setOut(fahrwegRed, false);
         config.alert("Marker aus " + name);
         updateView();
     }
@@ -467,25 +485,55 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
     @Override
     public void tick(int count) {
         checkFadenbruch();
-        if (count > nextAction) {
-            if (nextAction == 0) {
-                nextAction = count + 5;
+        switch (actState) {
+          case NACH_FAHRT:
+            nextAction = count + 4;
+            if (hasLichtsignal) {
+              updateSignal(true);
+              actState = SigState.ANZEIGE;
             } else {
-                if (changeState == 4) {
-                    changeState = 1;
-                    nextAction = count + 3;
-                } else {
-                    changeState++;
-                    if (changeState == 3) {
-                        changeState = 0;
-                        nextAction = Integer.MAX_VALUE;
-                    } else {
-                        nextAction = count + 3;
-                    }
-                }
+              actState = SigState.DUNKEL_FAHRT;
+              System.out.println("State DUNKEL_FAHRT");
             }
+            break;
             
-            updateView();
+          case DUNKEL_FAHRT:
+            if (count > nextAction) {
+              nextAction = count + 3;
+              actState = SigState.NUR_SIGNAL;
+              System.out.println("State NUR_SIGNAL");
+            }
+            break;
+            
+          case NUR_SIGNAL:
+            if (count > nextAction) {
+              isFahrt = true;
+              nextAction = count + 3;
+              actState = SigState.ANZEIGE;
+              System.out.println("State ANZEIGE 1");
+            }
+            break;
+            
+          case NACH_HALT:
+            nextAction = count + 2;
+            if (hasLichtsignal) {
+              updateSignal(false);
+              actState = SigState.ANZEIGE;
+            } else {
+              actState = SigState.DUNKEL_HALT;
+              System.out.println("State DUNKEL_HALT");
+            }
+            break;
+            
+          case DUNKEL_HALT:
+            if (count > nextAction) {
+              isFahrt = false;
+              actState = SigState.ANZEIGE;
+              System.out.println("State ANZEIGE 2");
+            }
+            break;
         }
+        
+        updateView();
     }
 }

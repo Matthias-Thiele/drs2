@@ -175,14 +175,16 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 break;
                 
             default:
-              if (this.ausfahrtsGleis.getGleisNummer() < 6) {
+              if ((ausfahrtsGleis != null) && (ausfahrtsGleis.getGleisNummer() < 6)) {
                 if (config.drs60wk && (taste1 != Const.ErsGT)) {
                   pendingWeichenlauf = true;
                   weichenlauf.start();
                 } else {
                   fahrstrassenfestlegung();
                 }
-              }; // andernfalls Ausfahrten ins Gegengleis, nicht über Taster gestartet.
+              } else {
+                fahrstrassenfestlegung();
+              }
         }
     }
     
