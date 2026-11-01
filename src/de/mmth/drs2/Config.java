@@ -918,10 +918,16 @@ public class Config implements TickerEvent {
         // angemeldete Zugfahrten bleiben nicht stehen wenn sie nicht genutzt werden.
         if (pendingTrainH > 0) {
             pendingTrainH--;
+            if (pendingTrainH == 0) {
+              alert("Wartezeit für Zug auf WB abgelaufen.");
+            }
         }
         
         if (pendingTrainM > 0) {
             pendingTrainM--;
+            if (pendingTrainM == 0) {
+              alert("Wartezeit für Zug auf AH abgelaufen.");
+            }
         }
     }
 }

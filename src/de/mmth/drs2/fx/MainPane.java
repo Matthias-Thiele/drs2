@@ -14,6 +14,7 @@ import de.mmth.drs2.parts.Signal;
 import de.mmth.drs2.parts.Weiche;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -40,6 +41,7 @@ public class MainPane extends HBox implements TickerEvent {
     private int signalState = -1;
     private boolean signalActivated;
     private boolean simulateWB = true;
+  private TextField newTrainDelay;
     
     /**
      * Der Konstruktor übernimmt die Konfiguration
@@ -86,6 +88,23 @@ public class MainPane extends HBox implements TickerEvent {
     }
     
     /**
+     * Liest das Feld für die Wartezeit aus und gibt die Anzahl der Ticks zurück.
+     * @return 
+     */
+    public int getNewTrainDelay() {
+      var delay = newTrainDelay.getText().strip();
+      if (delay.isBlank()) {
+        delay = "5";
+      }
+      
+      try {
+        return (Integer.parseInt(delay) * 16) + 10000;
+      } catch (NumberFormatException ex) {
+        return (5 * 16) + 10000;
+      }
+    }
+    
+    /**
      * Fügt die Schlüsselschalter für die
      * Fahrstraßenauflösung in die MainPane ein.
      */
@@ -97,7 +116,7 @@ public class MainPane extends HBox implements TickerEvent {
         
         pendingHButton = createSizedButton("Zug von WB", STD_BUTTON_SIZE);
         pendingHButton.setOnAction(ev -> {
-            config.pendingTrainH = Const.PENDING_TRAIN_DURATION;
+            config.pendingTrainH = getNewTrainDelay();
         });
         box.getChildren().add(pendingHButton);
         
@@ -210,6 +229,13 @@ public class MainPane extends HBox implements TickerEvent {
         signalActive.setOnAction(ev -> {toogleSignal(signalActive);});
         toogleSignal(signalActive);
         
+        var trainDelayInput = new HBox();
+        trainDelayInput.setSpacing(5);
+        var delMsg = new Label("Wartezeit");
+        newTrainDelay = new TextField("5");
+        newTrainDelay.setMaxWidth(60);
+        trainDelayInput.getChildren().addAll(delMsg, newTrainDelay);
+        
         var checkBulbBox = new HBox();
         var input = new TextField();
         input.setMaxWidth(60.0);
@@ -225,7 +251,7 @@ public class MainPane extends HBox implements TickerEvent {
         });
         checkBulbBox.getChildren().addAll(input, toggle);
         
-        box.getChildren().addAll(gleis1,gleis2, gleis3, ne1FahrtAH, ne1FahrtWB, signalActive, checkBulbBox);
+        box.getChildren().addAll(gleis1,gleis2, gleis3, ne1FahrtAH, ne1FahrtWB, signalActive, trainDelayInput, checkBulbBox);
         
         box.setSpacing(5);
         parent.getChildren().add(box);

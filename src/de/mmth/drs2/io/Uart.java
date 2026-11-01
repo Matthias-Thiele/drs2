@@ -155,7 +155,7 @@ public final class Uart implements TickerEvent {
                   if (!config.signale[0].isFahrt()) {
                     config.stoerungsmelder.meldung();
                   }
-                  config.pendingTrainM = PENDING_TRAIN_DURATION;
+                  config.pendingTrainM = config.mainPane.getNewTrainDelay();
               }
             } else {
               actEinfahrt1 = false;
@@ -311,7 +311,7 @@ public final class Uart implements TickerEvent {
         case ESTW_TRACK_STATE_CHANGED2:
         case ESTW_TRACK_STATE_CHANGED3:
           if (!inboundState && ((nextChar & 1) == 1)) {
-            config.pendingTrainH = PENDING_TRAIN_DURATION;
+            config.pendingTrainH = config.mainPane.getNewTrainDelay();
           }
           
           inboundState = (nextChar & 1) != 0;

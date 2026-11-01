@@ -340,6 +340,7 @@ public class StreckeEinfahrt2 implements TastenEvent, TickerEvent {
       if (newStreckenState.equals(StreckenState.WAIT_FOR_TRAIN)) {
         // Block hat von Frei nach Besetzt gewechselt
         if (!isFahrt()) {
+          // Meldung an FDL, dass sich etwas geändert hat.
           config.stoerungsmelder.meldung();
         }
       }

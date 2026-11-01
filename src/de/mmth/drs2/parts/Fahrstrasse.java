@@ -882,6 +882,11 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
         inboundTick(count);
     }
     
+    private boolean checkStart(int delayLeft) {
+      if (delayLeft > 0)System.out.println("Delay left: " + delayLeft);
+      return (delayLeft > 10) && (delayLeft < (STEP_SHORT_WAIT + 10005));
+    }
+    
     /**
      * Statemaschine für Einfahrten.
      * @param count 
@@ -909,10 +914,10 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                 
             case WAIT_FOR_TRAIN:
                 boolean vonH = name.startsWith("Von H");
-                var trainStarted = (vonH) ? config.pendingTrainH > 0 : config.pendingTrainM > 0;
+                var trainStarted = (vonH) ? checkStart(config.pendingTrainH) : checkStart(config.pendingTrainM);
                 
                 if (trainStarted) {
-                    state = INCOMMING_TRAIN; // Zug wurde gestartet
+                   state = INCOMMING_TRAIN; // Zug wurde gestartet
                     if (vonH) {
                         config.pendingTrainH = 0;
                     } else {
@@ -920,7 +925,7 @@ public class Fahrstrasse implements TastenEvent, TickerEvent {
                     }
                     //config.stoerungsmelder.meldung();
                     config.alert("Fahrt gestartet: " + name);
-                    nextStep = count + STEP_LONG_WAIT;
+                    nextStep = count + STEP_VERY_SHORT_WAIT;
                 } else {
                     nextStep = count + STEP_SHORT_WAIT;
                 }
