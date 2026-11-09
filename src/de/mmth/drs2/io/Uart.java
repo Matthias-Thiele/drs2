@@ -160,6 +160,11 @@ public final class Uart implements TickerEvent {
             } else {
               actEinfahrt1 = false;
             }
+            
+            if (config.connector.drs2In[Const.ZUG_VON_WB]) {
+                config.pendingTrainH = config.mainPane.getNewTrainDelay();
+                config.streckenEin[Config.FROM_H].tryVorblock();
+            }
         }
     }
     

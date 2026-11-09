@@ -124,8 +124,10 @@ public class Ersatzsignal implements TastenEvent, TickerEvent {
               break;
                 
             case Const.HaGT:
-                isFahrt = false;
-                hp0();
+                if (isFahrt) {
+                    isFahrt = false;
+                    hp0();
+                }
                 break;
                 
             case 0:

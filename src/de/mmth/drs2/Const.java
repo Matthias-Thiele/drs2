@@ -81,6 +81,7 @@ public class Const {
     public static final int NE1_COMMAND_WB = 73;
     public static final int NE1_COMMAND_AH = 74;
     public static final int RF_WAIT = 75;
+    public static final int ZUG_VON_WB = 76;
     
     // Schlüsselweiche
     public static final int WSCHLUESSEL3 = 34;

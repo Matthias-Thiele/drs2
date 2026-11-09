@@ -157,7 +157,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
         if (isSh1) {
           isSh1 = false;
           config.alert("Signal " + name + " auf SH0 gestellt.");
-        } else if (isFahrt) {
+        } else if (isFahrt || isGestoert) {
           actState = SigState.NACH_HALT;
         }
         
@@ -262,10 +262,15 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             conn.setOut(sigFahrt, false);
             conn.setOut(sigHalt, false);
             conn.setOut(vorsigFahrt, false);
-            conn.setOut(vorsigHalt, false);            
+            conn.setOut(vorsigHalt, true);            
             conn.setOut(sh1Lampe, false);            
         } else {
             conn.setOut(sh1Lampe, isSh1);
+            if (hasLichtsignal) {
+                //updateSignal(isFahrt);
+                conn.setOut(Const.LS_SH1, isSh1);
+            }
+            
             var redActive = !isFahrt;
             var greenActive = isFahrt;
             var vorsigActive = isFahrt;
@@ -279,7 +284,9 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
                 }
                 conn.setOut(sigFahrt, greenActive);
                 conn.setOut(sigHalt, redActive);
-                conn.setOut(vorsigHalt, !vorsigActive);
+                if (vorsigHalt >= 0) {
+                    conn.setOut(vorsigHalt, !vorsigActive);
+                }
                 conn.setOut(vorsigFahrt, vorsigActive);
                 break;
                 
@@ -412,7 +419,7 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             if (isSh1) {
                 isSh1 = false;
                 config.alert("Signal " + name + " auf SH0 gestellt.");
-            } else {
+            } else if (isFahrt() || isGestoert) {
                 halt();
                 config.alert("Signal über HaGT auf HP0 gestellt.");
             }
@@ -470,8 +477,9 @@ public class Signal implements ColorMarker, TastenEvent, TickerEvent {
             }
         }
         
-        if (!isFahrt && (nf || !hm)) {
+        if (!isFahrt() && (nf || !hm)) {
           conn.setOut(sigHalt, config.blinklicht.getBlink());
+          System.out.println("Check Fadenbruch " + config.blinklicht.getBlink());
           fadenbruchAktiv = true;
         } else if (fadenbruchAktiv) {
           fadenbruchAktiv = false;

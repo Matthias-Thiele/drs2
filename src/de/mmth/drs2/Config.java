@@ -225,7 +225,7 @@ public class Config implements TickerEvent {
         stoerungsmelder.init(this, Const.WuT_S, Const.WuT_W, 68, 67, 66, 65, Const.Wecker);
         blinklicht.init(this);
         
-        //Uart.createUarts(this, "/dev/ttyAMA1", "/dev/ttyAMA3", "/dev/ttyUSB1", connector.polarity);        
+        //Uart.createUarts(this, "/dev/ttyAMA1", "/dev/ttyAMA3", "/dev/ttyUSB0", connector.polarity);        
         Uart.createUarts(this, "/dev/ttyUSB0", "/dev/ttyUSB1", "/dev/ttyUSB4", connector.polarity); 
         
         ticker.add(this);
@@ -827,7 +827,7 @@ public class Config implements TickerEvent {
                     sigFahrt = 34;
                     sigHalt = 35;
                     vorsigFahrt = 87;
-                    vorsigHalt = 35;
+                    vorsigHalt = -1;
                     einfahrtSignal = 1;
                     sh1Lampe = 79;
                     sh1WMinus = 2; // Weiche 5
@@ -843,7 +843,7 @@ public class Config implements TickerEvent {
                     sigFahrt = 32;
                     sigHalt = 33;
                     vorsigFahrt = 32;
-                    vorsigHalt = 33;
+                    vorsigHalt = -1;
                     einfahrtSignal = 0;
                     sh1Lampe = 78;
                     sh1WPlus = 3;
@@ -857,7 +857,7 @@ public class Config implements TickerEvent {
                     sigFahrt = 46;
                     sigHalt = 47;
                     vorsigFahrt = 46;
-                    vorsigHalt = 47;
+                    vorsigHalt = -1;
                     einfahrtSignal = 0;
                     sh1Lampe = 77;
                     sh1WMinus = 3;
